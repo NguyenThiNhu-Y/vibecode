@@ -1,0 +1,3 @@
+{
+  "markdown": "# Preliminary proposal: Internal regulation Q&A assistant\n\n## Context\nEmployees wait two days on average for answers about internal regulations.\n\n## Proposed solution\nA RAG-based Q&A assistant over ~800 documents, answering with citations.\n\n## Estimated effort\n| Phase | Person-days |\n|---|---|\n| PoC | 10–15 |\n| MVP | 30–50 |\n| Production | 60–100 |\n\n## Assumptions\n- Documents are text-based, no OCR needed.\n\n## Risks\n- Wrong clause cited (level 4): citations are mandatory.\n"
+}

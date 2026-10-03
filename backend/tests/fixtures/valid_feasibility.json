@@ -1,0 +1,11 @@
+{
+  "data_readiness": 4,
+  "technical_feasibility": 4,
+  "business_value": 4,
+  "risks": [
+    {"category": "accuracy", "description": "Trợ lý trả lời sai điều khoản dẫn tới áp dụng sai quy định.", "severity": 4, "mitigation": "Bắt buộc trích dẫn nguồn, hiển thị đoạn gốc và bộ test 100 câu hỏi chuẩn."},
+    {"category": "privacy", "description": "Một số văn bản chỉ dành cho cấp quản lý.", "severity": 3, "mitigation": "Lọc tài liệu theo quyền của người dùng khi truy xuất."},
+    {"category": "adoption", "description": "Nhân viên quen gửi email, ít dùng công cụ mới.", "severity": 2, "mitigation": "Tích hợp vào kênh chat nội bộ và đào tạo ngắn."}
+  ],
+  "go_recommendation": "go_with_poc"
+}

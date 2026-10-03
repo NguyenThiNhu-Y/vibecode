@@ -1,0 +1,1851 @@
+{
+  "name": "case_02",
+  "recorded_at": "2026-10-02T16:49:04.182798+00:00",
+  "llm_provider": "mock",
+  "request_text": "Chào anh/chị, chúng tôi là Phòng Pháp chế – Tuân thủ của Ngân hàng TMCP Sao Việt (giả lập).\nNgân hàng hiện có khoảng 1.500 văn bản quy định, quy trình nội bộ (Word, PDF), được cập nhật hàng tháng.\nKhoảng 4.000 nhân viên chi nhánh thường xuyên gọi điện hỏi lại phòng pháp chế vì không tìm được điều khoản cần thiết.\nChúng tôi muốn có trợ lý hỏi đáp bằng tiếng Việt, trả lời dựa trên đúng văn bản đang hiệu lực và trích dẫn số hiệu, điều khoản.\nDữ liệu không được đưa ra ngoài theo quy định của NHNN; hệ thống cần ghi log truy vấn để phục vụ kiểm toán.\nMong muốn triển khai thí điểm cho 2 chi nhánh trong quý tới.\n",
+  "segments": [
+    {
+      "answers": {},
+      "events": [
+        {
+          "event": "status",
+          "data": {
+            "status": "running"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "intake"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "intake",
+            "result": {
+              "business_goal": "Xây trợ lý hỏi đáp quy định nội bộ để nhân viên tra cứu nhanh, giảm tải cho phòng pháp chế.",
+              "current_process": "Nhân viên gửi email hỏi phòng pháp chế, trung bình 2 ngày mới có phản hồi.",
+              "users": [
+                "Nhân viên chi nhánh",
+                "Phòng pháp chế"
+              ],
+              "data_sources": [
+                "Khoảng 800 văn bản quy định nội bộ dạng Word và PDF"
+              ],
+              "constraints": [
+                "vietnamese_ui",
+                "cloud_allowed"
+              ],
+              "budget": null,
+              "timeline": "Muốn có bản thử trong 2 tháng",
+              "language": "vi",
+              "industry": "Tài chính – bảo hiểm (giả lập)"
+            },
+            "latency_ms": 803
+          },
+          "delay_ms": 804
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "gaps"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "gaps",
+            "result": {
+              "missing_info": [
+                "Tần suất cập nhật văn bản",
+                "Yêu cầu trích dẫn nguồn",
+                "Hệ thống đăng nhập hiện có"
+              ],
+              "questions": [
+                {
+                  "id": "q1",
+                  "topic": "data",
+                  "question": "Các văn bản quy định được cập nhật bao lâu một lần và ai là người cập nhật?",
+                  "why_it_matters": "Quyết định cơ chế đồng bộ và đánh chỉ mục lại tài liệu.",
+                  "blocking": false
+                },
+                {
+                  "id": "q2",
+                  "topic": "accuracy",
+                  "question": "Câu trả lời có bắt buộc kèm trích dẫn điều khoản và số trang không?",
+                  "why_it_matters": "Ảnh hưởng thiết kế phần hiển thị nguồn và cách chia đoạn tài liệu.",
+                  "blocking": false
+                },
+                {
+                  "id": "q3",
+                  "topic": "integration",
+                  "question": "Công ty đang dùng hệ thống đăng nhập tập trung (SSO) nào?",
+                  "why_it_matters": "Xác định effort tích hợp phân quyền theo phòng ban.",
+                  "blocking": false
+                }
+              ],
+              "can_proceed": true
+            },
+            "latency_ms": 802
+          },
+          "delay_ms": 821
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "pattern"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "pattern",
+            "result": {
+              "pattern": "rag",
+              "rationale": "Bài toán là hỏi đáp trên kho văn bản phi cấu trúc thay đổi theo thời gian và cần trích dẫn nguồn. RAG cho phép cập nhật tài liệu mà không phải huấn luyện lại model.",
+              "rejected": [
+                {
+                  "pattern": "no_ai_rule_based",
+                  "reason": "Câu hỏi của nhân viên ở dạng ngôn ngữ tự nhiên đa dạng, không viết thành quy tắc được."
+                },
+                {
+                  "pattern": "fine_tune",
+                  "reason": "Văn bản thay đổi thường xuyên, fine-tune tốn kém và không cho trích dẫn nguồn."
+                },
+                {
+                  "pattern": "agent",
+                  "reason": "Không cần thực hiện hành động nhiều bước trên hệ thống khác."
+                },
+                {
+                  "pattern": "classic_ml",
+                  "reason": "Không có bài toán dự đoán trên dữ liệu bảng."
+                }
+              ],
+              "confidence": "high",
+              "assumptions": [
+                "Văn bản ở dạng text, không phải bản scan cần OCR"
+              ]
+            },
+            "latency_ms": 802
+          },
+          "delay_ms": 805
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "feasibility"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "feasibility",
+            "result": {
+              "data_readiness": 4,
+              "technical_feasibility": 4,
+              "business_value": 4,
+              "risks": [
+                {
+                  "category": "accuracy",
+                  "description": "Trợ lý trả lời sai điều khoản dẫn tới áp dụng sai quy định.",
+                  "severity": 4,
+                  "mitigation": "Bắt buộc trích dẫn nguồn, hiển thị đoạn gốc và bộ test 100 câu hỏi chuẩn."
+                },
+                {
+                  "category": "privacy",
+                  "description": "Một số văn bản chỉ dành cho cấp quản lý.",
+                  "severity": 3,
+                  "mitigation": "Lọc tài liệu theo quyền của người dùng khi truy xuất."
+                },
+                {
+                  "category": "adoption",
+                  "description": "Nhân viên quen gửi email, ít dùng công cụ mới.",
+                  "severity": 2,
+                  "mitigation": "Tích hợp vào kênh chat nội bộ và đào tạo ngắn."
+                }
+              ],
+              "go_recommendation": "go_with_poc"
+            },
+            "latency_ms": 803
+          },
+          "delay_ms": 805
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "architecture"
+          },
+          "delay_ms": 9
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "architecture",
+            "result": {
+              "components": [
+                {
+                  "name": "Ingestion",
+                  "purpose": "Đọc Word/PDF, chia đoạn, gắn metadata điều khoản",
+                  "tech_options": [
+                    "Python",
+                    "unstructured"
+                  ]
+                },
+                {
+                  "name": "Vector index",
+                  "purpose": "Lưu embedding để truy xuất đoạn liên quan",
+                  "tech_options": [
+                    "pgvector",
+                    "OpenSearch"
+                  ]
+                },
+                {
+                  "name": "Chat API",
+                  "purpose": "Truy xuất + sinh câu trả lời kèm trích dẫn",
+                  "tech_options": [
+                    "FastAPI",
+                    "LLM API"
+                  ]
+                },
+                {
+                  "name": "Web chat",
+                  "purpose": "Giao diện hỏi đáp cho nhân viên",
+                  "tech_options": [
+                    "React"
+                  ]
+                }
+              ],
+              "deployment": "cloud",
+              "estimates": [
+                {
+                  "phase": "poc",
+                  "min_person_days": 10,
+                  "max_person_days": 15,
+                  "team": [
+                    "AI engineer",
+                    "Backend developer"
+                  ],
+                  "deliverables": [
+                    "Demo hỏi đáp trên 100 văn bản",
+                    "Bộ câu hỏi đánh giá"
+                  ],
+                  "adjustment_note": null
+                },
+                {
+                  "phase": "mvp",
+                  "min_person_days": 30,
+                  "max_person_days": 50,
+                  "team": [
+                    "AI engineer",
+                    "Backend developer",
+                    "Frontend developer",
+                    "QA"
+                  ],
+                  "deliverables": [
+                    "Trợ lý hỏi đáp toàn bộ kho văn bản",
+                    "Phân quyền theo phòng ban"
+                  ],
+                  "adjustment_note": null
+                },
+                {
+                  "phase": "production",
+                  "min_person_days": 60,
+                  "max_person_days": 100,
+                  "team": [
+                    "AI engineer",
+                    "Backend developer",
+                    "Frontend developer",
+                    "QA",
+                    "DevOps"
+                  ],
+                  "deliverables": [
+                    "Vận hành chính thức",
+                    "Giám sát chất lượng câu trả lời"
+                  ],
+                  "adjustment_note": null
+                }
+              ],
+              "reference_projects": [
+                "rp_example"
+              ],
+              "mermaid": "flowchart LR\n  U[Nhân viên] --> UI[Web chat]\n  UI --> API[Chat API]\n  DOC[Văn bản Word/PDF] --> ING[Ingestion]\n  ING --> IDX[Vector index]\n  API --> IDX\n  API --> LLM[LLM API]"
+            },
+            "latency_ms": 803,
+            "effort_basis": {
+              "pattern": "rag",
+              "base": {
+                "poc": [
+                  10,
+                  15
+                ],
+                "mvp": [
+                  30,
+                  50
+                ],
+                "production": [
+                  60,
+                  100
+                ]
+              },
+              "multipliers": [],
+              "factor": 1.0,
+              "computed": {
+                "poc": [
+                  10,
+                  15
+                ],
+                "mvp": [
+                  30,
+                  50
+                ],
+                "production": [
+                  60,
+                  100
+                ]
+              }
+            }
+          },
+          "delay_ms": 807
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "wbs"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "wbs",
+            "result": {
+              "tasks": [
+                {
+                  "id": "W1",
+                  "phase": "poc",
+                  "name": "Khảo sát dữ liệu & yêu cầu",
+                  "role": "AI engineer",
+                  "person_days": 4,
+                  "depends_on": [],
+                  "deliverable": null
+                },
+                {
+                  "id": "W2",
+                  "phase": "poc",
+                  "name": "Dựng prototype Ingestion",
+                  "role": "Backend developer",
+                  "person_days": 4,
+                  "depends_on": [
+                    "W1"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W3",
+                  "phase": "poc",
+                  "name": "Đánh giá kết quả PoC với khách",
+                  "role": "AI engineer",
+                  "person_days": 4,
+                  "depends_on": [
+                    "W2"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W4",
+                  "phase": "mvp",
+                  "name": "Phân tích & thiết kế chi tiết",
+                  "role": "AI engineer",
+                  "person_days": 8,
+                  "depends_on": [
+                    "W3"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W5",
+                  "phase": "mvp",
+                  "name": "Xây dựng Ingestion",
+                  "role": "Backend developer",
+                  "person_days": 8,
+                  "depends_on": [
+                    "W4"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W6",
+                  "phase": "mvp",
+                  "name": "Xây dựng Vector index",
+                  "role": "Frontend developer",
+                  "person_days": 8,
+                  "depends_on": [
+                    "W4"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W7",
+                  "phase": "mvp",
+                  "name": "Tích hợp hệ thống",
+                  "role": "QA",
+                  "person_days": 8,
+                  "depends_on": [
+                    "W4"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W8",
+                  "phase": "mvp",
+                  "name": "Kiểm thử & đánh giá chất lượng",
+                  "role": "AI engineer",
+                  "person_days": 8,
+                  "depends_on": [
+                    "W5",
+                    "W6",
+                    "W7"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W9",
+                  "phase": "production",
+                  "name": "Hardening & bảo mật",
+                  "role": "AI engineer",
+                  "person_days": 20,
+                  "depends_on": [
+                    "W8"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W10",
+                  "phase": "production",
+                  "name": "Mở rộng Ingestion",
+                  "role": "Backend developer",
+                  "person_days": 20,
+                  "depends_on": [
+                    "W9"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W11",
+                  "phase": "production",
+                  "name": "Giám sát & vận hành",
+                  "role": "Frontend developer",
+                  "person_days": 20,
+                  "depends_on": [
+                    "W9"
+                  ],
+                  "deliverable": null
+                },
+                {
+                  "id": "W12",
+                  "phase": "production",
+                  "name": "Đào tạo người dùng & bàn giao",
+                  "role": "QA",
+                  "person_days": 20,
+                  "depends_on": [
+                    "W10",
+                    "W11"
+                  ],
+                  "deliverable": null
+                }
+              ],
+              "notes": [
+                "WBS sinh bởi mock LLM."
+              ]
+            },
+            "latency_ms": 802,
+            "schedule": {
+              "tasks": [
+                {
+                  "id": "W1",
+                  "start_day": 0,
+                  "end_day": 4
+                },
+                {
+                  "id": "W2",
+                  "start_day": 4,
+                  "end_day": 8
+                },
+                {
+                  "id": "W3",
+                  "start_day": 8,
+                  "end_day": 12
+                },
+                {
+                  "id": "W4",
+                  "start_day": 12,
+                  "end_day": 20
+                },
+                {
+                  "id": "W5",
+                  "start_day": 20,
+                  "end_day": 28
+                },
+                {
+                  "id": "W6",
+                  "start_day": 20,
+                  "end_day": 28
+                },
+                {
+                  "id": "W7",
+                  "start_day": 20,
+                  "end_day": 28
+                },
+                {
+                  "id": "W8",
+                  "start_day": 28,
+                  "end_day": 36
+                },
+                {
+                  "id": "W9",
+                  "start_day": 36,
+                  "end_day": 56
+                },
+                {
+                  "id": "W10",
+                  "start_day": 56,
+                  "end_day": 76
+                },
+                {
+                  "id": "W11",
+                  "start_day": 56,
+                  "end_day": 76
+                },
+                {
+                  "id": "W12",
+                  "start_day": 76,
+                  "end_day": 96
+                }
+              ],
+              "phases": {
+                "poc": [
+                  0,
+                  12
+                ],
+                "mvp": [
+                  12,
+                  36
+                ],
+                "production": [
+                  36,
+                  96
+                ]
+              },
+              "total_days": 96
+            },
+            "quotation": {
+              "currency": "VND",
+              "lines": [
+                {
+                  "phase": "poc",
+                  "role_key": "ai_engineer",
+                  "role_label": "AI engineer",
+                  "person_days": 8,
+                  "day_rate": 4000000.0,
+                  "amount": 32000000.0
+                },
+                {
+                  "phase": "poc",
+                  "role_key": "backend",
+                  "role_label": "Backend developer",
+                  "person_days": 4,
+                  "day_rate": 3000000.0,
+                  "amount": 12000000.0
+                },
+                {
+                  "phase": "mvp",
+                  "role_key": "ai_engineer",
+                  "role_label": "AI engineer",
+                  "person_days": 16,
+                  "day_rate": 4000000.0,
+                  "amount": 64000000.0
+                },
+                {
+                  "phase": "mvp",
+                  "role_key": "backend",
+                  "role_label": "Backend developer",
+                  "person_days": 8,
+                  "day_rate": 3000000.0,
+                  "amount": 24000000.0
+                },
+                {
+                  "phase": "mvp",
+                  "role_key": "frontend",
+                  "role_label": "Frontend developer",
+                  "person_days": 8,
+                  "day_rate": 2800000.0,
+                  "amount": 22400000.0
+                },
+                {
+                  "phase": "mvp",
+                  "role_key": "qa",
+                  "role_label": "QA / Tester",
+                  "person_days": 8,
+                  "day_rate": 2200000.0,
+                  "amount": 17600000.0
+                },
+                {
+                  "phase": "production",
+                  "role_key": "ai_engineer",
+                  "role_label": "AI engineer",
+                  "person_days": 20,
+                  "day_rate": 4000000.0,
+                  "amount": 80000000.0
+                },
+                {
+                  "phase": "production",
+                  "role_key": "backend",
+                  "role_label": "Backend developer",
+                  "person_days": 20,
+                  "day_rate": 3000000.0,
+                  "amount": 60000000.0
+                },
+                {
+                  "phase": "production",
+                  "role_key": "frontend",
+                  "role_label": "Frontend developer",
+                  "person_days": 20,
+                  "day_rate": 2800000.0,
+                  "amount": 56000000.0
+                },
+                {
+                  "phase": "production",
+                  "role_key": "qa",
+                  "role_label": "QA / Tester",
+                  "person_days": 20,
+                  "day_rate": 2200000.0,
+                  "amount": 44000000.0
+                }
+              ],
+              "phases": [
+                {
+                  "phase": "poc",
+                  "person_days": 12,
+                  "amount": 44000000.0,
+                  "min_amount": 36667000.0,
+                  "max_amount": 55000000.0
+                },
+                {
+                  "phase": "mvp",
+                  "person_days": 40,
+                  "amount": 128000000.0,
+                  "min_amount": 96000000.0,
+                  "max_amount": 160000000.0
+                },
+                {
+                  "phase": "production",
+                  "person_days": 80,
+                  "amount": 240000000.0,
+                  "min_amount": 180000000.0,
+                  "max_amount": 300000000.0
+                }
+              ],
+              "subtotal": 412000000.0,
+              "contingency_pct": 15.0,
+              "contingency": 61800000.0,
+              "total": 473800000.0,
+              "total_min": 359567000.0,
+              "total_max": 592250000.0,
+              "monthly_run_cost": 15000000.0,
+              "milestones": [
+                {
+                  "name": "Ký hợp đồng / kick-off",
+                  "percent": 30.0,
+                  "amount": 142140000.0
+                },
+                {
+                  "name": "Nghiệm thu MVP",
+                  "percent": 40.0,
+                  "amount": 189520000.0
+                },
+                {
+                  "name": "Go-live production",
+                  "percent": 30.0,
+                  "amount": 142140000.0
+                }
+              ],
+              "assumptions": [
+                "Đơn giá theo vai trò là số giả lập trong bảng đơn giá, cần thay bằng đơn giá thật.",
+                "Chi phí nhân sự tính theo WBS; khoảng min–max theo khoảng effort của từng giai đoạn.",
+                "Dự phòng rủi ro 15% (cơ bản 10%, +5% cho mỗi rủi ro mức 4–5).",
+                "Chưa bao gồm thuế VAT, chi phí bản quyền phần mềm và phần cứng mua mới.",
+                "Chi phí vận hành/tháng (hạ tầng + LLM API) là ước tính, tính riêng."
+              ]
+            }
+          },
+          "delay_ms": 817
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "requirements"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "requirements",
+            "result": {
+              "items": [
+                {
+                  "req_id": "FR-01",
+                  "coverage": "full",
+                  "component": "Ingestion",
+                  "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+                },
+                {
+                  "req_id": "FR-02",
+                  "coverage": "full",
+                  "component": "Vector index",
+                  "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+                },
+                {
+                  "req_id": "FR-03",
+                  "coverage": "full",
+                  "component": "Chat API",
+                  "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+                },
+                {
+                  "req_id": "FR-04",
+                  "coverage": "partial",
+                  "component": "Web chat",
+                  "note": "Đáp ứng khi khách cung cấp API/quyền truy cập hệ thống liên quan."
+                },
+                {
+                  "req_id": "FR-05",
+                  "coverage": "full",
+                  "component": "Ingestion",
+                  "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+                },
+                {
+                  "req_id": "FR-06",
+                  "coverage": "not_supported",
+                  "component": null,
+                  "note": "Ngoài phạm vi đề xuất (ứng dụng di động/offline)."
+                },
+                {
+                  "req_id": "FR-07",
+                  "coverage": "partial",
+                  "component": "Chat API",
+                  "note": "Đáp ứng khi khách cung cấp API/quyền truy cập hệ thống liên quan."
+                },
+                {
+                  "req_id": "FR-08",
+                  "coverage": "needs_clarification",
+                  "component": "Web chat",
+                  "note": "Yêu cầu quá ngắn, cần khách mô tả rõ hơn."
+                }
+              ],
+              "skipped": false
+            },
+            "latency_ms": 803
+          },
+          "delay_ms": 803
+        },
+        {
+          "event": "step_started",
+          "data": {
+            "step": "proposal"
+          },
+          "delay_ms": 0
+        },
+        {
+          "event": "step_done",
+          "data": {
+            "step": "proposal",
+            "result": {
+              "title": "Đề xuất sơ bộ: Trợ lý hỏi đáp quy định nội bộ",
+              "markdown": "# Đề xuất sơ bộ: Trợ lý hỏi đáp quy định nội bộ\n\n## Bối cảnh\nNhân viên mất trung bình 2 ngày để nhận phản hồi về quy định nội bộ.\n\n## Giải pháp đề xuất\nTrợ lý hỏi đáp dùng RAG trên kho khoảng 800 văn bản, trả lời kèm trích dẫn.\n\n## Effort dự kiến\n| Giai đoạn | Ngày công |\n|---|---|\n| PoC | 10–15 |\n| MVP | 30–50 |\n| Production | 60–100 |\n\n## Giả định\n- Văn bản ở dạng text, không cần OCR.\n\n## Rủi ro\n- Trả lời sai điều khoản (mức 4): bắt buộc trích dẫn nguồn.\n\n## Câu hỏi còn mở\n- Tần suất cập nhật văn bản?\n",
+              "language": "vi"
+            },
+            "latency_ms": 803
+          },
+          "delay_ms": 804
+        },
+        {
+          "event": "status",
+          "data": {
+            "status": "done"
+          },
+          "delay_ms": 0
+        }
+      ]
+    }
+  ],
+  "attachments": [
+    {
+      "id": "a1",
+      "filename": "yeu_cau_chuc_nang.xlsx",
+      "kind": "requirements",
+      "size_bytes": 5631,
+      "text": null,
+      "pages": null,
+      "truncated": false,
+      "requirements": [
+        {
+          "id": "FR-01",
+          "text": "Nhân viên đặt câu hỏi bằng tiếng Việt và nhận câu trả lời kèm trích dẫn điều khoản",
+          "priority": "Must",
+          "category": "Hỏi đáp",
+          "sheet": "Yêu cầu chức năng"
+        },
+        {
+          "id": "FR-02",
+          "text": "Hiển thị đoạn văn bản gốc và số trang của nguồn trích dẫn",
+          "priority": "Must",
+          "category": "Hỏi đáp",
+          "sheet": "Yêu cầu chức năng"
+        },
+        {
+          "id": "FR-03",
+          "text": "Quản trị viên tải lên, cập nhật, gỡ văn bản quy định",
+          "priority": "Must",
+          "category": "Quản trị",
+          "sheet": "Yêu cầu chức năng"
+        },
+        {
+          "id": "FR-04",
+          "text": "Phân quyền xem tài liệu theo phòng ban, tích hợp SSO hiện có",
+          "priority": "Must",
+          "category": "Quản trị",
+          "sheet": "Yêu cầu chức năng"
+        },
+        {
+          "id": "FR-05",
+          "text": "Thống kê câu hỏi thường gặp theo tuần",
+          "priority": "Should",
+          "category": "Báo cáo",
+          "sheet": "Yêu cầu chức năng"
+        },
+        {
+          "id": "FR-06",
+          "text": "Ứng dụng di động offline cho nhân viên hiện trường",
+          "priority": "Could",
+          "category": "Mobile",
+          "sheet": "Yêu cầu chức năng"
+        },
+        {
+          "id": "FR-07",
+          "text": "Tích hợp vào kênh chat nội bộ qua API",
+          "priority": "Should",
+          "category": "Tích hợp",
+          "sheet": "Yêu cầu chức năng"
+        },
+        {
+          "id": "FR-08",
+          "text": "Dùng AI",
+          "priority": "Could",
+          "category": "Khác",
+          "sheet": "Yêu cầu chức năng"
+        }
+      ],
+      "data_profiles": [],
+      "code_profile": null
+    },
+    {
+      "id": "a2",
+      "filename": "lich_su_cau_hoi.csv",
+      "kind": "data_sample",
+      "size_bytes": 25879,
+      "text": null,
+      "pages": null,
+      "truncated": false,
+      "requirements": [],
+      "data_profiles": [
+        {
+          "sheet": null,
+          "rows": 420,
+          "columns": [
+            {
+              "name": "ngay_hoi",
+              "dtype": "date",
+              "null_ratio": 0.0,
+              "unique": 157,
+              "examples": [
+                "2026-03-28",
+                "2026-05-13",
+                "2026-08-25"
+              ],
+              "pii_suspect": false
+            },
+            {
+              "name": "phong_ban",
+              "dtype": "text",
+              "null_ratio": 0.0,
+              "unique": 3,
+              "examples": [
+                "Tín dụng",
+                "Kế toán",
+                "Nhân sự"
+              ],
+              "pii_suspect": false
+            },
+            {
+              "name": "cau_hoi",
+              "dtype": "text",
+              "null_ratio": 0.0,
+              "unique": 420,
+              "examples": [
+                "Câu hỏi số 0",
+                "Câu hỏi số 1",
+                "Câu hỏi số 2"
+              ],
+              "pii_suspect": false
+            },
+            {
+              "name": "email_nguoi_hoi",
+              "dtype": "text",
+              "null_ratio": 0.0,
+              "unique": 420,
+              "examples": [],
+              "pii_suspect": true
+            },
+            {
+              "name": "thoi_gian_cho_gio",
+              "dtype": "number",
+              "null_ratio": 0.112,
+              "unique": 59,
+              "examples": [
+                "50",
+                "26",
+                "3"
+              ],
+              "pii_suspect": false
+            }
+          ],
+          "issues": [
+            "Có cột nghi chứa dữ liệu cá nhân, cần ẩn danh trước khi dùng."
+          ],
+          "readiness_hint": 4
+        }
+      ],
+      "code_profile": null
+    },
+    {
+      "id": "a3",
+      "filename": "hien_trang.docx",
+      "kind": "document",
+      "size_bytes": 36979,
+      "text": "Mô tả hiện trạng (giả lập)\nHiện có khoảng 800 văn bản quy định nội bộ dạng Word và PDF. Phòng pháp chế nhận 300 câu hỏi mỗi tháng qua email. Liên hệ: phap.che@example.vn, 0901 234 567.\nHệ thống | SharePoint nội bộ\nSSO | Azure AD",
+      "pages": null,
+      "truncated": false,
+      "requirements": [],
+      "data_profiles": [],
+      "code_profile": null
+    },
+    {
+      "id": "a4",
+      "filename": "portal_noi_bo.zip",
+      "kind": "source_code",
+      "size_bytes": 2097,
+      "text": null,
+      "pages": null,
+      "truncated": false,
+      "requirements": [],
+      "data_profiles": [],
+      "code_profile": {
+        "files": 5,
+        "total_lines": 34,
+        "languages": {
+          "JavaScript": 30,
+          "Python": 4
+        },
+        "frameworks": [
+          "Flask",
+          "React"
+        ],
+        "top_dirs": [
+          "backend",
+          "frontend"
+        ],
+        "has_tests": false,
+        "has_docker": true,
+        "notes": [
+          "Không thấy test tự động.",
+          "Có Dockerfile/docker-compose, thuận lợi cho triển khai."
+        ]
+      }
+    }
+  ],
+  "final_run": {
+    "id": "case_02",
+    "created_at": "2026-10-02T16:48:57.688583Z",
+    "request_text": "Chào anh/chị, chúng tôi là Phòng Pháp chế – Tuân thủ của Ngân hàng TMCP Sao Việt (giả lập).\nNgân hàng hiện có khoảng 1.500 văn bản quy định, quy trình nội bộ (Word, PDF), được cập nhật hàng tháng.\nKhoảng 4.000 nhân viên chi nhánh thường xuyên gọi điện hỏi lại phòng pháp chế vì không tìm được điều khoản cần thiết.\nChúng tôi muốn có trợ lý hỏi đáp bằng tiếng Việt, trả lời dựa trên đúng văn bản đang hiệu lực và trích dẫn số hiệu, điều khoản.\nDữ liệu không được đưa ra ngoài theo quy định của NHNN; hệ thống cần ghi log truy vấn để phục vụ kiểm toán.\nMong muốn triển khai thí điểm cho 2 chi nhánh trong quý tới.\n",
+    "status": "done",
+    "answers": {},
+    "intake": {
+      "business_goal": "Xây trợ lý hỏi đáp quy định nội bộ để nhân viên tra cứu nhanh, giảm tải cho phòng pháp chế.",
+      "current_process": "Nhân viên gửi email hỏi phòng pháp chế, trung bình 2 ngày mới có phản hồi.",
+      "users": [
+        "Nhân viên chi nhánh",
+        "Phòng pháp chế"
+      ],
+      "data_sources": [
+        "Khoảng 800 văn bản quy định nội bộ dạng Word và PDF"
+      ],
+      "constraints": [
+        "vietnamese_ui",
+        "cloud_allowed"
+      ],
+      "budget": null,
+      "timeline": "Muốn có bản thử trong 2 tháng",
+      "language": "vi",
+      "industry": "Tài chính – bảo hiểm (giả lập)"
+    },
+    "gaps": {
+      "missing_info": [
+        "Tần suất cập nhật văn bản",
+        "Yêu cầu trích dẫn nguồn",
+        "Hệ thống đăng nhập hiện có"
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "topic": "data",
+          "question": "Các văn bản quy định được cập nhật bao lâu một lần và ai là người cập nhật?",
+          "why_it_matters": "Quyết định cơ chế đồng bộ và đánh chỉ mục lại tài liệu.",
+          "blocking": false
+        },
+        {
+          "id": "q2",
+          "topic": "accuracy",
+          "question": "Câu trả lời có bắt buộc kèm trích dẫn điều khoản và số trang không?",
+          "why_it_matters": "Ảnh hưởng thiết kế phần hiển thị nguồn và cách chia đoạn tài liệu.",
+          "blocking": false
+        },
+        {
+          "id": "q3",
+          "topic": "integration",
+          "question": "Công ty đang dùng hệ thống đăng nhập tập trung (SSO) nào?",
+          "why_it_matters": "Xác định effort tích hợp phân quyền theo phòng ban.",
+          "blocking": false
+        }
+      ],
+      "can_proceed": true
+    },
+    "pattern": {
+      "pattern": "rag",
+      "rationale": "Bài toán là hỏi đáp trên kho văn bản phi cấu trúc thay đổi theo thời gian và cần trích dẫn nguồn. RAG cho phép cập nhật tài liệu mà không phải huấn luyện lại model.",
+      "rejected": [
+        {
+          "pattern": "no_ai_rule_based",
+          "reason": "Câu hỏi của nhân viên ở dạng ngôn ngữ tự nhiên đa dạng, không viết thành quy tắc được."
+        },
+        {
+          "pattern": "fine_tune",
+          "reason": "Văn bản thay đổi thường xuyên, fine-tune tốn kém và không cho trích dẫn nguồn."
+        },
+        {
+          "pattern": "agent",
+          "reason": "Không cần thực hiện hành động nhiều bước trên hệ thống khác."
+        },
+        {
+          "pattern": "classic_ml",
+          "reason": "Không có bài toán dự đoán trên dữ liệu bảng."
+        }
+      ],
+      "confidence": "high",
+      "assumptions": [
+        "Văn bản ở dạng text, không phải bản scan cần OCR"
+      ]
+    },
+    "feasibility": {
+      "data_readiness": 4,
+      "technical_feasibility": 4,
+      "business_value": 4,
+      "risks": [
+        {
+          "category": "accuracy",
+          "description": "Trợ lý trả lời sai điều khoản dẫn tới áp dụng sai quy định.",
+          "severity": 4,
+          "mitigation": "Bắt buộc trích dẫn nguồn, hiển thị đoạn gốc và bộ test 100 câu hỏi chuẩn."
+        },
+        {
+          "category": "privacy",
+          "description": "Một số văn bản chỉ dành cho cấp quản lý.",
+          "severity": 3,
+          "mitigation": "Lọc tài liệu theo quyền của người dùng khi truy xuất."
+        },
+        {
+          "category": "adoption",
+          "description": "Nhân viên quen gửi email, ít dùng công cụ mới.",
+          "severity": 2,
+          "mitigation": "Tích hợp vào kênh chat nội bộ và đào tạo ngắn."
+        }
+      ],
+      "go_recommendation": "go_with_poc"
+    },
+    "architecture": {
+      "components": [
+        {
+          "name": "Ingestion",
+          "purpose": "Đọc Word/PDF, chia đoạn, gắn metadata điều khoản",
+          "tech_options": [
+            "Python",
+            "unstructured"
+          ]
+        },
+        {
+          "name": "Vector index",
+          "purpose": "Lưu embedding để truy xuất đoạn liên quan",
+          "tech_options": [
+            "pgvector",
+            "OpenSearch"
+          ]
+        },
+        {
+          "name": "Chat API",
+          "purpose": "Truy xuất + sinh câu trả lời kèm trích dẫn",
+          "tech_options": [
+            "FastAPI",
+            "LLM API"
+          ]
+        },
+        {
+          "name": "Web chat",
+          "purpose": "Giao diện hỏi đáp cho nhân viên",
+          "tech_options": [
+            "React"
+          ]
+        }
+      ],
+      "deployment": "cloud",
+      "estimates": [
+        {
+          "phase": "poc",
+          "min_person_days": 10,
+          "max_person_days": 15,
+          "team": [
+            "AI engineer",
+            "Backend developer"
+          ],
+          "deliverables": [
+            "Demo hỏi đáp trên 100 văn bản",
+            "Bộ câu hỏi đánh giá"
+          ],
+          "adjustment_note": null
+        },
+        {
+          "phase": "mvp",
+          "min_person_days": 30,
+          "max_person_days": 50,
+          "team": [
+            "AI engineer",
+            "Backend developer",
+            "Frontend developer",
+            "QA"
+          ],
+          "deliverables": [
+            "Trợ lý hỏi đáp toàn bộ kho văn bản",
+            "Phân quyền theo phòng ban"
+          ],
+          "adjustment_note": null
+        },
+        {
+          "phase": "production",
+          "min_person_days": 60,
+          "max_person_days": 100,
+          "team": [
+            "AI engineer",
+            "Backend developer",
+            "Frontend developer",
+            "QA",
+            "DevOps"
+          ],
+          "deliverables": [
+            "Vận hành chính thức",
+            "Giám sát chất lượng câu trả lời"
+          ],
+          "adjustment_note": null
+        }
+      ],
+      "reference_projects": [
+        "rp_example"
+      ],
+      "mermaid": "flowchart LR\n  U[Nhân viên] --> UI[Web chat]\n  UI --> API[Chat API]\n  DOC[Văn bản Word/PDF] --> ING[Ingestion]\n  ING --> IDX[Vector index]\n  API --> IDX\n  API --> LLM[LLM API]"
+    },
+    "wbs": {
+      "tasks": [
+        {
+          "id": "W1",
+          "phase": "poc",
+          "name": "Khảo sát dữ liệu & yêu cầu",
+          "role": "AI engineer",
+          "person_days": 4,
+          "depends_on": [],
+          "deliverable": null
+        },
+        {
+          "id": "W2",
+          "phase": "poc",
+          "name": "Dựng prototype Ingestion",
+          "role": "Backend developer",
+          "person_days": 4,
+          "depends_on": [
+            "W1"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W3",
+          "phase": "poc",
+          "name": "Đánh giá kết quả PoC với khách",
+          "role": "AI engineer",
+          "person_days": 4,
+          "depends_on": [
+            "W2"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W4",
+          "phase": "mvp",
+          "name": "Phân tích & thiết kế chi tiết",
+          "role": "AI engineer",
+          "person_days": 8,
+          "depends_on": [
+            "W3"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W5",
+          "phase": "mvp",
+          "name": "Xây dựng Ingestion",
+          "role": "Backend developer",
+          "person_days": 8,
+          "depends_on": [
+            "W4"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W6",
+          "phase": "mvp",
+          "name": "Xây dựng Vector index",
+          "role": "Frontend developer",
+          "person_days": 8,
+          "depends_on": [
+            "W4"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W7",
+          "phase": "mvp",
+          "name": "Tích hợp hệ thống",
+          "role": "QA",
+          "person_days": 8,
+          "depends_on": [
+            "W4"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W8",
+          "phase": "mvp",
+          "name": "Kiểm thử & đánh giá chất lượng",
+          "role": "AI engineer",
+          "person_days": 8,
+          "depends_on": [
+            "W5",
+            "W6",
+            "W7"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W9",
+          "phase": "production",
+          "name": "Hardening & bảo mật",
+          "role": "AI engineer",
+          "person_days": 20,
+          "depends_on": [
+            "W8"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W10",
+          "phase": "production",
+          "name": "Mở rộng Ingestion",
+          "role": "Backend developer",
+          "person_days": 20,
+          "depends_on": [
+            "W9"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W11",
+          "phase": "production",
+          "name": "Giám sát & vận hành",
+          "role": "Frontend developer",
+          "person_days": 20,
+          "depends_on": [
+            "W9"
+          ],
+          "deliverable": null
+        },
+        {
+          "id": "W12",
+          "phase": "production",
+          "name": "Đào tạo người dùng & bàn giao",
+          "role": "QA",
+          "person_days": 20,
+          "depends_on": [
+            "W10",
+            "W11"
+          ],
+          "deliverable": null
+        }
+      ],
+      "notes": [
+        "WBS sinh bởi mock LLM."
+      ]
+    },
+    "requirements": {
+      "items": [
+        {
+          "req_id": "FR-01",
+          "coverage": "full",
+          "component": "Ingestion",
+          "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+        },
+        {
+          "req_id": "FR-02",
+          "coverage": "full",
+          "component": "Vector index",
+          "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+        },
+        {
+          "req_id": "FR-03",
+          "coverage": "full",
+          "component": "Chat API",
+          "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+        },
+        {
+          "req_id": "FR-04",
+          "coverage": "partial",
+          "component": "Web chat",
+          "note": "Đáp ứng khi khách cung cấp API/quyền truy cập hệ thống liên quan."
+        },
+        {
+          "req_id": "FR-05",
+          "coverage": "full",
+          "component": "Ingestion",
+          "note": "Đáp ứng trong phạm vi giải pháp đề xuất."
+        },
+        {
+          "req_id": "FR-06",
+          "coverage": "not_supported",
+          "component": null,
+          "note": "Ngoài phạm vi đề xuất (ứng dụng di động/offline)."
+        },
+        {
+          "req_id": "FR-07",
+          "coverage": "partial",
+          "component": "Chat API",
+          "note": "Đáp ứng khi khách cung cấp API/quyền truy cập hệ thống liên quan."
+        },
+        {
+          "req_id": "FR-08",
+          "coverage": "needs_clarification",
+          "component": "Web chat",
+          "note": "Yêu cầu quá ngắn, cần khách mô tả rõ hơn."
+        }
+      ],
+      "skipped": false
+    },
+    "proposal": {
+      "title": "Đề xuất sơ bộ: Trợ lý hỏi đáp quy định nội bộ",
+      "markdown": "# Đề xuất sơ bộ: Trợ lý hỏi đáp quy định nội bộ\n\n## Bối cảnh\nNhân viên mất trung bình 2 ngày để nhận phản hồi về quy định nội bộ.\n\n## Giải pháp đề xuất\nTrợ lý hỏi đáp dùng RAG trên kho khoảng 800 văn bản, trả lời kèm trích dẫn.\n\n## Effort dự kiến\n| Giai đoạn | Ngày công |\n|---|---|\n| PoC | 10–15 |\n| MVP | 30–50 |\n| Production | 60–100 |\n\n## Giả định\n- Văn bản ở dạng text, không cần OCR.\n\n## Rủi ro\n- Trả lời sai điều khoản (mức 4): bắt buộc trích dẫn nguồn.\n\n## Câu hỏi còn mở\n- Tần suất cập nhật văn bản?\n",
+      "language": "vi"
+    },
+    "error": null,
+    "reviewer_note": null,
+    "step_latency_ms": {
+      "intake": 803,
+      "gaps": 802,
+      "pattern": 802,
+      "feasibility": 803,
+      "architecture": 803,
+      "wbs": 802,
+      "requirements": 803,
+      "proposal": 803
+    },
+    "effort_basis": {
+      "pattern": "rag",
+      "base": {
+        "poc": [
+          10,
+          15
+        ],
+        "mvp": [
+          30,
+          50
+        ],
+        "production": [
+          60,
+          100
+        ]
+      },
+      "multipliers": [],
+      "factor": 1.0,
+      "computed": {
+        "poc": [
+          10,
+          15
+        ],
+        "mvp": [
+          30,
+          50
+        ],
+        "production": [
+          60,
+          100
+        ]
+      }
+    },
+    "feedback": null,
+    "feedback_step": null,
+    "revision": 0,
+    "redactions": {
+      "email": 1,
+      "phone": 1
+    },
+    "proposal_edited": false,
+    "translations": {},
+    "attachments": [
+      {
+        "id": "a1",
+        "filename": "yeu_cau_chuc_nang.xlsx",
+        "kind": "requirements",
+        "size_bytes": 5631,
+        "text": null,
+        "pages": null,
+        "truncated": false,
+        "requirements": [
+          {
+            "id": "FR-01",
+            "text": "Nhân viên đặt câu hỏi bằng tiếng Việt và nhận câu trả lời kèm trích dẫn điều khoản",
+            "priority": "Must",
+            "category": "Hỏi đáp",
+            "sheet": "Yêu cầu chức năng"
+          },
+          {
+            "id": "FR-02",
+            "text": "Hiển thị đoạn văn bản gốc và số trang của nguồn trích dẫn",
+            "priority": "Must",
+            "category": "Hỏi đáp",
+            "sheet": "Yêu cầu chức năng"
+          },
+          {
+            "id": "FR-03",
+            "text": "Quản trị viên tải lên, cập nhật, gỡ văn bản quy định",
+            "priority": "Must",
+            "category": "Quản trị",
+            "sheet": "Yêu cầu chức năng"
+          },
+          {
+            "id": "FR-04",
+            "text": "Phân quyền xem tài liệu theo phòng ban, tích hợp SSO hiện có",
+            "priority": "Must",
+            "category": "Quản trị",
+            "sheet": "Yêu cầu chức năng"
+          },
+          {
+            "id": "FR-05",
+            "text": "Thống kê câu hỏi thường gặp theo tuần",
+            "priority": "Should",
+            "category": "Báo cáo",
+            "sheet": "Yêu cầu chức năng"
+          },
+          {
+            "id": "FR-06",
+            "text": "Ứng dụng di động offline cho nhân viên hiện trường",
+            "priority": "Could",
+            "category": "Mobile",
+            "sheet": "Yêu cầu chức năng"
+          },
+          {
+            "id": "FR-07",
+            "text": "Tích hợp vào kênh chat nội bộ qua API",
+            "priority": "Should",
+            "category": "Tích hợp",
+            "sheet": "Yêu cầu chức năng"
+          },
+          {
+            "id": "FR-08",
+            "text": "Dùng AI",
+            "priority": "Could",
+            "category": "Khác",
+            "sheet": "Yêu cầu chức năng"
+          }
+        ],
+        "data_profiles": [],
+        "code_profile": null
+      },
+      {
+        "id": "a2",
+        "filename": "lich_su_cau_hoi.csv",
+        "kind": "data_sample",
+        "size_bytes": 25879,
+        "text": null,
+        "pages": null,
+        "truncated": false,
+        "requirements": [],
+        "data_profiles": [
+          {
+            "sheet": null,
+            "rows": 420,
+            "columns": [
+              {
+                "name": "ngay_hoi",
+                "dtype": "date",
+                "null_ratio": 0.0,
+                "unique": 157,
+                "examples": [
+                  "2026-03-28",
+                  "2026-05-13",
+                  "2026-08-25"
+                ],
+                "pii_suspect": false
+              },
+              {
+                "name": "phong_ban",
+                "dtype": "text",
+                "null_ratio": 0.0,
+                "unique": 3,
+                "examples": [
+                  "Tín dụng",
+                  "Kế toán",
+                  "Nhân sự"
+                ],
+                "pii_suspect": false
+              },
+              {
+                "name": "cau_hoi",
+                "dtype": "text",
+                "null_ratio": 0.0,
+                "unique": 420,
+                "examples": [
+                  "Câu hỏi số 0",
+                  "Câu hỏi số 1",
+                  "Câu hỏi số 2"
+                ],
+                "pii_suspect": false
+              },
+              {
+                "name": "email_nguoi_hoi",
+                "dtype": "text",
+                "null_ratio": 0.0,
+                "unique": 420,
+                "examples": [],
+                "pii_suspect": true
+              },
+              {
+                "name": "thoi_gian_cho_gio",
+                "dtype": "number",
+                "null_ratio": 0.112,
+                "unique": 59,
+                "examples": [
+                  "50",
+                  "26",
+                  "3"
+                ],
+                "pii_suspect": false
+              }
+            ],
+            "issues": [
+              "Có cột nghi chứa dữ liệu cá nhân, cần ẩn danh trước khi dùng."
+            ],
+            "readiness_hint": 4
+          }
+        ],
+        "code_profile": null
+      },
+      {
+        "id": "a3",
+        "filename": "hien_trang.docx",
+        "kind": "document",
+        "size_bytes": 36979,
+        "text": "Mô tả hiện trạng (giả lập)\nHiện có khoảng 800 văn bản quy định nội bộ dạng Word và PDF. Phòng pháp chế nhận 300 câu hỏi mỗi tháng qua email. Liên hệ: phap.che@example.vn, 0901 234 567.\nHệ thống | SharePoint nội bộ\nSSO | Azure AD",
+        "pages": null,
+        "truncated": false,
+        "requirements": [],
+        "data_profiles": [],
+        "code_profile": null
+      },
+      {
+        "id": "a4",
+        "filename": "portal_noi_bo.zip",
+        "kind": "source_code",
+        "size_bytes": 2097,
+        "text": null,
+        "pages": null,
+        "truncated": false,
+        "requirements": [],
+        "data_profiles": [],
+        "code_profile": {
+          "files": 5,
+          "total_lines": 34,
+          "languages": {
+            "JavaScript": 30,
+            "Python": 4
+          },
+          "frameworks": [
+            "Flask",
+            "React"
+          ],
+          "top_dirs": [
+            "backend",
+            "frontend"
+          ],
+          "has_tests": false,
+          "has_docker": true,
+          "notes": [
+            "Không thấy test tự động.",
+            "Có Dockerfile/docker-compose, thuận lợi cho triển khai."
+          ]
+        }
+      }
+    ],
+    "schedule": {
+      "tasks": [
+        {
+          "id": "W1",
+          "start_day": 0,
+          "end_day": 4
+        },
+        {
+          "id": "W2",
+          "start_day": 4,
+          "end_day": 8
+        },
+        {
+          "id": "W3",
+          "start_day": 8,
+          "end_day": 12
+        },
+        {
+          "id": "W4",
+          "start_day": 12,
+          "end_day": 20
+        },
+        {
+          "id": "W5",
+          "start_day": 20,
+          "end_day": 28
+        },
+        {
+          "id": "W6",
+          "start_day": 20,
+          "end_day": 28
+        },
+        {
+          "id": "W7",
+          "start_day": 20,
+          "end_day": 28
+        },
+        {
+          "id": "W8",
+          "start_day": 28,
+          "end_day": 36
+        },
+        {
+          "id": "W9",
+          "start_day": 36,
+          "end_day": 56
+        },
+        {
+          "id": "W10",
+          "start_day": 56,
+          "end_day": 76
+        },
+        {
+          "id": "W11",
+          "start_day": 56,
+          "end_day": 76
+        },
+        {
+          "id": "W12",
+          "start_day": 76,
+          "end_day": 96
+        }
+      ],
+      "phases": {
+        "poc": [
+          0,
+          12
+        ],
+        "mvp": [
+          12,
+          36
+        ],
+        "production": [
+          36,
+          96
+        ]
+      },
+      "total_days": 96
+    },
+    "quotation": {
+      "currency": "VND",
+      "lines": [
+        {
+          "phase": "poc",
+          "role_key": "ai_engineer",
+          "role_label": "AI engineer",
+          "person_days": 8,
+          "day_rate": 4000000.0,
+          "amount": 32000000.0
+        },
+        {
+          "phase": "poc",
+          "role_key": "backend",
+          "role_label": "Backend developer",
+          "person_days": 4,
+          "day_rate": 3000000.0,
+          "amount": 12000000.0
+        },
+        {
+          "phase": "mvp",
+          "role_key": "ai_engineer",
+          "role_label": "AI engineer",
+          "person_days": 16,
+          "day_rate": 4000000.0,
+          "amount": 64000000.0
+        },
+        {
+          "phase": "mvp",
+          "role_key": "backend",
+          "role_label": "Backend developer",
+          "person_days": 8,
+          "day_rate": 3000000.0,
+          "amount": 24000000.0
+        },
+        {
+          "phase": "mvp",
+          "role_key": "frontend",
+          "role_label": "Frontend developer",
+          "person_days": 8,
+          "day_rate": 2800000.0,
+          "amount": 22400000.0
+        },
+        {
+          "phase": "mvp",
+          "role_key": "qa",
+          "role_label": "QA / Tester",
+          "person_days": 8,
+          "day_rate": 2200000.0,
+          "amount": 17600000.0
+        },
+        {
+          "phase": "production",
+          "role_key": "ai_engineer",
+          "role_label": "AI engineer",
+          "person_days": 20,
+          "day_rate": 4000000.0,
+          "amount": 80000000.0
+        },
+        {
+          "phase": "production",
+          "role_key": "backend",
+          "role_label": "Backend developer",
+          "person_days": 20,
+          "day_rate": 3000000.0,
+          "amount": 60000000.0
+        },
+        {
+          "phase": "production",
+          "role_key": "frontend",
+          "role_label": "Frontend developer",
+          "person_days": 20,
+          "day_rate": 2800000.0,
+          "amount": 56000000.0
+        },
+        {
+          "phase": "production",
+          "role_key": "qa",
+          "role_label": "QA / Tester",
+          "person_days": 20,
+          "day_rate": 2200000.0,
+          "amount": 44000000.0
+        }
+      ],
+      "phases": [
+        {
+          "phase": "poc",
+          "person_days": 12,
+          "amount": 44000000.0,
+          "min_amount": 36667000.0,
+          "max_amount": 55000000.0
+        },
+        {
+          "phase": "mvp",
+          "person_days": 40,
+          "amount": 128000000.0,
+          "min_amount": 96000000.0,
+          "max_amount": 160000000.0
+        },
+        {
+          "phase": "production",
+          "person_days": 80,
+          "amount": 240000000.0,
+          "min_amount": 180000000.0,
+          "max_amount": 300000000.0
+        }
+      ],
+      "subtotal": 412000000.0,
+      "contingency_pct": 15.0,
+      "contingency": 61800000.0,
+      "total": 473800000.0,
+      "total_min": 359567000.0,
+      "total_max": 592250000.0,
+      "monthly_run_cost": 15000000.0,
+      "milestones": [
+        {
+          "name": "Ký hợp đồng / kick-off",
+          "percent": 30.0,
+          "amount": 142140000.0
+        },
+        {
+          "name": "Nghiệm thu MVP",
+          "percent": 40.0,
+          "amount": 189520000.0
+        },
+        {
+          "name": "Go-live production",
+          "percent": 30.0,
+          "amount": 142140000.0
+        }
+      ],
+      "assumptions": [
+        "Đơn giá theo vai trò là số giả lập trong bảng đơn giá, cần thay bằng đơn giá thật.",
+        "Chi phí nhân sự tính theo WBS; khoảng min–max theo khoảng effort của từng giai đoạn.",
+        "Dự phòng rủi ro 15% (cơ bản 10%, +5% cho mỗi rủi ro mức 4–5).",
+        "Chưa bao gồm thuế VAT, chi phí bản quyền phần mềm và phần cứng mua mới.",
+        "Chi phí vận hành/tháng (hạ tầng + LLM API) là ước tính, tính riêng."
+      ]
+    },
+    "client_email": null,
+    "deck_translations": {},
+    "project_name": null,
+    "client_name": null,
+    "due_date": null,
+    "deal_stage": "reviewing"
+  }
+}

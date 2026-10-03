@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Agent on-prem: xử lý cảnh báo thiết bị, tra MES, tạo lệnh bảo trì (tiếng Nhật, sản xuất).
+id: case_19
+request_text: |
+  お世話になっております。架空電子工業株式会社（仮）生産技術部の者です。
+  当社工場では約350台の設備から1日あたり約1,500件のアラームが発生し、保全担当者が手作業で内容を確認しています。
+  アラーム発生時に、MESから稼働状況・直近の生産ロットを取得し、過去の保全履歴（約5年分、DB）を参照して原因候補を整理し、
+  保全管理システムに作業指示を起票、担当者へ通知するところまでを自動化したいと考えております。
+  MES・保全管理システムともに社内APIがございますが、工場ネットワークはインターネットに接続できないため、オンプレミス構築が必須です。
+  まずは1ラインを対象にPoCを実施したいと考えております。
+expected:
+  pattern: agent
+  acceptable_patterns: [agent]
+  question_topics: [infra, integration, data]
+  can_proceed: true
+  mvp_person_days: [54, 126]
+  must_not_mention: []

@@ -1,0 +1,17 @@
+# Dữ liệu giả lập. Yêu cầu mơ hồ: muốn chatbot giống ChatGPT cho công ty, chưa rõ mục đích (tiếng Nhật).
+id: case_15
+request_text: |
+  お世話になっております。架空建設株式会社（仮）総務部の者です。
+  社内でChatGPTのようなチャットボットを導入したいという話が出ております。
+  どのようなことができるのか、概算費用も含めてご提案いただけますでしょうか。
+expected:
+  pattern: needs_clarification
+  acceptable_patterns: [needs_clarification]
+  question_topics: [users, data, compliance]
+  can_proceed: false
+  mvp_person_days: null
+  must_not_mention: []
+# Optional, used only by eval/record_replay.py to record the "answer → continue" demo flow.
+demo_answers:
+  q1: 主に現場監督約200名が、社内の施工基準書や安全マニュアルの内容をすぐに確認できるようにしたいです。
+  q2: 施工基準書・安全マニュアル・社内規程がPDFとWordで約800ファイルあり、社外のクラウドサービスへの送信は情報システム部の承認が必要です。

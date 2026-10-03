@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Agent: tự xử lý email đặt hàng, kiểm tồn kho, tạo đơn ERP (tiếng Nhật).
+id: case_05
+request_text: |
+  お世話になっております。架空商事株式会社（仮）営業管理部の者です。
+  当社では取引先約300社から1日あたり約200通の注文メールが届き、担当者5名が手作業でERPに入力しています。
+  メールの形式は本文・PDF・Excel添付などバラバラで、品番や数量の読み取りに時間がかかっています。
+  メールを読み取り、在庫を確認したうえで、ERP（社内システム、REST APIあり）に受注データを自動登録し、
+  在庫不足の場合は担当者に確認を依頼する仕組みを検討しております。
+  まずは主要取引先20社を対象に半年以内に試行したいと考えております。
+expected:
+  pattern: agent
+  acceptable_patterns: [agent]
+  question_topics: [integration, accuracy, data]
+  can_proceed: true
+  mvp_person_days: [41, 97]
+  must_not_mention: ["fine-tune"]

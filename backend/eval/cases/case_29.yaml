@@ -1,0 +1,17 @@
+# Dữ liệu giả lập. Yêu cầu mơ hồ: "muốn đưa AI vào như một phần của DX" (tiếng Nhật, logistics).
+id: case_29
+request_text: |
+  お世話になっております。架空運輸株式会社（仮）経営企画室の者です。
+  当社では全社的なDX推進の一環として、生成AIを含むAIの活用を検討しております。
+  どの業務にどのようにAIを導入するのがよいか、他社事例も踏まえてご提案いただけますと幸いです。
+expected:
+  pattern: needs_clarification
+  acceptable_patterns: [needs_clarification]
+  question_topics: [users, data, budget]
+  can_proceed: false
+  mvp_person_days: null
+  must_not_mention: []
+# Optional, used only by eval/record_replay.py to record the "answer → continue" demo flow.
+demo_answers:
+  q1: 配車担当者約40名が、毎日の配車計画とドライバーからの問い合わせ対応に追われている点を最優先で改善したいです。
+  q2: 運行管理システムに過去3年分の運行実績データがあり、ドライバー向けの社内規程・マニュアルがPDFで約200件あります。

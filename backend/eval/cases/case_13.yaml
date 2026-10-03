@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Demo case: yêu cầu mơ hồ, phải hỏi lại.
+id: case_13
+request_text: |
+  Chào anh/chị, công ty chúng tôi muốn ứng dụng AI để tăng năng suất làm việc.
+  Mong anh/chị tư vấn giải pháp phù hợp và báo giá sơ bộ.
+expected:
+  pattern: needs_clarification
+  acceptable_patterns: [needs_clarification]
+  question_topics: [users, data]
+  can_proceed: false
+  mvp_person_days: null
+  must_not_mention: []
+# Optional, used only by eval/record_replay.py to record the "answer → continue" demo flow.
+demo_answers:
+  q1: Bộ phận chăm sóc khách hàng, khoảng 30 nhân viên trả lời email của khách.
+  q2: Khoảng 5.000 email mỗi tháng và bộ tài liệu FAQ, chính sách sản phẩm dạng Word.

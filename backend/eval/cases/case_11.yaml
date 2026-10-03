@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Không cần AI: "AI" phân loại đơn theo mã tỉnh trong địa chỉ có cấu trúc (tiếng Nhật).
+id: case_11
+request_text: |
+  お世話になっております。架空物流株式会社（仮）の業務改善チームです。
+  当社では1日約3,000件の出荷依頼を受け付けており、各依頼は基幹システムからCSVで出力されます。
+  CSVには郵便番号・都道府県コードが項目として入っており、これを見て担当者が手作業で8つの配送拠点に振り分けています。
+  この振り分け作業をAIで自動化できないかと考えております。
+  振り分けルールは都道府県ごとに決まっており、変更は年に1〜2回程度です。
+expected:
+  pattern: no_ai_rule_based
+  acceptable_patterns: [no_ai_rule_based]
+  question_topics: [data, integration]
+  can_proceed: true
+  mvp_person_days: [9, 28]
+  must_not_mention: ["fine-tune", "vector database"]

@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. RAG: trợ lý hỏi đáp quy định nội bộ cho nhân viên ngân hàng.
+id: case_02
+request_text: |
+  Chào anh/chị, chúng tôi là Phòng Pháp chế – Tuân thủ của Ngân hàng TMCP Sao Việt (giả lập).
+  Ngân hàng hiện có khoảng 1.500 văn bản quy định, quy trình nội bộ (Word, PDF), được cập nhật hàng tháng.
+  Khoảng 4.000 nhân viên chi nhánh thường xuyên gọi điện hỏi lại phòng pháp chế vì không tìm được điều khoản cần thiết.
+  Chúng tôi muốn có trợ lý hỏi đáp bằng tiếng Việt, trả lời dựa trên đúng văn bản đang hiệu lực và trích dẫn số hiệu, điều khoản.
+  Dữ liệu không được đưa ra ngoài theo quy định của NHNN; hệ thống cần ghi log truy vấn để phục vụ kiểm toán.
+  Mong muốn triển khai thí điểm cho 2 chi nhánh trong quý tới.
+expected:
+  pattern: rag
+  acceptable_patterns: [rag]
+  question_topics: [data, compliance, infra]
+  can_proceed: true
+  mvp_person_days: [37, 94]
+  must_not_mention: ["fine-tune"]

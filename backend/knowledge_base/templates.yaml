@@ -1,0 +1,40 @@
+# Sửa từ trang Cài đặt → Template của ScopeAI.
+active:
+  slides: builtin
+  proposal_docx: builtin
+  workbook: builtin
+  qa_sheet: builtin
+pptx:
+  content_layout: Title Only
+  bottom_margin_in: 0.55
+workbook:
+  wbs:
+    sheet: WBS
+    start_row: 6
+    columns:
+      id: A
+      phase: B
+      task: C
+      role: D
+      person_days: E
+      start_week: F
+      end_week: G
+  pricing:
+    sheet: Pricing
+    start_row: 6
+    columns:
+      phase: A
+      role: B
+      person_days: C
+      day_rate: D
+      amount: E
+qa_sheet:
+  sheet: Q&A
+  start_row: 6
+  columns:
+    id: A
+    num: B
+    topic: C
+    question: D
+    blocking: E
+    answer: F

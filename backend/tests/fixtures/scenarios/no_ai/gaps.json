@@ -1,0 +1,8 @@
+{
+  "missing_info": ["Template Excel có ổn định không", "Định dạng báo cáo đầu ra"],
+  "questions": [
+    {"id": "q1", "topic": "data", "question": "Template Excel của các chi nhánh có hoàn toàn giống nhau và ít thay đổi không?", "why_it_matters": "Nếu template cố định, chỉ cần script đọc file, không cần AI.", "blocking": false},
+    {"id": "q2", "topic": "integration", "question": "Báo cáo đầu ra cần ở dạng Excel, PDF hay đẩy vào phần mềm kế toán?", "why_it_matters": "Quyết định phần xuất báo cáo và tích hợp.", "blocking": false}
+  ],
+  "can_proceed": true
+}

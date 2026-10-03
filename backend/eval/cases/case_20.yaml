@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Agent: xử lý yêu cầu thay đổi giao hàng, tra cứu TMS và tự đổi lịch (logistics).
+id: case_20
+request_text: |
+  Chào anh/chị, Công ty Giao vận Tốc Hành (giả lập) giao khoảng 25.000 đơn mỗi ngày cho các sàn thương mại điện tử.
+  Mỗi ngày bộ phận CSKH nhận khoảng 2.000 tin nhắn qua Zalo OA và email yêu cầu đổi địa chỉ, đổi giờ giao, hoãn giao hoặc hủy đơn.
+  Nhân viên phải tra cứu đơn trên hệ thống TMS, kiểm tra trạng thái và tuyến của tài xế, cập nhật lại lịch rồi trả lời khách.
+  Chúng tôi muốn hệ thống tự hiểu yêu cầu, gọi API của TMS để kiểm tra và cập nhật nếu hợp lệ theo quy định,
+  các trường hợp ngoài quy định thì chuyển cho nhân viên. TMS đã có REST API; mong muốn thí điểm tại Hà Nội trong 3 tháng.
+expected:
+  pattern: agent
+  acceptable_patterns: [agent]
+  question_topics: [integration, accuracy]
+  can_proceed: true
+  mvp_person_days: [36, 84]
+  must_not_mention: ["fine-tune"]

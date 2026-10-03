@@ -1,0 +1,86 @@
+# BẢN NHÁP do AI tạo — chủ dự án cần review. severity_guide: 1 = rất thấp … 5 = nghiêm trọng.
+- id: data_unavailable
+  category: data
+  description: Dữ liệu cần thiết chưa tồn tại hoặc nằm rải rác, chưa thu thập được
+  severity_guide: "5 nếu chưa có dữ liệu; 3 nếu có nhưng rải rác; 1 nếu đã tập trung"
+  mitigation: Khảo sát dữ liệu trước PoC, chốt danh sách nguồn và người phụ trách
+- id: data_quality
+  category: data
+  description: Dữ liệu thiếu, sai, không nhất quán hoặc chưa có nhãn
+  severity_guide: "4–5 nếu bài toán ML cần nhãn mà chưa có; 2–3 nếu chỉ cần làm sạch"
+  mitigation: Đánh giá mẫu dữ liệu, dành effort làm sạch và gán nhãn trong PoC
+- id: scanned_documents
+  category: data
+  description: Tài liệu là PDF scan/ảnh, cần OCR, chất lượng trích xuất thấp
+  severity_guide: "3–4 nếu phần lớn là bản scan; tiếng Nhật dọc hoặc bảng phức tạp +1"
+  mitigation: Thử OCR trên mẫu đại diện sớm, dự phòng thêm 20–30% effort
+- id: data_drift
+  category: data
+  description: Dữ liệu hoặc tài liệu thay đổi thường xuyên làm kết quả lỗi thời
+  severity_guide: "3 nếu cập nhật hằng tuần; 1–2 nếu ổn định"
+  mitigation: Pipeline cập nhật tự động và giám sát chất lượng định kỳ
+- id: hallucination
+  category: accuracy
+  description: LLM trả lời sai nhưng nghe hợp lý (hallucination)
+  severity_guide: "4–5 khi câu trả lời dùng để ra quyết định pháp lý/tài chính/y tế"
+  mitigation: Bắt buộc trích dẫn nguồn, giới hạn trả lời trong tài liệu, bộ test đánh giá
+- id: accuracy_expectation
+  category: accuracy
+  description: Khách kỳ vọng độ chính xác 100% với bài toán xác suất
+  severity_guide: "4 nếu chưa thống nhất tiêu chí chấp nhận"
+  mitigation: Thống nhất metric và ngưỡng chấp nhận trước PoC, có người duyệt ở bước cuối
+- id: no_evaluation_set
+  category: accuracy
+  description: Không có bộ dữ liệu đánh giá để đo chất lượng
+  severity_guide: "3 mặc định; 4 nếu nghiệm thu dựa trên độ chính xác"
+  mitigation: Cùng khách xây 50–100 câu hỏi/ca kiểm thử chuẩn ngay từ PoC
+- id: personal_data
+  category: privacy
+  description: Dữ liệu chứa thông tin cá nhân của khách hàng hoặc nhân viên
+  severity_guide: "4–5 nếu gửi dữ liệu cá nhân ra API bên ngoài"
+  mitigation: Ẩn danh/mask dữ liệu, dùng model on-prem hoặc vùng dữ liệu được phép
+- id: access_control
+  category: privacy
+  description: Người dùng truy cập được tài liệu vượt quyền thông qua AI
+  severity_guide: "3–4 nếu tài liệu có nhiều cấp bảo mật"
+  mitigation: Lọc theo quyền khi truy xuất, đồng bộ phân quyền với hệ thống hiện có
+- id: regulatory
+  category: compliance
+  description: Ngành có quy định chặt (tài chính, y tế, bảo hiểm) về dùng AI và lưu trữ dữ liệu
+  severity_guide: "4 với tài chính/y tế; 2 với ngành khác"
+  mitigation: Làm việc sớm với bộ phận pháp chế, lưu vết quyết định, có người duyệt
+- id: data_residency
+  category: compliance
+  description: Dữ liệu không được rời khỏi quốc gia hoặc hạ tầng nội bộ
+  severity_guide: "4 nếu bắt buộc on-prem nhưng cần LLM mạnh"
+  mitigation: Chọn model chạy on-prem hoặc cloud trong vùng cho phép, tính thêm effort hạ tầng
+- id: llm_cost
+  category: cost
+  description: Chi phí gọi LLM tăng nhanh khi số người dùng lớn
+  severity_guide: "3 nếu > 1.000 người dùng/ngày; 1–2 nếu dùng nội bộ nhỏ"
+  mitigation: Ước tính token sớm, cache, chọn model nhỏ cho tác vụ đơn giản
+- id: infra_cost
+  category: cost
+  description: Chi phí GPU/hạ tầng on-prem cao
+  severity_guide: "4 nếu cần GPU on-prem cho model lớn"
+  mitigation: So sánh TCO cloud vs on-prem, bắt đầu với model nhỏ/quantized
+- id: integration_complexity
+  category: cost
+  description: Hệ thống cũ không có API, tích hợp tốn effort
+  severity_guide: "3–4 nếu cần tích hợp ERP/hệ thống cũ không có API"
+  mitigation: Khảo sát API sớm, PoC dùng dữ liệu export trước khi tích hợp thật
+- id: user_adoption
+  category: adoption
+  description: Người dùng không thay đổi thói quen, ít dùng công cụ mới
+  severity_guide: "2–3 mặc định; 4 nếu không có người bảo trợ phía khách"
+  mitigation: Tích hợp vào công cụ đang dùng, có champion phía khách, đào tạo ngắn
+- id: unclear_owner
+  category: adoption
+  description: Không rõ người chịu trách nhiệm nghiệp vụ và nghiệm thu phía khách
+  severity_guide: "3–4 nếu yêu cầu mơ hồ, không có đầu mối"
+  mitigation: Xác định product owner phía khách trước khi bắt đầu PoC
+- id: automation_errors
+  category: adoption
+  description: Agent thực hiện hành động sai trên hệ thống thật
+  severity_guide: "4–5 nếu hành động khó hoàn tác (tạo đơn, chuyển tiền)"
+  mitigation: Chế độ nháp + người duyệt, giới hạn quyền của agent, log và hoàn tác

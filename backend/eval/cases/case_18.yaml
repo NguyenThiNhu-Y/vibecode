@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. RAG: trợ lý hướng dẫn thủ tục hành chính cho người dân (khu vực công).
+id: case_18
+request_text: |
+  Kính gửi Quý công ty, Trung tâm Phục vụ hành chính công tỉnh Bình An (giả lập) đang tiếp nhận khoảng 1.200 thủ tục hành chính.
+  Mỗi thủ tục có văn bản hướng dẫn về hồ sơ cần nộp, lệ phí, thời hạn giải quyết, được công bố trên cổng dịch vụ công của tỉnh.
+  Tổng đài và quầy tiếp nhận nhận khoảng 15.000 câu hỏi mỗi tháng, phần lớn hỏi lại những thông tin đã có trong hướng dẫn.
+  Chúng tôi muốn có trợ lý ảo trên cổng dịch vụ công và Zalo OA, trả lời người dân bằng tiếng Việt dễ hiểu,
+  dẫn nguồn văn bản và đường link thủ tục tương ứng. Hệ thống cần đặt tại trung tâm dữ liệu của tỉnh (đã có hạ tầng ảo hóa).
+expected:
+  pattern: rag
+  acceptable_patterns: [rag]
+  question_topics: [data, accuracy, infra]
+  can_proceed: true
+  mvp_person_days: [31, 78]
+  must_not_mention: ["fine-tune"]

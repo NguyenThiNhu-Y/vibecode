@@ -1,0 +1,98 @@
+# BẢN NHÁP – toàn bộ số liệu là GIẢ LẬP. Chủ dự án thay bằng đơn giá thật (sửa trên trang Cài đặt).
+currency: VND
+exchange_rates:          # 1 đơn vị ngoại tệ = ? VND
+  USD: 25000
+  JPY: 170
+roles:                   # đơn giá theo ngày công (VND); match = từ khóa nhận diện vai trò trong WBS
+  - key: data_engineer
+    label: Data engineer
+    day_rate: 3300000
+    onsite_day_rate: 9900000
+    match: [data engineer, data eng, etl]
+  - key: ai_engineer
+    label: AI engineer
+    day_rate: 4000000
+    onsite_day_rate: 12000000
+    match: [ai, ml, machine learning, data scien, llm, prompt]
+  - key: backend
+    label: Backend developer
+    day_rate: 3000000
+    onsite_day_rate: 9000000
+    match: [backend, back-end, api, server]
+  - key: frontend
+    label: Frontend developer
+    day_rate: 2800000
+    onsite_day_rate: 8400000
+    match: [frontend, front-end, ui, web]
+  - key: qa
+    label: QA / Tester
+    day_rate: 2200000
+    onsite_day_rate: 6600000
+    match: [qa, test, tester, kiểm thử]
+  - key: devops
+    label: DevOps
+    day_rate: 3200000
+    onsite_day_rate: 9600000
+    match: [devops, sre, infra, hạ tầng]
+  - key: pm
+    label: Project manager
+    day_rate: 3500000
+    onsite_day_rate: 10500000
+    match: [pm, project manager, quản lý dự án, delivery]
+  - key: ba
+    label: Business analyst
+    day_rate: 2800000
+    onsite_day_rate: 8400000
+    match: [ba, business analyst, phân tích nghiệp vụ]
+  - key: bridge_se
+    label: BrSE (Bridge SE)
+    day_rate: 3800000
+    onsite_day_rate: 11400000
+    match: [brse, bridge]
+  - key: comtor
+    label: Comtor (phiên dịch IT)
+    day_rate: 2000000
+    onsite_day_rate: 6000000
+    match: [comtor, phiên dịch, interpreter]
+  - key: engineer
+    label: Engineer (mặc định)
+    day_rate: 3000000
+    onsite_day_rate: 9000000
+    match: []
+default_role: engineer
+contingency:             # dự phòng rủi ro (% trên chi phí nhân sự)
+  base_pct: 10
+  per_high_risk_pct: 5   # cộng thêm cho mỗi rủi ro mức >= 4
+  max_pct: 25
+run_cost_monthly:        # chi phí vận hành/tháng ước tính (VND): hạ tầng + LLM API
+  no_ai_rule_based: 1000000
+  classic_ml: 8000000
+  rag: 15000000
+  agent: 25000000
+  fine_tune: 30000000
+on_prem_run_cost_factor: 1.5
+overheads:               # cộng thêm ngày công theo % effort WBS của mỗi giai đoạn (chuẩn công ty, giả lập)
+  - key: pm
+    label: Quản lý dự án (PM)
+    percent: 10
+    role: pm
+    when: always           # always | japanese (chỉ khi khách tiếng Nhật)
+  - key: brse
+    label: BrSE cầu nối với khách Nhật
+    percent: 15
+    role: bridge_se
+    when: japanese
+contract:
+  default_model: fixed_price   # fixed_price | time_material | odc
+  default_onsite_ratio: 0      # % ngày công làm onsite
+  working_days_per_month: 20
+milestones:              # tổng phải bằng 100 (dùng cho Fixed price)
+  - name: Ký hợp đồng / kick-off
+    percent: 30
+  - name: Nghiệm thu MVP
+    percent: 40
+  - name: Go-live production
+    percent: 30
+impact:                  # dùng để ước tính thời gian tiết kiệm (khảo sát giả lập)
+  manual_hours_per_proposal: 24
+  review_hours_per_proposal: 0.5

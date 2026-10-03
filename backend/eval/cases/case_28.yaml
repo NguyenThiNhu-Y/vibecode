@@ -1,0 +1,17 @@
+# Dữ liệu giả lập. Yêu cầu mơ hồ: muốn "AI phân tích dữ liệu khách hàng" (bán lẻ).
+id: case_28
+request_text: |
+  Chào anh/chị, Công ty Thời trang Mộc Lan (giả lập) đang muốn ứng dụng AI để hiểu khách hàng hơn và tăng doanh số.
+  Chúng tôi có khá nhiều dữ liệu nhưng chưa biết khai thác thế nào.
+  Mong anh/chị tư vấn hướng đi và chi phí dự kiến.
+expected:
+  pattern: needs_clarification
+  acceptable_patterns: [needs_clarification]
+  question_topics: [data, users]
+  can_proceed: false
+  mvp_person_days: null
+  must_not_mention: []
+# Optional, used only by eval/record_replay.py to record the "answer → continue" demo flow.
+demo_answers:
+  q1: Bộ phận marketing (5 người) muốn biết nên gửi ưu đãi nào cho nhóm khách nào để tăng tỷ lệ mua lại.
+  q2: Có dữ liệu 2 năm từ phần mềm bán hàng của 40 cửa hàng và website, khoảng 300.000 khách hàng thành viên với lịch sử mua hàng.

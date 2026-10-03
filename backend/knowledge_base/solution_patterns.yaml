@@ -1,0 +1,70 @@
+# BẢN NHÁP do AI tạo — chủ dự án cần review và chỉnh theo kinh nghiệm thực tế.
+- id: no_ai_rule_based
+  use_when:
+    - Logic xác định, viết được thành quy tắc, công thức hoặc ETL
+    - Dữ liệu có cấu trúc (Excel, CSV, database) với định dạng ổn định
+    - Yêu cầu đúng 100%, sai là không chấp nhận được (tính tiền, thuế, đối soát)
+  avoid_when:
+    - Dữ liệu phi cấu trúc (văn bản tự do, ảnh, giọng nói)
+    - Ngôn ngữ tự nhiên đa dạng, không liệt kê hết được trường hợp
+  signals: ["tính tổng", "theo công thức", "đối chiếu", "nếu… thì…", "file Excel cùng template", "mã cố định"]
+  key_questions:
+    - Dữ liệu đầu vào có cấu trúc và template cố định không?
+    - Quy tắc xử lý có viết ra được thành văn bản không?
+  example: "Tính tổng hóa đơn từ 40 file Excel cùng template → script/ETL, không cần LLM"
+
+- id: classic_ml
+  use_when:
+    - Dự đoán, phân loại hoặc phát hiện bất thường trên dữ liệu bảng/số
+    - Có dữ liệu lịch sử có nhãn hoặc chuỗi thời gian đủ dài (thường ≥ 1–2 năm)
+  avoid_when:
+    - Không có dữ liệu lịch sử hoặc dữ liệu quá ít
+    - Bài toán chính là hiểu và sinh ngôn ngữ tự nhiên
+  signals: ["dự báo", "dự đoán", "phân loại khách hàng", "bất thường", "churn", "dữ liệu bán hàng nhiều năm"]
+  key_questions:
+    - Có bao nhiêu dữ liệu lịch sử, trong bao lâu, đã có nhãn chưa?
+    - Độ chính xác tối thiểu chấp nhận được là bao nhiêu?
+    - Kết quả dự đoán sẽ được dùng để ra quyết định gì?
+  example: "Dự báo nhu cầu nhập hàng từ dữ liệu bán 3 năm → mô hình chuỗi thời gian/gradient boosting"
+
+- id: rag
+  use_when:
+    - Hỏi đáp trên kho tài liệu nội bộ (manual, quy định, hợp đồng) thay đổi thường xuyên
+    - Cần trích dẫn nguồn cho câu trả lời
+  avoid_when:
+    - Cần thực hiện hành động nhiều bước trên hệ thống khác
+    - Dữ liệu chủ yếu là bảng số cần tính toán
+  signals: ["tra cứu", "manual", "tài liệu", "FAQ", "quy định", "hỏi đáp", "chatbot nội bộ"]
+  key_questions:
+    - Tài liệu ở định dạng gì (PDF text, PDF scan, Word, HTML)?
+    - Khối lượng bao nhiêu trang và tần suất cập nhật?
+    - Có cần trích dẫn nguồn và phân quyền theo người dùng không?
+  example: "Chatbot tra cứu 2.000 trang manual bảo trì → RAG có trích dẫn số trang"
+
+- id: agent
+  use_when:
+    - Quy trình nhiều bước cần đọc, quyết định và thao tác trên nhiều hệ thống (ERP, email, lịch)
+    - Đầu vào phi cấu trúc nhưng đầu ra là hành động cụ thể
+  avoid_when:
+    - Quy trình cố định viết được thành workflow tĩnh
+    - Hành động sai gây thiệt hại lớn mà không có bước người duyệt
+  signals: ["tự động xử lý", "tạo đơn", "đặt lịch", "đối chiếu nhiều nguồn rồi", "gửi email", "thao tác trên hệ thống"]
+  key_questions:
+    - Hệ thống nào cần tích hợp, có API không?
+    - Bước nào bắt buộc có người duyệt trước khi thực thi?
+    - Tỉ lệ lỗi chấp nhận được và cách hoàn tác khi sai?
+  example: "Đọc email đặt hàng, kiểm tồn kho, tạo đơn nháp trong ERP chờ người duyệt → agent có tool calling"
+
+- id: fine_tune
+  use_when:
+    - Cần văn phong, định dạng hoặc thuật ngữ rất đặc thù mà prompt không đạt được
+    - Có lượng lớn mẫu chất lượng cao (thường ≥ vài nghìn cặp input/output)
+  avoid_when:
+    - Kiến thức thay đổi thường xuyên (dùng RAG)
+    - Ít dữ liệu mẫu hoặc chưa thử prompt engineering
+  signals: ["đúng văn phong", "theo mẫu chuẩn", "hàng chục nghìn mẫu", "thuật ngữ chuyên ngành"]
+  key_questions:
+    - Có bao nhiêu mẫu, chất lượng và quyền sử dụng ra sao?
+    - Đã thử prompt + few-shot chưa, kết quả thế nào?
+    - Có ràng buộc chạy model on-prem không?
+  example: "Sinh báo cáo y khoa đúng văn phong bệnh viện từ 50.000 báo cáo mẫu → fine-tune model nhỏ"

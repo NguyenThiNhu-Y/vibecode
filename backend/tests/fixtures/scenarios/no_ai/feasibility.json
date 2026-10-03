@@ -1,0 +1,10 @@
+{
+  "data_readiness": 5,
+  "technical_feasibility": 5,
+  "business_value": 3,
+  "risks": [
+    {"category": "data", "description": "Chi nhánh sửa template (thêm cột, đổi tên sheet) làm script lỗi.", "severity": 3, "mitigation": "Kiểm tra cấu trúc file trước khi tổng hợp và báo lỗi rõ ràng cho từng file."},
+    {"category": "adoption", "description": "Kế toán vẫn kiểm tra lại thủ công vì chưa tin kết quả.", "severity": 2, "mitigation": "Chạy song song 1 tháng và đối chiếu với số liệu thủ công."}
+  ],
+  "go_recommendation": "go"
+}

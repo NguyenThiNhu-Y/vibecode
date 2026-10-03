@@ -1,0 +1,53 @@
+# BẢN NHÁP do AI tạo — tóm tắt định hướng, KHÔNG phải tư vấn pháp lý; chủ dự án cần review.
+# Dùng ở bước feasibility để nêu rủi ro compliance theo thị trường của khách.
+- id: vn_pdpd
+  market: market_vn
+  law: "Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân (Việt Nam)"
+  applies_when: Xử lý dữ liệu cá nhân của người Việt Nam (khách hàng, nhân viên)
+  key_points:
+    - Cần sự đồng ý của chủ thể dữ liệu, nêu rõ mục đích xử lý
+    - Dữ liệu cá nhân nhạy cảm (sức khỏe, tài chính, sinh trắc) cần biện pháp bảo vệ tăng cường
+    - Chuyển dữ liệu ra nước ngoài (ví dụ gọi LLM API ở nước ngoài) cần hồ sơ đánh giá tác động
+  mitigation: Ẩn danh/mask trước khi gửi LLM, ưu tiên hạ tầng trong nước hoặc on-prem, lập hồ sơ đánh giá tác động
+- id: vn_finance
+  market: market_vn
+  law: "Quy định an toàn thông tin ngành ngân hàng của NHNN (Việt Nam)"
+  applies_when: Ngân hàng, công ty tài chính, ví điện tử
+  key_points:
+    - Yêu cầu cao về lưu vết, phân quyền, kiểm toán hệ thống
+    - Hạn chế đưa dữ liệu khách hàng lên dịch vụ cloud chưa được phê duyệt
+  mitigation: Triển khai on-prem/private cloud, log đầy đủ truy vấn và câu trả lời, có người duyệt quyết định
+- id: jp_appi
+  market: market_jp
+  law: "個人情報保護法 (APPI – Act on the Protection of Personal Information, Nhật Bản)"
+  applies_when: Xử lý thông tin cá nhân tại Nhật hoặc của người Nhật
+  key_points:
+    - Phải công bố/thông báo mục đích sử dụng; cung cấp cho bên thứ ba cần đồng ý
+    - Chuyển dữ liệu ra nước ngoài cần đồng ý và thông tin về chế độ bảo vệ của nước nhận
+    - Thông tin cá nhân cần chú ý đặc biệt (要配慮個人情報: bệnh án, tiền án…) cần đồng ý trước
+  mitigation: Ưu tiên on-prem hoặc vùng cloud tại Nhật, mask dữ liệu cá nhân, tài liệu giải thích luồng dữ liệu bằng tiếng Nhật
+- id: jp_medical
+  market: market_jp
+  law: "Hướng dẫn an toàn thông tin y tế của 3 bộ (医療情報システムの安全管理に関するガイドライン, Nhật Bản)"
+  applies_when: Bệnh viện, phòng khám, dữ liệu y tế tại Nhật
+  key_points:
+    - Yêu cầu quản lý truy cập, lưu vết và nơi lưu trữ dữ liệu y tế chặt chẽ
+    - Nhà cung cấp dịch vụ cloud phải đáp ứng tiêu chuẩn an toàn tương ứng
+  mitigation: Chạy model trong hạ tầng bệnh viện hoặc cloud đạt chuẩn y tế, bác sĩ duyệt mọi nội dung sinh ra
+- id: eu_gdpr
+  market: market_eu
+  law: "GDPR (General Data Protection Regulation, EU)"
+  applies_when: Xử lý dữ liệu cá nhân của người ở EU
+  key_points:
+    - Cần cơ sở pháp lý cho xử lý, nguyên tắc tối thiểu hóa dữ liệu
+    - Quyết định tự động có ảnh hưởng lớn tới cá nhân cần có sự can thiệp của con người (Điều 22)
+    - Chuyển dữ liệu ra ngoài EU cần cơ chế hợp lệ (SCC, adequacy)
+  mitigation: DPIA trước khi triển khai, xử lý dữ liệu trong EU, human-in-the-loop cho quyết định quan trọng
+- id: eu_ai_act
+  market: market_eu
+  law: "EU AI Act"
+  applies_when: Cung cấp/triển khai hệ thống AI tại EU
+  key_points:
+    - Hệ thống rủi ro cao (chấm điểm tín dụng, tuyển dụng, giáo dục, y tế…) cần quản lý rủi ro, dữ liệu, tài liệu kỹ thuật, giám sát con người
+    - Chatbot phải cho người dùng biết họ đang tương tác với AI (nghĩa vụ minh bạch)
+  mitigation: Phân loại mức rủi ro sớm, chuẩn bị tài liệu kỹ thuật và log, công bố rõ việc dùng AI

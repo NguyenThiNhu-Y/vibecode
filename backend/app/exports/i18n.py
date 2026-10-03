@@ -1,0 +1,181 @@
+"""Fixed slide labels in the customer's language. Content written by the agent is translated
+separately (app/exports/translation.py)."""
+
+from typing import Any
+
+from app.exports.common import (
+    CONFIDENCE_LABELS,
+    COVERAGE_LABELS,
+    DEPLOYMENT_LABELS,
+    GO_LABELS,
+    PATTERN_LABELS,
+    RISK_LABELS,
+)
+
+LABELS: dict[str, dict[str, Any]] = {
+    "vi": {
+        "context": "Bối cảnh & mục tiêu", "item": "Hạng mục", "info": "Thông tin", "unknown": "Chưa rõ",
+        "fields": ["Quy trình hiện tại", "Người dùng", "Nguồn dữ liệu", "Ràng buộc", "Ngân sách / Thời hạn"],
+        "inputs": "Tài liệu & dữ liệu khách cung cấp", "inputs_sub": "Được phân tích bằng code trước khi đưa vào agent",
+        "docs": "{n} tài liệu: {names}", "reqs": "{n} requirement từ file Excel của khách",
+        "data": "Data mẫu {name}: {rows} dòng × {cols} cột, độ sẵn sàng {hint}/5", "pii": ", {n} cột nghi PII",
+        "code": "Source code {name}: {lines} dòng ({langs}); framework: {fw}", "data_notes": "Lưu ý về dữ liệu",
+        "pattern": "Hướng giải pháp đề xuất", "no_ai": "Không cần AI cho bài toán này", "confidence": "Độ tự tin",
+        "rejected": ["Hướng đã cân nhắc và loại", "Lý do"],
+        "architecture": "Kiến trúc hệ thống", "deployment": "Triển khai",
+        "feasibility": "Đánh giá khả thi & rủi ro", "recommend": "Khuyến nghị",
+        "scores": ["Sẵn sàng dữ liệu", "Khả thi kỹ thuật", "Giá trị kinh doanh"],
+        "risk_headers": ["Mức", "Loại", "Rủi ro", "Giảm thiểu"],
+        "effort": "Effort & đội ngũ", "effort_sub": "Khoảng gốc tính bằng code từ bảng effort chuẩn × hệ số điều chỉnh",
+        "formula": "Bảng chuẩn {p}  ×  {f}  =  × {x}", "formula_none": "Bảng chuẩn {p}, không có hệ số điều chỉnh (× 1)",
+        "effort_headers": ["Giai đoạn", "Ngày công", "Đội ngũ", "Bàn giao"],
+        "wbs": "WBS – cấu trúc công việc", "wbs_sub": "{n} đầu việc · {d} ngày công",
+        "wbs_headers": ["ID", "Giai đoạn", "Đầu việc", "Vai trò", "Ngày công"], "more": "… và {n} đầu việc khác (xem file Excel).",
+        "timeline": "Timeline triển khai", "timeline_sub": "~{w} tuần ({d} ngày làm việc), tính bằng code từ WBS", "week": "T{n}",
+        "requirements": "Đáp ứng yêu cầu của khách", "requirements_sub": "{n} requirement được đánh giá từng dòng",
+        "req_headers": ["Mã", "Yêu cầu", "Mức đáp ứng", "Ghi chú"],
+        "pricing": "Chi phí dự kiến (ước tính sơ bộ)", "pricing_sub": "Tính bằng code: ngày công theo WBS × đơn giá theo vai trò",
+        "price_headers": ["Giai đoạn", "Ngày công", "Chi phí", "Khoảng ước tính"],
+        "contingency": "Dự phòng rủi ro {p}%", "total": "Tổng (đã gồm dự phòng)", "monthly": "Vận hành / tháng (ước tính)",
+        "milestones": "Mốc thanh toán", "vat": "Chưa gồm VAT",
+        "assumptions": "Giả định & câu hỏi cần khách xác nhận", "assumptions_col": "Giả định", "questions_col": "Câu hỏi mở", "none": "Không có",
+        "next": "Bước tiếp theo",
+        "next_steps": {
+            "go": ["Chốt phạm vi MVP và tiêu chí nghiệm thu", "Ký hợp đồng, kick-off dự án", "Bàn giao dữ liệu và quyền truy cập hệ thống"],
+            "go_with_poc": ["Thống nhất mục tiêu và tiêu chí đánh giá PoC", "Khách cung cấp dữ liệu mẫu đại diện", "Chạy PoC, đánh giá kết quả rồi quyết định MVP"],
+            "not_now": ["Làm rõ các câu hỏi mở với khách", "Chuẩn bị/thu thập dữ liệu cần thiết", "Đánh giá lại khi đủ điều kiện"],
+        },
+        "approved": "Đã được AI dev duyệt", "draft": "Bản nháp – cần AI dev duyệt trước khi gửi khách", "made_by": "Tạo bởi ScopeAI",
+        "pattern_labels": PATTERN_LABELS, "coverage": COVERAGE_LABELS, "go": GO_LABELS, "risk": RISK_LABELS,
+        "confidence_labels": CONFIDENCE_LABELS, "deployment_labels": DEPLOYMENT_LABELS,
+    },
+    "en": {
+        "context": "Background & objectives", "item": "Item", "info": "Details", "unknown": "TBD",
+        "fields": ["Current process", "Users", "Data sources", "Constraints", "Budget / Timeline"],
+        "inputs": "Documents & data provided", "inputs_sub": "Analyzed by code before being passed to the agent",
+        "docs": "{n} document(s): {names}", "reqs": "{n} requirements from your Excel file",
+        "data": "Sample data {name}: {rows} rows × {cols} columns, readiness {hint}/5", "pii": ", {n} column(s) may contain personal data",
+        "code": "Source code {name}: {lines} lines ({langs}); frameworks: {fw}", "data_notes": "Data notes",
+        "pattern": "Proposed solution approach", "no_ai": "No AI needed for this problem", "confidence": "Confidence",
+        "rejected": ["Options considered and rejected", "Reason"],
+        "architecture": "System architecture", "deployment": "Deployment",
+        "feasibility": "Feasibility & risks", "recommend": "Recommendation",
+        "scores": ["Data readiness", "Technical feasibility", "Business value"],
+        "risk_headers": ["Level", "Category", "Risk", "Mitigation"],
+        "effort": "Effort & team", "effort_sub": "Baseline computed by code: standard effort table × adjustment factors",
+        "formula": "Standard table {p}  ×  {f}  =  × {x}", "formula_none": "Standard table {p}, no adjustment factor (× 1)",
+        "effort_headers": ["Phase", "Person-days", "Team", "Deliverables"],
+        "wbs": "WBS – work breakdown", "wbs_sub": "{n} tasks · {d} person-days",
+        "wbs_headers": ["ID", "Phase", "Task", "Role", "Person-days"], "more": "… and {n} more tasks (see the Excel file).",
+        "timeline": "Delivery timeline", "timeline_sub": "~{w} weeks ({d} working days), computed by code from the WBS", "week": "W{n}",
+        "requirements": "Requirement compliance", "requirements_sub": "{n} requirements assessed one by one",
+        "req_headers": ["ID", "Requirement", "Coverage", "Notes"],
+        "pricing": "Estimated cost (preliminary)", "pricing_sub": "Computed by code: WBS person-days × role day rates",
+        "price_headers": ["Phase", "Person-days", "Cost", "Estimated range"],
+        "contingency": "Risk contingency {p}%", "total": "Total (incl. contingency)", "monthly": "Running cost / month (estimate)",
+        "milestones": "Payment milestones", "vat": "Excluding VAT",
+        "assumptions": "Assumptions & open questions", "assumptions_col": "Assumptions", "questions_col": "Open questions", "none": "None",
+        "next": "Next steps",
+        "next_steps": {
+            "go": ["Agree on MVP scope and acceptance criteria", "Sign the contract and kick off", "Hand over data and system access"],
+            "go_with_poc": ["Agree on PoC goals and evaluation criteria", "Provide representative sample data", "Run the PoC, review results, decide on MVP"],
+            "not_now": ["Clarify the open questions", "Prepare / collect the required data", "Reassess once conditions are met"],
+        },
+        "approved": "Approved by our AI team", "draft": "Draft – pending internal review", "made_by": "Created with ScopeAI",
+        "pattern_labels": {
+            "no_ai_rule_based": "No AI needed (rules / script)", "classic_ml": "Classic machine learning",
+            "rag": "RAG – document Q&A", "agent": "AI agent – multi-step automation",
+            "fine_tune": "Model fine-tuning", "needs_clarification": "Needs clarification",
+        },
+        "coverage": {"full": "Supported", "partial": "Partially", "not_supported": "Not supported", "needs_clarification": "To clarify"},
+        "go": {"go": "Go", "go_with_poc": "Go via PoC", "not_now": "Not now"},
+        "risk": {"data": "Data", "accuracy": "Accuracy", "privacy": "Privacy", "compliance": "Compliance", "cost": "Cost", "adoption": "Adoption"},
+        "confidence_labels": {"low": "Low", "medium": "Medium", "high": "High"},
+        "deployment_labels": {"cloud": "Cloud", "on_prem": "On-premise", "hybrid": "Hybrid"},
+    },
+    "ja": {
+        "context": "背景と目的", "item": "項目", "info": "内容", "unknown": "未確認",
+        "fields": ["現行業務", "利用者", "データソース", "制約条件", "予算／期限"],
+        "inputs": "ご提供資料・データ", "inputs_sub": "コードで解析したうえでエージェントに入力",
+        "docs": "資料{n}件: {names}", "reqs": "お客様Excelの要件{n}件",
+        "data": "サンプルデータ {name}: {rows}行 × {cols}列、データ準備度 {hint}/5", "pii": "、個人情報の可能性がある列 {n}件",
+        "code": "ソースコード {name}: {lines}行 ({langs})、フレームワーク: {fw}", "data_notes": "データに関する留意点",
+        "pattern": "ご提案するソリューション方針", "no_ai": "本課題にAIは不要です", "confidence": "確信度",
+        "rejected": ["検討・除外した方針", "理由"],
+        "architecture": "システム構成", "deployment": "導入形態",
+        "feasibility": "実現可能性とリスク", "recommend": "推奨",
+        "scores": ["データ準備度", "技術的実現性", "ビジネス価値"],
+        "risk_headers": ["レベル", "分類", "リスク", "対策"],
+        "effort": "工数と体制", "effort_sub": "標準工数表 × 補正係数によりコードで算出",
+        "formula": "標準工数表 {p}  ×  {f}  =  × {x}", "formula_none": "標準工数表 {p}、補正係数なし（× 1）",
+        "effort_headers": ["フェーズ", "工数（人日）", "体制", "成果物"],
+        "wbs": "WBS（作業分解構成）", "wbs_sub": "{n}タスク・{d}人日",
+        "wbs_headers": ["ID", "フェーズ", "タスク", "役割", "人日"], "more": "…ほか{n}タスク（Excelをご参照ください）",
+        "timeline": "導入スケジュール", "timeline_sub": "約{w}週間（{d}営業日）、WBSからコードで算出", "week": "{n}週",
+        "requirements": "要件対応状況", "requirements_sub": "{n}件の要件を1件ずつ評価",
+        "req_headers": ["ID", "要件", "対応", "備考"],
+        "pricing": "概算お見積り", "pricing_sub": "WBSの工数 × 役割別単価によりコードで算出",
+        "price_headers": ["フェーズ", "工数（人日）", "金額", "概算レンジ"],
+        "contingency": "予備費 {p}%", "total": "合計（予備費込み）", "monthly": "月額運用費（目安）",
+        "milestones": "お支払いマイルストーン", "vat": "消費税別",
+        "assumptions": "前提条件と確認事項", "assumptions_col": "前提条件", "questions_col": "確認事項", "none": "なし",
+        "next": "今後の進め方",
+        "next_steps": {
+            "go": ["MVPの範囲と受入基準の合意", "ご契約・キックオフ", "データおよびシステム権限のご提供"],
+            "go_with_poc": ["PoCの目的と評価基準の合意", "代表的なサンプルデータのご提供", "PoC実施・評価のうえMVPを判断"],
+            "not_now": ["確認事項のご回答", "必要なデータの準備・収集", "条件が整い次第の再評価"],
+        },
+        "approved": "社内レビュー承認済み", "draft": "ドラフト（社内レビュー前）", "made_by": "ScopeAIにより作成",
+        "pattern_labels": {
+            "no_ai_rule_based": "AI不要（ルール／スクリプト）", "classic_ml": "従来型機械学習",
+            "rag": "RAG（社内文書QA）", "agent": "AIエージェント（業務自動化）",
+            "fine_tune": "ファインチューニング", "needs_clarification": "要確認",
+        },
+        "coverage": {"full": "対応可", "partial": "一部対応", "not_supported": "対応不可", "needs_clarification": "要確認"},
+        "go": {"go": "推進を推奨", "go_with_poc": "PoCから推進", "not_now": "現時点では見送り"},
+        "risk": {"data": "データ", "accuracy": "精度", "privacy": "プライバシー", "compliance": "コンプライアンス", "cost": "コスト", "adoption": "定着"},
+        "confidence_labels": {"low": "低", "medium": "中", "high": "高"},
+        "deployment_labels": {"cloud": "クラウド", "on_prem": "オンプレミス", "hybrid": "ハイブリッド"},
+    },
+}  # fmt: skip
+
+# Contract models, ODC and company content (added with the company templates)
+EXTRA: dict[str, dict[str, Any]] = {
+    "vi": {
+        "contract": {"fixed_price": "Trọn gói (Fixed price)", "time_material": "Theo thời gian & nguồn lực (T&M)", "odc": "Đội dự án riêng (ODC)"},
+        "tm_total": "Tổng dự toán (T&M)", "odc_headers": ["Vai trò", "FTE", "Chi phí / tháng"],
+        "odc_total": "Chi phí đội / tháng", "odc_period": "{m} tháng · tổng {total}",
+        "overhead_note": "Đã gồm {o} ngày công quản lý dự án (PM/BrSE) · onsite {r}%",
+        "commitments": "Phương pháp, chất lượng & điều khoản", "case_studies": "Dự án tương tự đã triển khai", "cs_sub": "Case study được phép trình bày (số liệu minh họa)",
+        "cs_challenge": "Thách thức", "cs_solution": "Giải pháp", "cs_results": "Kết quả",
+        "markets": {"vn": "Việt Nam", "jp": "Nhật Bản", "eu": "Châu Âu", "other": "Quốc tế"},
+    },
+    "en": {
+        "contract": {"fixed_price": "Fixed price", "time_material": "Time & materials", "odc": "Dedicated team (ODC)"},
+        "tm_total": "Estimated total (T&M)", "odc_headers": ["Role", "FTE", "Cost / month"],
+        "odc_total": "Team cost / month", "odc_period": "{m} months · total {total}",
+        "overhead_note": "Includes {o} person-days of project management (PM/BrSE) · onsite {r}%",
+        "commitments": "Delivery, quality & terms", "case_studies": "Relevant experience", "cs_sub": "Case studies cleared for presentation (illustrative figures)",
+        "cs_challenge": "Challenge", "cs_solution": "Solution", "cs_results": "Results",
+        "markets": {"vn": "Vietnam", "jp": "Japan", "eu": "Europe", "other": "Global"},
+    },
+    "ja": {
+        "contract": {"fixed_price": "一括請負", "time_material": "準委任（T&M）", "odc": "専属チーム（ODC）"},
+        "tm_total": "概算合計（準委任）", "odc_headers": ["役割", "FTE", "月額"],
+        "odc_total": "チーム月額", "odc_period": "{m}か月 · 合計 {total}",
+        "overhead_note": "プロジェクト管理（PM/BrSE）{o}人日を含む · オンサイト比率 {r}%",
+        "commitments": "推進方法・品質・契約条件", "case_studies": "類似プロジェクト実績", "cs_sub": "公開可能な事例（数値は例示）",
+        "cs_challenge": "課題", "cs_solution": "解決策", "cs_results": "成果",
+        "markets": {"vn": "ベトナム", "jp": "日本", "eu": "欧州", "other": "グローバル"},
+    },
+}  # fmt: skip
+for _lang, _extra in EXTRA.items():
+    LABELS[_lang].update(_extra)
+
+
+def format_money(value: float, currency: str) -> str:
+    if currency == "JPY":
+        return f"¥{value:,.0f}"
+    if currency == "USD":
+        return f"${value:,.0f}"
+    return f"{value:,.0f}".replace(",", ".") + " ₫"

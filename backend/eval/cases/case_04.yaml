@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. RAG: chatbot FAQ website bảo hiểm, có sẵn 300 câu hỏi.
+id: case_04
+request_text: |
+  Chào anh/chị, Công ty Bảo hiểm An Tâm (giả lập) muốn xây chatbot trên website để trả lời khách hàng.
+  Hiện chúng tôi đã có bộ 300 câu hỏi – trả lời thường gặp (file Excel) và khoảng 40 tài liệu điều khoản sản phẩm (PDF).
+  Mỗi tháng tổng đài nhận khoảng 8.000 cuộc gọi, phần lớn hỏi về quyền lợi, thủ tục bồi thường, cách đóng phí.
+  Chatbot cần trả lời bằng tiếng Việt, đúng theo tài liệu, và chuyển sang nhân viên khi không chắc chắn.
+  Website đang dùng nền tảng WordPress; mong muốn chạy thử trong 2 tháng.
+expected:
+  pattern: rag
+  acceptable_patterns: [rag]
+  question_topics: [data, integration, accuracy]
+  can_proceed: true
+  mvp_person_days: [24, 60]
+  must_not_mention: ["fine-tune"]

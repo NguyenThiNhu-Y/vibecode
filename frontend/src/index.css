@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+/* Dark mode follows the `.dark` class on <html> (theme toggle), not the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Role-based tokens: components use these names only, values switch per theme below. */
+@theme inline {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+
+  --color-paper: var(--paper);
+  --color-ink: #1f2937;
+}
+
+:root {
+  color-scheme: light;
+  --canvas: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f1f3f5;
+  --line: #e3e6ea;
+  --fg: #15181d;
+  --muted: #4a5260;
+  --subtle: #6b7280;
+
+  --accent: #e8590c;
+  --on-accent: #ffffff;
+  --accent-strong: #c2410c;
+  --accent-soft: #fff1e8;
+
+  --success: #047857;
+  --success-soft: #e8f7f0;
+  --warning: #b45309;
+  --warning-soft: #fef6e4;
+  --danger: #b91c1c;
+  --danger-soft: #fdecec;
+  --info: #1d4ed8;
+  --info-soft: #eaf1fe;
+  --violet: #6d28d9;
+  --violet-soft: #f1ebfe;
+
+  --paper: #ffffff;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --phase-poc: #f9a66c;
+  --phase-mvp: #e8590c;
+  --phase-production: #9a3412;
+}
+
+.dark {
+  color-scheme: dark;
+  --canvas: #0f1216;
+  --surface: #161a20;
+  --surface-2: #1d222a;
+  --line: #2a313b;
+  --fg: #e7eaee;
+  --muted: #a8b0bc;
+  --subtle: #8a93a0;
+
+  --accent: #ff7a2f;
+  --on-accent: #1a0d04;
+  --accent-strong: #ffa266;
+  --accent-soft: rgb(255 122 47 / 0.14);
+
+  --success: #34d399;
+  --success-soft: rgb(52 211 153 / 0.13);
+  --warning: #fbbf24;
+  --warning-soft: rgb(251 191 36 / 0.13);
+  --danger: #f87171;
+  --danger-soft: rgb(248 113 113 / 0.13);
+  --info: #60a5fa;
+  --info-soft: rgb(96 165 250 / 0.13);
+  --violet: #a78bfa;
+  --violet-soft: rgb(167 139 250 / 0.14);
+
+  --paper: #fffdf8;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --phase-poc: #ffb27f;
+  --phase-mvp: #ff7a2f;
+  --phase-production: #c2500c;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  @apply bg-canvas text-fg antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+/* ---------- Motion (subtle, functional only) ---------- */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-in 0.25s ease-out both;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--surface-2) 0%, var(--line) 50%, var(--surface-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: rotate(-6deg) scale(1.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-6deg) scale(1);
+  }
+}
+.stamp {
+  animation: stamp-in 0.35s ease-out both;
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+.bar-grow {
+  transform-origin: left;
+  animation: bar-grow 0.5s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Proposal markdown (always on paper) ---------- */
+
+.markdown {
+  @apply text-base leading-relaxed text-slate-700;
+}
+.markdown h1 {
+  @apply mb-3 text-xl font-bold text-ink;
+}
+.markdown h2 {
+  @apply mt-6 mb-2 border-b border-slate-200 pb-1 text-base font-semibold text-ink;
+}
+.markdown h3 {
+  @apply mt-4 mb-1.5 text-base font-semibold text-ink;
+}
+.markdown p {
+  @apply my-2;
+}
+.markdown strong {
+  @apply font-semibold text-ink;
+}
+.markdown ul {
+  @apply my-2 list-disc pl-6;
+}
+.markdown ol {
+  @apply my-2 list-decimal pl-6;
+}
+.markdown li {
+  @apply my-0.5;
+}
+.markdown table {
+  @apply my-3 w-full border-collapse text-sm;
+}
+.markdown th,
+.markdown td {
+  @apply border border-slate-200 px-3 py-1.5 text-left;
+}
+.markdown th {
+  @apply bg-slate-50 font-semibold text-ink;
+}
+.markdown code {
+  @apply rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.9em];
+}
+.markdown pre {
+  @apply my-3 overflow-x-auto rounded-md bg-slate-900 p-3 text-slate-100;
+}

@@ -1,0 +1,71 @@
+{
+  "components": [
+    {
+      "name": "Excel reader",
+      "purpose": "Đọc và kiểm tra cấu trúc các file hóa đơn",
+      "tech_options": [
+        "Python + openpyxl",
+        "Power Query"
+      ]
+    },
+    {
+      "name": "Aggregator",
+      "purpose": "Tính tổng theo chi nhánh, đối chiếu",
+      "tech_options": [
+        "pandas",
+        "SQL"
+      ]
+    },
+    {
+      "name": "Report exporter",
+      "purpose": "Xuất báo cáo tháng",
+      "tech_options": [
+        "Excel template",
+        "PDF"
+      ]
+    }
+  ],
+  "deployment": "on_prem",
+  "estimates": [
+    {
+      "phase": "poc",
+      "min_person_days": 3,
+      "max_person_days": 5,
+      "team": [
+        "Backend developer"
+      ],
+      "deliverables": [
+        "Script tổng hợp 1 tháng dữ liệu mẫu"
+      ],
+      "adjustment_note": null
+    },
+    {
+      "phase": "mvp",
+      "min_person_days": 10,
+      "max_person_days": 20,
+      "team": [
+        "Backend developer",
+        "QA"
+      ],
+      "deliverables": [
+        "Công cụ chạy hàng tháng, báo lỗi file sai template"
+      ],
+      "adjustment_note": null
+    },
+    {
+      "phase": "production",
+      "min_person_days": 20,
+      "max_person_days": 40,
+      "team": [
+        "Backend developer",
+        "QA"
+      ],
+      "deliverables": [
+        "Lập lịch tự động, lưu lịch sử báo cáo"
+      ],
+      "adjustment_note": null
+    }
+  ],
+  "reference_projects": [],
+  "mermaid": "flowchart LR\n  X[40 file Excel chi nhánh] --> R[Excel reader]\n  R --> A[Aggregator]\n  A --> E[Report exporter]\n  E --> K[Bộ phận kế toán]"
+}

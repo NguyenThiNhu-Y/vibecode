@@ -1,0 +1,73 @@
+# Thư viện case study (GIẢ LẬP). public: true = được phép trình bày với khách.
+- id: cs_rag_manual_jp
+  title: Chatbot tra cứu tài liệu kỹ thuật cho nhà sản xuất thiết bị (giả lập)
+  industry: Sản xuất
+  market: jp
+  pattern: rag
+  year: 2025
+  public: true
+  challenge: Kỹ sư bảo trì mất nhiều thời gian tìm thông tin trong hàng nghìn trang manual tiếng Nhật.
+  solution: Trợ lý RAG on-premise, trả lời kèm trích dẫn số trang, tích hợp vào cổng nội bộ.
+  results: ["Giảm 60% thời gian tra cứu", "85% câu trả lời được kỹ sư đánh giá đúng"]
+  tech: [Python, OpenSearch, LLM on-premise]
+  duration: 5 tháng
+- id: cs_rag_bank_vn
+  title: Trợ lý hỏi đáp quy định nội bộ cho ngân hàng (giả lập)
+  industry: Tài chính ngân hàng
+  market: vn
+  pattern: rag
+  year: 2025
+  public: true
+  challenge: Nhân viên chi nhánh phải chờ phòng pháp chế trả lời câu hỏi về quy định.
+  solution: Hỏi đáp trên kho văn bản quy định, phân quyền theo phòng ban, lưu vết câu hỏi.
+  results: ["Giảm 70% câu hỏi gửi phòng pháp chế", "Thời gian trả lời từ 2 ngày xuống vài giây"]
+  tech: [Python, pgvector, LLM API]
+  duration: 4 tháng
+- id: cs_agent_order_jp
+  title: Agent xử lý email đặt hàng cho công ty phân phối (giả lập)
+  industry: Phân phối
+  market: jp
+  pattern: agent
+  year: 2024
+  public: true
+  challenge: 5 nhân viên nhập tay khoảng 200 email đặt hàng mỗi ngày vào ERP.
+  solution: Agent đọc email/PDF, kiểm tồn kho, tạo đơn nháp trong ERP chờ người duyệt.
+  results: ["Tự động hóa 75% đơn hàng", "Sai sót nhập liệu giảm 90%"]
+  tech: [Python, LLM tool calling, ERP REST API]
+  duration: 6 tháng
+- id: cs_ml_forecast_vn
+  title: Dự báo nhu cầu nhập hàng cho chuỗi bán lẻ (giả lập)
+  industry: Bán lẻ
+  market: vn
+  pattern: classic_ml
+  year: 2024
+  public: true
+  challenge: Tồn kho dư thừa và thiếu hàng do dự báo bằng kinh nghiệm.
+  solution: Mô hình dự báo theo cửa hàng × mặt hàng từ 3 năm dữ liệu bán.
+  results: ["Giảm 18% tồn kho", "Giảm 25% tình trạng hết hàng"]
+  tech: [Python, LightGBM, Airflow]
+  duration: 4 tháng
+- id: cs_no_ai_invoice_vn
+  title: Tự động tổng hợp hóa đơn chi nhánh bằng script (giả lập)
+  industry: Dịch vụ
+  market: vn
+  pattern: no_ai_rule_based
+  year: 2025
+  public: true
+  challenge: Khách muốn "dùng AI" để cộng tổng hóa đơn từ hàng chục file Excel mỗi tháng.
+  solution: Đề xuất script ETL thay cho AI, kiểm tra template và xuất báo cáo tự động.
+  results: ["Từ 3 ngày xuống 10 phút mỗi tháng", "Chi phí bằng 1/5 phương án AI"]
+  tech: [Python, pandas]
+  duration: 3 tuần
+- id: cs_ft_medical_jp
+  title: Sinh báo cáo y khoa theo văn phong chuẩn (giả lập)
+  industry: Y tế
+  market: jp
+  pattern: fine_tune
+  year: 2025
+  public: true
+  challenge: Bác sĩ mất nhiều thời gian viết báo cáo chẩn đoán hình ảnh theo mẫu chuẩn.
+  solution: Fine-tune model nhỏ trên báo cáo mẫu đã ẩn danh, chạy trong mạng bệnh viện, bác sĩ duyệt cuối.
+  results: ["Giảm 40% thời gian soạn báo cáo"]
+  tech: [PyTorch, LoRA, on-premise GPU]
+  duration: 7 tháng

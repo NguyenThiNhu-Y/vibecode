@@ -1,0 +1,88 @@
+# Thư viện nội dung chuẩn (GIẢ LẬP). Chèn NGUYÊN VĂN vào slide/Word, LLM không viết lại.
+# position: start = sau trang bìa; end = sau phần proposal, trước phụ lục.
+# Placeholder: {{company_name}}, {{company_short}}, {{client_name}}
+- id: about_us
+  enabled: true
+  position: start
+  title:
+    vi: Về {{company_short}}
+    en: About {{company_short}}
+    ja: "{{company_short}}について"
+  body:
+    vi: |
+      {{company_name}} là đơn vị cung cấp dịch vụ phát triển phần mềm và giải pháp AI (nội dung mẫu).
+      Đội ngũ chuyên gia AI, dữ liệu và kỹ sư phần mềm phục vụ khách hàng tại Việt Nam, Nhật Bản và quốc tế.
+      Thay đoạn này bằng giới thiệu chính thức của công ty.
+    en: |
+      {{company_name}} provides software development services and AI solutions (sample content).
+      Our AI, data and software engineers serve clients in Vietnam, Japan and worldwide.
+      Replace this paragraph with the official company introduction.
+    ja: |
+      {{company_name}}はソフトウェア開発サービスおよびAIソリューションを提供しています（サンプル）。
+      AI・データ・ソフトウェアの専門チームが、ベトナム・日本をはじめ各国のお客様を支援しています。
+      本文は正式な会社紹介に差し替えてください。
+- id: methodology
+  enabled: true
+  position: end
+  title:
+    vi: Phương pháp triển khai
+    en: Delivery methodology
+    ja: 推進方法
+  body:
+    vi: |
+      Triển khai theo giai đoạn PoC → MVP → Production, mỗi giai đoạn có tiêu chí nghiệm thu rõ ràng.
+      Làm việc theo sprint 2 tuần, demo định kỳ với khách hàng; đánh giá chất lượng AI bằng bộ test chuẩn.
+    en: |
+      Phased delivery PoC → MVP → Production with clear acceptance criteria for each phase.
+      Two-week sprints with regular demos; AI quality is measured on an agreed evaluation set.
+    ja: |
+      PoC → MVP → 本番の段階的に推進し、各フェーズで受入基準を明確にします。
+      2週間スプリントで定期的にデモを行い、合意した評価データでAIの品質を測定します。
+- id: security_quality
+  enabled: true
+  position: end
+  title:
+    vi: Bảo mật & chất lượng
+    en: Security & quality
+    ja: セキュリティと品質
+  body:
+    vi: |
+      Quy trình bảo mật thông tin và quản lý chất lượng theo tiêu chuẩn của công ty (nêu chứng chỉ thật tại đây).
+      Dữ liệu cá nhân được ẩn danh trước khi xử lý; có thể triển khai on-premise theo yêu cầu.
+    en: |
+      Information security and quality management follow company standards (list actual certifications here).
+      Personal data is anonymised before processing; on-premise deployment is available on request.
+    ja: |
+      情報セキュリティおよび品質管理は当社基準に準拠します（取得認証をここに記載）。
+      個人情報は処理前に匿名化し、ご要望に応じてオンプレミス構築も可能です。
+- id: warranty_support
+  enabled: true
+  position: end
+  title:
+    vi: Bảo hành & hỗ trợ
+    en: Warranty & support
+    ja: 保証とサポート
+  body:
+    vi: |
+      Bảo hành lỗi 3 tháng sau nghiệm thu (số liệu mẫu). Gói vận hành và cải tiến mô hình được báo giá riêng.
+    en: |
+      3-month defect warranty after acceptance (sample figure). Operation and model improvement packages are quoted separately.
+    ja: |
+      検収後3か月の瑕疵保証（サンプル値）。運用・モデル改善は別途お見積りします。
+- id: terms_exclusions
+  enabled: true
+  position: end
+  title:
+    vi: Điều khoản & phạm vi loại trừ
+    en: Terms & exclusions
+    ja: 条件および対象外事項
+  body:
+    vi: |
+      Báo giá có hiệu lực 30 ngày, chưa gồm VAT, chi phí bản quyền phần mềm, phần cứng và hạ tầng của khách hàng.
+      Phạm vi ngoài các hạng mục nêu trong hồ sơ sẽ được thống nhất bằng yêu cầu thay đổi (change request).
+    en: |
+      This quotation is valid for 30 days and excludes VAT, software licences, hardware and client infrastructure.
+      Work outside the listed scope is handled through change requests.
+    ja: |
+      本見積の有効期限は30日間です。消費税、ソフトウェアライセンス、ハードウェア、お客様側インフラ費用は含みません。
+      記載範囲外の作業は変更要求にて別途合意します。

@@ -1,0 +1,5 @@
+{
+  "title": "Đề xuất sơ bộ: Tự động tổng hợp hóa đơn chi nhánh",
+  "markdown": "# Đề xuất sơ bộ: Tự động tổng hợp hóa đơn chi nhánh\n\n## Kết luận chính\n**Bài toán này không cần AI.** Dữ liệu có cấu trúc và phép tính xác định, một script tổng hợp là đủ.\n\n## Giải pháp đề xuất\nScript đọc 40 file Excel theo template, kiểm tra cấu trúc, tính tổng theo chi nhánh và xuất báo cáo tháng.\n\n## Effort dự kiến\n| Giai đoạn | Ngày công |\n|---|---|\n| PoC | 3–5 |\n| MVP | 10–20 |\n| Production | 20–40 |\n\n## Giả định\n- Template Excel giữ nguyên giữa các chi nhánh.\n\n## Rủi ro\n- Chi nhánh sửa template (mức 3): kiểm tra cấu trúc file trước khi tổng hợp.\n\n## Câu hỏi còn mở\n- Định dạng báo cáo đầu ra mong muốn?\n",
+  "language": "vi"
+}

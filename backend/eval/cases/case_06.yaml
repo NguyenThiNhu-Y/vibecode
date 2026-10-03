@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Agent: trợ lý xếp lịch họp và tự gửi biên bản họp (tiếng Anh).
+id: case_06
+request_text: |
+  Hello, I'm the operations manager at Brightline Consulting (fictional), a 120-person firm using Microsoft 365.
+  Our consultants spend hours every week going back and forth by email to schedule client meetings across time zones.
+  We want an assistant that reads a meeting request, checks attendees' Outlook calendars, proposes and books a slot,
+  and after the Teams meeting automatically drafts the minutes from the transcript and emails them to participants.
+  Consultants should be able to review the minutes before sending for external meetings.
+  We'd like to start with one team of about 20 people.
+expected:
+  pattern: agent
+  acceptable_patterns: [agent]
+  question_topics: [integration, users, compliance]
+  can_proceed: true
+  mvp_person_days: [36, 84]
+  must_not_mention: ["fine-tune"]

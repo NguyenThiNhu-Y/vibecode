@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Agent: tự động hóa onboarding nhân viên mới qua nhiều hệ thống (tiếng Nhật, nhân sự).
+id: case_21
+request_text: |
+  お世話になっております。架空ホールディングス株式会社（仮）人事部の者です。
+  当社グループでは年間約600名の中途・新卒社員が入社し、入社手続きに人事・情報システム・総務の担当者が多くの時間を割いています。
+  人事システムに内定者情報が登録された時点で、社員区分や配属先に応じて、アカウント発行申請、PC貸与のチケット起票、
+  必須研修の登録、入社案内メールの作成・送信までを自動で進める仕組みを検討しております。
+  各システム（人事システム、ITSM、研修管理システム、Microsoft 365）はAPI連携が可能です。
+  個人情報を扱うため、アクセス権限と操作ログの管理を重視しております。
+expected:
+  pattern: agent
+  acceptable_patterns: [agent]
+  question_topics: [integration, compliance]
+  can_proceed: true
+  mvp_person_days: [41, 97]
+  must_not_mention: ["fine-tune"]

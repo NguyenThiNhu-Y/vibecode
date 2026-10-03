@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Classic ML: phát hiện giao dịch bất thường từ log thanh toán (tiếng Anh).
+id: case_09
+request_text: |
+  Hi, we are PayQuick (fictional), a mid-size payment gateway processing about 1.5 million transactions per day.
+  Our risk team currently relies on ~60 static rules to flag suspicious transactions, which produce too many false positives.
+  We have 2 years of transaction logs (amount, merchant, device, IP, card BIN, timestamps) in our data warehouse,
+  plus about 18,000 confirmed fraud/chargeback labels.
+  We'd like a model that scores each transaction for anomaly/fraud risk in near real time (< 200 ms)
+  so analysts can prioritize reviews. Explainability of each score is important for our auditors.
+expected:
+  pattern: classic_ml
+  acceptable_patterns: [classic_ml]
+  question_topics: [data, accuracy, infra]
+  can_proceed: true
+  mvp_person_days: [32, 72]
+  must_not_mention: ["fine-tune", "vector database"]

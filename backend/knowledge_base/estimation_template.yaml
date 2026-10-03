@@ -1,0 +1,13 @@
+# BẢN NHÁP — số liệu giữ chỗ, cần senior xác nhận. Đơn vị: ngày công.
+unit: person_days
+base:
+  rag:              { poc: [10, 15], mvp: [30, 50], production: [60, 100] }
+  agent:            { poc: [15, 25], mvp: [45, 70], production: [90, 150] }
+  classic_ml:       { poc: [15, 20], mvp: [40, 60], production: [70, 110] }
+  fine_tune:        { poc: [20, 30], mvp: [50, 80], production: [90, 140] }
+  no_ai_rule_based: { poc: [3, 5],   mvp: [10, 20], production: [20, 40] }
+multipliers:
+  on_prem: 1.3
+  japanese_language: 1.15
+  low_data_readiness: 1.4
+  strict_compliance: 1.2

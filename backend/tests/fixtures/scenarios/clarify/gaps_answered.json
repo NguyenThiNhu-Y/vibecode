@@ -1,0 +1,7 @@
+{
+  "missing_info": ["Ngân sách cụ thể"],
+  "questions": [
+    {"id": "q1", "topic": "budget", "question": "Ngân sách dự kiến cho giai đoạn thử nghiệm là bao nhiêu?", "why_it_matters": "Ảnh hưởng phạm vi PoC; tạm giả định ngân sách vừa phải.", "blocking": false}
+  ],
+  "can_proceed": true
+}

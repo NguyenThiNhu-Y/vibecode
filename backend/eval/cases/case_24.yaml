@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Classic ML, dữ liệu chưa sẵn sàng: dự báo công suất phòng để định giá (khách sạn).
+id: case_24
+request_text: |
+  Chào anh/chị, Tập đoàn Khách sạn Biển Ngọc (giả lập) có 6 khách sạn tại Đà Nẵng, Nha Trang và Phú Quốc, tổng khoảng 1.100 phòng.
+  Hiện giá phòng do trưởng bộ phận kinh doanh mỗi khách sạn điều chỉnh thủ công theo kinh nghiệm.
+  Dữ liệu đặt phòng 4 năm nằm rải rác: 2 khách sạn dùng PMS cũ chỉ xuất được Excel, các khách sạn còn lại dùng PMS khác nhau,
+  dữ liệu từ OTA và lịch sự kiện địa phương đang được nhân viên ghi tay vào Google Sheets.
+  Chúng tôi muốn dự báo công suất phòng 90 ngày tới theo từng hạng phòng và gợi ý mức giá cho bộ phận kinh doanh duyệt.
+expected:
+  pattern: classic_ml
+  acceptable_patterns: [classic_ml]
+  question_topics: [data, integration, accuracy]
+  can_proceed: true
+  mvp_person_days: [45, 101]
+  must_not_mention: ["fine-tune", "vector database"]

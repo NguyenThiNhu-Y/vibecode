@@ -1,0 +1,89 @@
+{
+  "components": [
+    {
+      "name": "Ingestion",
+      "purpose": "Đọc Word/PDF, chia đoạn, gắn metadata điều khoản",
+      "tech_options": [
+        "Python",
+        "unstructured"
+      ]
+    },
+    {
+      "name": "Vector index",
+      "purpose": "Lưu embedding để truy xuất đoạn liên quan",
+      "tech_options": [
+        "pgvector",
+        "OpenSearch"
+      ]
+    },
+    {
+      "name": "Chat API",
+      "purpose": "Truy xuất + sinh câu trả lời kèm trích dẫn",
+      "tech_options": [
+        "FastAPI",
+        "LLM API"
+      ]
+    },
+    {
+      "name": "Web chat",
+      "purpose": "Giao diện hỏi đáp cho nhân viên",
+      "tech_options": [
+        "React"
+      ]
+    }
+  ],
+  "deployment": "cloud",
+  "estimates": [
+    {
+      "phase": "poc",
+      "min_person_days": 10,
+      "max_person_days": 15,
+      "team": [
+        "AI engineer",
+        "Backend developer"
+      ],
+      "deliverables": [
+        "Demo hỏi đáp trên 100 văn bản",
+        "Bộ câu hỏi đánh giá"
+      ],
+      "adjustment_note": null
+    },
+    {
+      "phase": "mvp",
+      "min_person_days": 30,
+      "max_person_days": 50,
+      "team": [
+        "AI engineer",
+        "Backend developer",
+        "Frontend developer",
+        "QA"
+      ],
+      "deliverables": [
+        "Trợ lý hỏi đáp toàn bộ kho văn bản",
+        "Phân quyền theo phòng ban"
+      ],
+      "adjustment_note": null
+    },
+    {
+      "phase": "production",
+      "min_person_days": 60,
+      "max_person_days": 100,
+      "team": [
+        "AI engineer",
+        "Backend developer",
+        "Frontend developer",
+        "QA",
+        "DevOps"
+      ],
+      "deliverables": [
+        "Vận hành chính thức",
+        "Giám sát chất lượng câu trả lời"
+      ],
+      "adjustment_note": null
+    }
+  ],
+  "reference_projects": [
+    "rp_example"
+  ],
+  "mermaid": "flowchart LR\n  U[Nhân viên] --> UI[Web chat]\n  UI --> API[Chat API]\n  DOC[Văn bản Word/PDF] --> ING[Ingestion]\n  ING --> IDX[Vector index]\n  API --> IDX\n  API --> LLM[LLM API]"
+}

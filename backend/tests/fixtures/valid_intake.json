@@ -1,0 +1,11 @@
+{
+  "business_goal": "Xây trợ lý hỏi đáp quy định nội bộ để nhân viên tra cứu nhanh, giảm tải cho phòng pháp chế.",
+  "current_process": "Nhân viên gửi email hỏi phòng pháp chế, trung bình 2 ngày mới có phản hồi.",
+  "users": ["Nhân viên chi nhánh", "Phòng pháp chế"],
+  "data_sources": ["Khoảng 800 văn bản quy định nội bộ dạng Word và PDF"],
+  "constraints": ["vietnamese_ui", "cloud_allowed"],
+  "budget": null,
+  "timeline": "Muốn có bản thử trong 2 tháng",
+  "language": "vi",
+  "industry": "Tài chính – bảo hiểm (giả lập)"
+}

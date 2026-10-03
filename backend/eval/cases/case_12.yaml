@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Fine-tune: sinh báo cáo y khoa theo văn phong chuẩn bệnh viện, có 50.000 báo cáo mẫu (tiếng Nhật).
+id: case_12
+request_text: |
+  お世話になっております。架空総合病院（仮）放射線科の者です。
+  当院では読影医が1日約400件の画像診断レポートを作成しており、所見の記載に多くの時間を要しています。
+  過去10年分、匿名化済みのCT・MRIレポート約50,000件（所見メモと最終レポートの対）があります。
+  医師が入力した箇条書きの所見メモから、当院の定型的な文体・用語・構成に沿ったレポート下書きを生成したいと考えております。
+  患者情報を扱うため院内ネットワーク外への送信は不可で、最終確認は必ず医師が行います。
+expected:
+  pattern: fine_tune
+  acceptable_patterns: [fine_tune]
+  question_topics: [data, compliance, accuracy]
+  can_proceed: true
+  mvp_person_days: [70, 170]
+  must_not_mention: []

@@ -1,0 +1,13 @@
+# Dữ liệu giả lập. Demo case: không cần AI.
+id: case_10
+request_text: |
+  Chào anh/chị, hàng tháng bộ phận kế toán của chúng tôi nhận khoảng 40 file Excel
+  hóa đơn từ các chi nhánh, cùng một template. Chúng tôi muốn dùng AI để tự động
+  tính tổng tiền theo chi nhánh và xuất báo cáo. Hiện mất 3 ngày mỗi tháng.
+expected:
+  pattern: no_ai_rule_based
+  acceptable_patterns: [no_ai_rule_based]
+  question_topics: [data]
+  can_proceed: true
+  mvp_person_days: [5, 20]
+  must_not_mention: ["fine-tune", "vector database"]

@@ -1,0 +1,10 @@
+{
+  "missing_info": ["Quy trình hoặc bộ phận cụ thể cần cải thiện", "Dữ liệu hiện có", "Người dùng", "Cách đo năng suất"],
+  "questions": [
+    {"id": "q1", "topic": "users", "question": "Anh/chị muốn tăng năng suất cho bộ phận hoặc quy trình cụ thể nào?", "why_it_matters": "Không có quy trình cụ thể thì không thể chọn hướng giải pháp.", "blocking": true},
+    {"id": "q2", "topic": "data", "question": "Quy trình đó đang dùng những dữ liệu hoặc tài liệu gì (email, Excel, văn bản, hệ thống)?", "why_it_matters": "Loại dữ liệu quyết định dùng quy tắc, ML, RAG hay agent.", "blocking": true},
+    {"id": "q3", "topic": "accuracy", "question": "Anh/chị đo năng suất hiện tại bằng chỉ số nào và mong muốn cải thiện bao nhiêu?", "why_it_matters": "Cần tiêu chí thành công để đánh giá giá trị kinh doanh.", "blocking": false},
+    {"id": "q4", "topic": "budget", "question": "Ngân sách và thời gian dự kiến cho dự án là bao nhiêu?", "why_it_matters": "Ảnh hưởng phạm vi PoC và MVP.", "blocking": false}
+  ],
+  "can_proceed": false
+}

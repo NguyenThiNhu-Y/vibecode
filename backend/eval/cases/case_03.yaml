@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. RAG: tìm kiếm hợp đồng cũ theo điều khoản (tiếng Anh).
+id: case_03
+request_text: |
+  Hi team, I lead the legal operations group at Northwind Logistics (fictional).
+  We have roughly 12,000 executed vendor and customer contracts (PDF, mostly digital, some scanned) going back 10 years.
+  Our 25 in-house lawyers regularly need to find every contract containing a specific clause type,
+  e.g. limitation of liability above a threshold, auto-renewal, or change-of-control, and today this is done manually.
+  We'd like a tool where they can ask in plain English and get the matching contracts with the exact clause text highlighted.
+  Contracts are stored in our SharePoint; we'd like a pilot within 3 months.
+expected:
+  pattern: rag
+  acceptable_patterns: [rag]
+  question_topics: [data, accuracy, integration]
+  can_proceed: true
+  mvp_person_days: [24, 60]
+  must_not_mention: ["fine-tune"]

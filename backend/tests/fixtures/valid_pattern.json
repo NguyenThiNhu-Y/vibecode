@@ -1,0 +1,12 @@
+{
+  "pattern": "rag",
+  "rationale": "Bài toán là hỏi đáp trên kho văn bản phi cấu trúc thay đổi theo thời gian và cần trích dẫn nguồn. RAG cho phép cập nhật tài liệu mà không phải huấn luyện lại model.",
+  "rejected": [
+    {"pattern": "no_ai_rule_based", "reason": "Câu hỏi của nhân viên ở dạng ngôn ngữ tự nhiên đa dạng, không viết thành quy tắc được."},
+    {"pattern": "fine_tune", "reason": "Văn bản thay đổi thường xuyên, fine-tune tốn kém và không cho trích dẫn nguồn."},
+    {"pattern": "agent", "reason": "Không cần thực hiện hành động nhiều bước trên hệ thống khác."},
+    {"pattern": "classic_ml", "reason": "Không có bài toán dự đoán trên dữ liệu bảng."}
+  ],
+  "confidence": "high",
+  "assumptions": ["Văn bản ở dạng text, không phải bản scan cần OCR"]
+}

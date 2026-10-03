@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Không cần AI: "AI chấm điểm" bài trắc nghiệm có đáp án sẵn (giáo dục).
+id: case_26
+request_text: |
+  Chào anh/chị, Hệ thống Trường THCS–THPT Ánh Dương (giả lập) có khoảng 5.000 học sinh tại 3 cơ sở.
+  Các bài kiểm tra 15 phút và giữa kỳ đều là trắc nghiệm 4 lựa chọn, học sinh làm trên Google Forms, giáo viên có sẵn đáp án.
+  Hiện giáo viên phải tải kết quả về, chấm và quy đổi điểm theo thang 10 bằng tay rồi nhập vào sổ điểm điện tử,
+  mỗi đợt kiểm tra mất 2–3 ngày. Ban giám hiệu muốn ứng dụng AI để chấm điểm tự động
+  và xuất file điểm theo đúng mẫu import của sổ điểm điện tử.
+expected:
+  pattern: no_ai_rule_based
+  acceptable_patterns: [no_ai_rule_based]
+  question_topics: [data, integration]
+  can_proceed: true
+  mvp_person_days: [8, 24]
+  must_not_mention: ["fine-tune", "vector database"]

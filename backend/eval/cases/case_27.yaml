@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Fine-tune: tóm tắt cuộc gọi bồi thường theo schema và mã nội bộ, khối lượng lớn (tiếng Anh, bảo hiểm).
+id: case_27
+request_text: |
+  Hello, I'm the contact center director at Harborview Insurance (fictional).
+  Our claims hotline handles about 1.8 million calls per month, and after each call agents spend 4–5 minutes writing a summary
+  into our claims system using a fixed template and around 450 internal claim-type and action codes.
+  We have 120,000 historical call transcripts paired with QA-approved summaries and codes.
+  We want a model that produces these summaries and codes automatically in our house format, with per-call cost low enough
+  for this volume and latency under 3 seconds. Transcripts are already produced by our existing speech-to-text system.
+expected:
+  pattern: fine_tune
+  acceptable_patterns: [fine_tune]
+  question_topics: [data, accuracy, infra]
+  can_proceed: true
+  mvp_person_days: [40, 96]
+  must_not_mention: []

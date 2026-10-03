@@ -1,0 +1,17 @@
+# Dữ liệu giả lập. Yêu cầu mơ hồ: "cần AI cho bộ phận chăm sóc khách hàng", không nêu dữ liệu (tiếng Anh).
+id: case_14
+request_text: |
+  Hello, we're Evergreen Home Goods (fictional).
+  We need AI for our customer care department. Our management believes AI can make the team more efficient.
+  Could you propose a solution and give us a rough quote?
+expected:
+  pattern: needs_clarification
+  acceptable_patterns: [needs_clarification]
+  question_topics: [users, data]
+  can_proceed: false
+  mvp_person_days: null
+  must_not_mention: []
+# Optional, used only by eval/record_replay.py to record the "answer → continue" demo flow.
+demo_answers:
+  q1: About 25 agents handle email and live chat; the main pain is answering repetitive questions about orders, returns and delivery times.
+  q2: We receive around 10,000 tickets per month in Zendesk, and we have a help center with about 150 articles plus our returns policy PDF.

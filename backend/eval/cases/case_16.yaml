@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. RAG có compliance nghiêm ngặt: hỏi đáp phác đồ lâm sàng cho điều dưỡng (tiếng Anh, y tế).
+id: case_16
+request_text: |
+  Hello, I'm the clinical informatics lead at Riverside Community Hospital (fictional), a 400-bed hospital.
+  Our 900 nurses need quick answers from about 650 clinical protocols, nursing procedures and medication guidelines (PDF/Word),
+  which are revised by our clinical governance committee every quarter.
+  We want a chat assistant on the ward workstations that answers questions and always cites the exact protocol section and version.
+  It must never answer beyond the approved documents, all queries must be logged for audit,
+  and no data may leave our existing Azure tenant in-region because of health-data regulations. Pilot target: two wards in 4 months.
+expected:
+  pattern: rag
+  acceptable_patterns: [rag]
+  question_topics: [compliance, accuracy, data]
+  can_proceed: true
+  mvp_person_days: [29, 72]
+  must_not_mention: ["fine-tune"]

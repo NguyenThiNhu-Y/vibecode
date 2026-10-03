@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Demo case: RAG, tiếng Nhật, on-prem.
+id: case_01
+request_text: |
+  お世話になっております。架空精機株式会社（仮）の保守部門です。
+  当社では工作機械の保守マニュアルが約2,000ページ（PDF）あり、現場の保守担当者が必要な情報を探すのに毎回30分以上かかっています。
+  マニュアルの内容について日本語で質問すると、該当ページを示しながら回答してくれるチャットボットを検討しています。
+  セキュリティ上の理由で、データは社外に出せないため、オンプレミス環境での構築が必須です。
+  利用者は全国の保守担当者約150名です。まずは3ヶ月以内にPoCを実施したいと考えております。
+expected:
+  pattern: rag
+  acceptable_patterns: [rag]
+  question_topics: [data, accuracy]
+  can_proceed: true
+  mvp_person_days: [35, 80]
+  must_not_mention: []

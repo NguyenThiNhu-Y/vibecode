@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Không cần AI dù khách nói "machine learning": cảnh báo và tạo đề xuất đặt hàng theo tồn kho tối thiểu (bán lẻ).
+id: case_25
+request_text: |
+  Hi, we run Maple & Co. Hardware (fictional), 14 stores with about 9,000 SKUs on a single inventory system (SQL database).
+  For every SKU our buyers have already defined a minimum stock level, a reorder quantity and a preferred supplier.
+  Every morning a buyer checks a stock report and manually creates purchase orders for items below the minimum.
+  We'd like to apply machine learning so the system automatically detects low-stock items and generates draft purchase orders
+  grouped by supplier for the buyer to approve. We are not looking to change the min/reorder levels themselves.
+expected:
+  pattern: no_ai_rule_based
+  acceptable_patterns: [no_ai_rule_based]
+  question_topics: [integration, data]
+  can_proceed: true
+  mvp_person_days: [8, 24]
+  must_not_mention: ["fine-tune", "vector database"]

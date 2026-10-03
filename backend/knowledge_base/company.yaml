@@ -1,0 +1,6 @@
+# Thông tin công ty dùng trong hồ sơ (GIẢ LẬP – thay bằng thông tin thật trên trang Cài đặt).
+name: Công ty ABC (mẫu)
+short_name: ABC
+confidential_footer: Tài liệu mật – chỉ dùng cho khách hàng được chỉ định
+# Quy tắc đặt tên file xuất: {company} {client} {project} {doc} {version} {date}
+file_naming: "{company}_{client}_{project}_{doc}_v{version}_{date}"

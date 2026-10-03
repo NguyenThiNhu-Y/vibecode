@@ -1,0 +1,12 @@
+.env
+.venv/
+*.db
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+backend/eval/reports/*
+!backend/eval/reports/.gitkeep
+node_modules/
+frontend/dist/
+# Template riêng của công ty (upload ở Cài đặt) có thể là tài liệu mật
+backend/knowledge_base/templates/custom/

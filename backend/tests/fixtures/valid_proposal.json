@@ -1,0 +1,5 @@
+{
+  "title": "Đề xuất sơ bộ: Trợ lý hỏi đáp quy định nội bộ",
+  "markdown": "# Đề xuất sơ bộ: Trợ lý hỏi đáp quy định nội bộ\n\n## Bối cảnh\nNhân viên mất trung bình 2 ngày để nhận phản hồi về quy định nội bộ.\n\n## Giải pháp đề xuất\nTrợ lý hỏi đáp dùng RAG trên kho khoảng 800 văn bản, trả lời kèm trích dẫn.\n\n## Effort dự kiến\n| Giai đoạn | Ngày công |\n|---|---|\n| PoC | 10–15 |\n| MVP | 30–50 |\n| Production | 60–100 |\n\n## Giả định\n- Văn bản ở dạng text, không cần OCR.\n\n## Rủi ro\n- Trả lời sai điều khoản (mức 4): bắt buộc trích dẫn nguồn.\n\n## Câu hỏi còn mở\n- Tần suất cập nhật văn bản?\n",
+  "language": "vi"
+}

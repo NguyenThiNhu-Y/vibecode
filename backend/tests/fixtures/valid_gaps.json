@@ -1,0 +1,27 @@
+{
+  "missing_info": ["Tần suất cập nhật văn bản", "Yêu cầu trích dẫn nguồn", "Hệ thống đăng nhập hiện có"],
+  "questions": [
+    {
+      "id": "q1",
+      "topic": "data",
+      "question": "Các văn bản quy định được cập nhật bao lâu một lần và ai là người cập nhật?",
+      "why_it_matters": "Quyết định cơ chế đồng bộ và đánh chỉ mục lại tài liệu.",
+      "blocking": false
+    },
+    {
+      "id": "q2",
+      "topic": "accuracy",
+      "question": "Câu trả lời có bắt buộc kèm trích dẫn điều khoản và số trang không?",
+      "why_it_matters": "Ảnh hưởng thiết kế phần hiển thị nguồn và cách chia đoạn tài liệu.",
+      "blocking": false
+    },
+    {
+      "id": "q3",
+      "topic": "integration",
+      "question": "Công ty đang dùng hệ thống đăng nhập tập trung (SSO) nào?",
+      "why_it_matters": "Xác định effort tích hợp phân quyền theo phòng ban.",
+      "blocking": false
+    }
+  ],
+  "can_proceed": true
+}

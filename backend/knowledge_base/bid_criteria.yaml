@@ -1,0 +1,37 @@
+# Tiêu chí Bid/No-bid (GIẢ LẬP). auto = quy tắc code tự gợi ý từ kết quả phân tích (người vẫn xác nhận).
+- id: solution_clear
+  label: Đã xác định được hướng giải pháp
+  weight: 2
+  auto: solution_clear
+- id: data_ready
+  label: Dữ liệu của khách đủ để triển khai (sẵn sàng ≥ 3/5)
+  weight: 2
+  auto: data_ready
+- id: business_value
+  label: Giá trị kinh doanh rõ ràng (≥ 3/5)
+  weight: 1
+  auto: business_value
+- id: risk_acceptable
+  label: Không có rủi ro mức 5
+  weight: 1
+  auto: risk_acceptable
+- id: requirements_fit
+  label: Đáp ứng đầy đủ hoặc một phần ≥ 70% requirement
+  weight: 1
+  auto: requirements_fit
+- id: budget_known
+  label: Khách đã nêu ngân sách
+  weight: 1
+  auto: budget_known
+- id: relationship
+  label: Quan hệ tốt với khách / khách đã từng hợp tác
+  weight: 1
+- id: competitive_edge
+  label: Có lợi thế cạnh tranh (case study, chuyên môn, giá)
+  weight: 1
+- id: capacity
+  label: Có nguồn lực sẵn sàng đúng thời hạn khách yêu cầu
+  weight: 2
+- id: margin_ok
+  label: Biên lợi nhuận dự kiến chấp nhận được
+  weight: 2

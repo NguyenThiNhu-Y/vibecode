@@ -1,0 +1,11 @@
+{
+  "business_goal": "Tự động tính tổng tiền hóa đơn theo chi nhánh và xuất báo cáo tháng, giảm 3 ngày công kế toán mỗi tháng.",
+  "current_process": "Kế toán mở thủ công khoảng 40 file Excel hóa đơn từ các chi nhánh và cộng tổng.",
+  "users": ["Bộ phận kế toán"],
+  "data_sources": ["Khoảng 40 file Excel hóa đơn mỗi tháng, cùng một template"],
+  "constraints": [],
+  "budget": null,
+  "timeline": null,
+  "language": "vi",
+  "industry": "Bán lẻ (giả lập)"
+}

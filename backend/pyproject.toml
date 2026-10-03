@@ -1,0 +1,30 @@
+[project]
+name = "scopeai-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# Contract (AGENTS.md 4.1) uses `(str, Enum)`; FastAPI idiom uses Depends/Query defaults.
+ignore = ["UP042"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.File", "fastapi.Form"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff.lint.per-file-ignores]
+# Multilingual email templates are long natural-language strings.
+"app/llm/mock_generators.py" = ["E501"]
+"app/exports/qa_sheet.py" = ["E501"]
+"app/exports/i18n.py" = ["E501"]
+"app/exports/slides.py" = ["E501"]
+"app/agents/pricing.py" = ["E501"]
+"app/exports/sample_templates.py" = ["E501"]

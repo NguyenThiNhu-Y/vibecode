@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. RAG: hỏi đáp quy chế, sổ tay sinh viên và syllabus cho trường đại học (tiếng Nhật, giáo dục).
+id: case_17
+request_text: |
+  お世話になっております。架空学園大学（仮）学務課の者です。
+  本学には学生約8,000名が在籍しており、履修登録期間には学務課の窓口やメールへの問い合わせが1日300件を超えます。
+  学生便覧、履修規程、奨学金案内、約2,500科目のシラバス（PDF・Web）を参照すれば回答できる質問がほとんどです。
+  学生がポータルサイト上で日本語で質問すると、根拠となる規程やシラバスの該当箇所を示して回答する仕組みを検討しております。
+  規程は毎年4月に改訂されます。来年度の履修登録期間（4月）までに試行版を公開したいと考えております。
+expected:
+  pattern: rag
+  acceptable_patterns: [rag]
+  question_topics: [data, users, integration]
+  can_proceed: true
+  mvp_person_days: [28, 69]
+  must_not_mention: ["fine-tune"]

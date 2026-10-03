@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Agent: kiểm tra hồ sơ vay, đối chiếu nhiều nguồn, đề xuất duyệt.
+id: case_07
+request_text: |
+  Chào anh/chị, chúng tôi là Khối Tín dụng của Công ty Tài chính Phú Hưng (giả lập).
+  Mỗi tháng chúng tôi nhận khoảng 6.000 hồ sơ vay tiêu dùng (CCCD, sao kê lương, hợp đồng lao động dạng ảnh/PDF).
+  Chuyên viên thẩm định phải đối chiếu thông tin giữa hồ sơ, hệ thống core, kết quả tra cứu CIC và danh sách đen nội bộ,
+  rồi lập tờ trình đề xuất duyệt hoặc từ chối, mất trung bình 45 phút mỗi hồ sơ.
+  Chúng tôi muốn hệ thống tự thu thập, đối chiếu các nguồn qua API sẵn có, phát hiện điểm bất thường và soạn sẵn đề xuất;
+  quyết định cuối cùng vẫn do chuyên viên phê duyệt. Hệ thống phải lưu vết đầy đủ để phục vụ thanh tra.
+expected:
+  pattern: agent
+  acceptable_patterns: [agent]
+  question_topics: [integration, compliance, accuracy]
+  can_proceed: true
+  mvp_person_days: [43, 101]
+  must_not_mention: ["fine-tune"]

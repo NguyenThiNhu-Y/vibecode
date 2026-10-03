@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Classic ML: dự báo nhu cầu nhập hàng từ dữ liệu bán 3 năm.
+id: case_08
+request_text: |
+  Chào anh/chị, Chuỗi siêu thị mini Xanh Mát (giả lập) có 85 cửa hàng tại TP.HCM với khoảng 4.000 mã hàng.
+  Hiện quản lý cửa hàng tự ước lượng số lượng nhập mỗi tuần nên thường xuyên bị tồn kho hoặc hết hàng.
+  Chúng tôi có dữ liệu bán hàng theo ngày, theo cửa hàng, theo mã hàng trong 3 năm (từ hệ thống POS, xuất được ra SQL Server),
+  cùng lịch khuyến mãi và ngày lễ.
+  Mong muốn hệ thống dự báo nhu cầu theo tuần cho từng cửa hàng – mã hàng và đề xuất số lượng nhập.
+  Kết quả cần xuất ra file để phòng mua hàng nhập vào hệ thống đặt hàng hiện tại.
+expected:
+  pattern: classic_ml
+  acceptable_patterns: [classic_ml]
+  question_topics: [data, accuracy, integration]
+  can_proceed: true
+  mvp_person_days: [32, 72]
+  must_not_mention: ["fine-tune", "vector database"]

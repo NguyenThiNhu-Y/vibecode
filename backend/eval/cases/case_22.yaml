@@ -1,0 +1,15 @@
+# Dữ liệu giả lập. Classic ML nhưng khách đòi "ChatGPT": dự đoán khách hàng rời mạng (tiếng Anh, viễn thông).
+id: case_22
+request_text: |
+  Hi, I'm the head of retention at Skylink Mobile (fictional), a regional carrier with about 2.3 million prepaid and postpaid subscribers.
+  Monthly churn is around 2.5% and our retention team only reacts after customers port out.
+  We have 3 years of subscriber data in our data warehouse: usage, top-ups, billing, complaints, network quality and a churn flag.
+  Our CEO asked us to "use ChatGPT" to predict which customers will leave next month,
+  so the retention team can target the top 5% with offers. A weekly list exported to our CRM would be enough.
+expected:
+  pattern: classic_ml
+  acceptable_patterns: [classic_ml]
+  question_topics: [data, accuracy, integration]
+  can_proceed: true
+  mvp_person_days: [32, 72]
+  must_not_mention: ["fine-tune", "vector database"]

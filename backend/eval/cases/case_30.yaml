@@ -1,0 +1,17 @@
+# Dữ liệu giả lập. Yêu cầu mơ hồ: "giải pháp AI nâng cao trải nghiệm khách" (tiếng Anh, khách sạn).
+id: case_30
+request_text: |
+  Dear team, we are Silverbay Resorts (fictional), operating several properties in Southeast Asia.
+  We'd like to explore an AI solution to improve the guest experience and stay competitive.
+  Please share your ideas, a high-level approach and indicative pricing.
+expected:
+  pattern: needs_clarification
+  acceptable_patterns: [needs_clarification]
+  question_topics: [users, data, integration]
+  can_proceed: false
+  mvp_person_days: null
+  must_not_mention: []
+# Optional, used only by eval/record_replay.py to record the "answer → continue" demo flow.
+demo_answers:
+  q1: Mainly guests before and during their stay, who message us on WhatsApp and email about bookings, transfers, spa and dining.
+  q2: Our 3 resorts receive about 6,000 guest messages per month; we have FAQ documents, menus and service policies in Word and PDF, and use a cloud PMS with an API.

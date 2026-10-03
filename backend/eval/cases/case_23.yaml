@@ -1,0 +1,16 @@
+# Dữ liệu giả lập. Classic ML: dự đoán hỏng hóc thiết bị từ dữ liệu cảm biến (tiếng Nhật, sản xuất).
+id: case_23
+request_text: |
+  お世話になっております。架空化学工業株式会社（仮）設備保全課の者です。
+  当社プラントのポンプ・コンプレッサー約120台には振動・温度・電流のセンサーが設置されており、
+  1分間隔の計測データが約4年分、ヒストリアンDBに蓄積されています。
+  また、同期間の故障・修理記録（約300件）が保全管理システムにございます。
+  突発故障を減らすため、故障の予兆を数日前に検知し、保全担当者に通知する仕組みを検討しております。
+  まずは故障頻度の高いポンプ30台を対象に半年程度で効果を検証したいと考えております。
+expected:
+  pattern: classic_ml
+  acceptable_patterns: [classic_ml]
+  question_topics: [data, accuracy]
+  can_proceed: true
+  mvp_person_days: [37, 83]
+  must_not_mention: ["fine-tune", "vector database"]

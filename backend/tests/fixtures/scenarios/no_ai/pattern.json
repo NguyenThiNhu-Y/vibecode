@@ -1,0 +1,12 @@
+{
+  "pattern": "no_ai_rule_based",
+  "rationale": "Dữ liệu có cấu trúc, cùng một template và phép tính là cộng tổng theo chi nhánh, cần đúng 100%. Một script ETL đọc Excel và tổng hợp giải quyết trọn bài toán, rẻ và dễ kiểm chứng hơn AI.",
+  "rejected": [
+    {"pattern": "rag", "reason": "Không có nhu cầu hỏi đáp trên tài liệu phi cấu trúc."},
+    {"pattern": "classic_ml", "reason": "Không có gì cần dự đoán; phép cộng là xác định."},
+    {"pattern": "agent", "reason": "Quy trình cố định, không cần LLM quyết định các bước."},
+    {"pattern": "fine_tune", "reason": "Không có bài toán sinh ngôn ngữ đặc thù."}
+  ],
+  "confidence": "high",
+  "assumptions": ["Template Excel giữ nguyên giữa các chi nhánh"]
+}
