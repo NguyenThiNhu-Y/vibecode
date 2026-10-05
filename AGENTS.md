@@ -238,6 +238,9 @@ class ScopingRun(BaseModel):
 #### 4.1b Mở rộng (đã được chủ dự án duyệt, chỉ thêm trường tùy chọn)
 
 ```python
+# app/schemas/architecture.py — ArchitectureResult thêm:
+    out_of_scope: list[str] = []         # 2–5 hạng mục KHÔNG bao gồm (bước 5); hiện trên web, slide Effort, Word
+
 # app/schemas/effort.py
 class Multiplier(BaseModel):  key: str; label: str; factor: float
 class EffortBasis(BaseModel):            # cách tính computed_estimates (thuần code)
@@ -360,7 +363,8 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
 | `GET /runs/{id}/export/{slides.pptx\|package.zip}?lang=vi\|en\|ja` | — | slide theo ngôn ngữ (nội dung dịch bằng LLM, cache `deck_translations`) | `422` ngôn ngữ sai; `502` dịch lỗi |
 | `GET /runs/{id}/similar` | — | `200 list[RunSummary + score]` (tối đa 3) | `404` |
 | `GET /stats` | — | `200 {runs, finished, stages, win_rate, hours_saved, manual_hours_per_proposal, review_hours_per_proposal}` | — |
-| `GET /settings` | — | `200 {rate_card, estimation_template, reference_projects, company, content_library, case_studies, bid_criteria}` | — |
+| `GET /settings` | — | `200 {rate_card, estimation_template, reference_projects, company, content_library, case_studies, bid_criteria, logo}` (`logo = {width, height, size, uploaded_at} \| null`) | — |
+| `GET\|POST\|DELETE /settings/logo` | POST: multipart `file` (.png/.jpg ≤ 2 MB, ≥ 16 px; lưu lại dạng PNG, cạnh dài ≤ 1200 px, tại `knowledge_base/templates/custom/logo.png`) | GET: ảnh PNG; POST: `200 {logo}`; DELETE: `200 {logo: null}` | `404` chưa có logo; `422` sai định dạng / quá lớn / quá nhỏ |
 | `PUT /settings/rate-card`, `PUT /settings/estimation-template` | JSON đầy đủ | `200` bản đã lưu (ghi YAML trong `knowledge_base/`) | `422` sai ràng buộc |
 | `PUT\|DELETE /settings/reference-projects/{name}` | `{content}` | `200` | `422`; `404` |
 | `GET /replays/{name}/export/{file}` | — | xuất hồ sơ từ `final_run` lưu trong replay | `409` replay cũ không có `final_run` |
@@ -457,7 +461,7 @@ Mỗi bước là một instance `Step(name, prompt_file, output_model, kb_keys,
 - **Bid/No-bid (`app/bid.py`):** tiêu chí trong `knowledge_base/bid_criteria.yaml`; tiêu chí `auto` được code gợi ý từ kết quả phân tích, người xác nhận ghi đè. Điểm = % trọng số đạt; < 60% trọng số đã đánh giá → `need_info`, ≥ 70 → `bid`, ≥ 50 → `consider`, còn lại `no_bid`. Quyết định `no_bid` đặt deal `no_bid`.
 - **Phiên bản & tên file:** `versions` đánh số 1.0/1.1/2.0, lưu snapshot proposal; `sent=true` đặt deal `sent`. Tên file xuất theo `company.yaml → file_naming` (`{company}_{client}_{project}_{doc}_v{version}_{date}`), header `Content-Disposition` có `filename*` UTF-8 (RFC 5987).
 - **Chuẩn công ty trong hồ sơ (thuần code, LLM không viết lại):** `content_library.yaml` (khối `start` sau bìa, `end` trước phụ lục; theo ngôn ngữ khách, thiếu thì dùng tiếng Việt; placeholder `{{company_name}}`…); `case_studies.yaml` (`app/company.py → match_case_studies`: pattern 0,5 + thị trường 0,2 + ngành 0,2 + từ khóa ≤ 0,1, ngưỡng 0,45, chỉ `public`) vào slide, Word và context bước proposal (tối đa 2, chỉ tên + kết quả).
-- **Template công ty (`app/templates_store.py`, `app/exports/templating.py`):** mỗi loại (`slides`, `proposal_docx`, `workbook`, `qa_sheet`) chọn `builtin` (thiết kế ScopeAI), `sample` (bộ mẫu trung tính "Công ty ABC (mẫu)" sinh bằng `app/exports/sample_templates.py`) hoặc `custom` (file upload, kiểm tra trước khi lưu). PowerPoint: bìa dùng layout "Title Slide", nội dung dùng layout cấu hình (mặc định "Title Only"), vùng vẽ = ô `{{SCOPEAI_CONTENT}}` (bị xóa khi xuất) hoặc tính từ tiêu đề; màu bảng/sơ đồ lấy `accent1` của theme. Word: thân bài chèn tại đoạn `{{SCOPEAI_BODY}}`. Excel: ghi WBS/báo giá/Q&A theo `SheetMapping` (sheet, dòng bắt đầu, cột), giữ công thức của template; nhập lại Q&A theo cùng mapping. Placeholder `{{company_name}}`, `{{client_name}}`, `{{project_name}}`, `{{proposal_title}}`, `{{date}}`, `{{version}}`… được điền ở mọi nơi.
+- **Template công ty (`app/templates_store.py`, `app/exports/templating.py`):** mỗi loại (`slides`, `proposal_docx`, `workbook`, `qa_sheet`) chọn `builtin` (thiết kế ScopeAI), `sample` (bộ mẫu trung tính "Công ty ABC (mẫu)" sinh bằng `app/exports/sample_templates.py`) hoặc `custom` (file upload, kiểm tra trước khi lưu). PowerPoint: bìa dùng layout "Title Slide", nội dung dùng layout cấu hình (mặc định "Title Only"), vùng vẽ = ô `{{SCOPEAI_CONTENT}}` (bị xóa khi xuất) hoặc tính từ tiêu đề; màu bảng/sơ đồ lấy `accent1` của theme. Word: thân bài chèn tại đoạn `{{SCOPEAI_BODY}}`. Excel: ghi WBS/báo giá/Q&A theo `SheetMapping` (sheet, dòng bắt đầu, cột), giữ công thức của template; nhập lại Q&A theo cùng mapping. Placeholder `{{company_name}}`, `{{client_name}}`, `{{project_name}}`, `{{proposal_title}}`, `{{date}}`, `{{version}}`… được điền ở mọi nơi. `{{company_logo}}`: ô chữ trên master/layout PowerPoint hoặc chữ trong Word được thay bằng logo đã upload (giữ tỉ lệ, ô giữ vai trò nền); chưa có logo thì điền tên viết tắt. Thiết kế builtin tự đặt logo ở bìa, góc phải mỗi slide và header Word.
 - **Cài đặt (`app/settings_store.py`):** đọc/ghi `rate_card.yaml`, `estimation_template.yaml`, `reference_projects/*.md`, validate bằng `schemas/settings.py` trước khi ghi.
 
 ### 5.4 Tính effort (`agents/estimate.py`)

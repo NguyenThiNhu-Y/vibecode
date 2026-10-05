@@ -85,5 +85,10 @@
   "reference_projects": [
     "rp_example"
   ],
+  "out_of_scope": [
+    "Ứng dụng di động native (iOS/Android)",
+    "Tích hợp hệ thống ERP hiện có chưa được liệt kê trong requirements",
+    "Di chuyển (migrate) toàn bộ dữ liệu lịch sử (chỉ nạp dữ liệu mẫu trong PoC)"
+  ],
   "mermaid": "flowchart LR\n  U[Nhân viên] --> UI[Web chat]\n  UI --> API[Chat API]\n  DOC[Văn bản Word/PDF] --> ING[Ingestion]\n  ING --> IDX[Vector index]\n  API --> IDX\n  API --> LLM[LLM API]"
 }

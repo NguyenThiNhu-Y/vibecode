@@ -51,6 +51,7 @@ def placeholders(run: ScopingRun, company: CompanyProfile, lang: str = "vi") -> 
     return {
         "company_name": company.name,
         "company_short": company.short_name,
+        "company_logo": company.short_name,  # text fallback when no logo has been uploaded
         "confidential_footer": company.confidential_footer,
         "client_name": run.client_name or CLIENT_FALLBACK.get(lang, CLIENT_FALLBACK["vi"]),
         "project_name": run.project_name or (run.proposal.title if run.proposal else run.id),

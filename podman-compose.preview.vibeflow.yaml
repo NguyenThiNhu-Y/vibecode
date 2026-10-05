@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.preview
+    env_file:
+      - .env.preview
+    environment:
+      DB_PATH: /data/scopeai.db
+      CORS_ORIGINS: "*"
+    volumes:
+      - scopeai_db:/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.preview
+      args:
+        VITE_API_BASE: "/api/v1/sessions/d1fe2fd2-2415-4ddf-aab9-768ef9dbca90/preview/5173/api"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  scopeai_db: {}

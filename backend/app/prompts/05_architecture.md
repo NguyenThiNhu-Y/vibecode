@@ -9,12 +9,13 @@ Dựa trên `intake`, `pattern`, `feasibility` và `computed_estimates`, đề x
 2. Chọn `deployment`: `on_prem` nếu constraints có on_prem, `hybrid` nếu một phần dữ liệu phải ở tại chỗ, ngược lại `cloud`.
 3. Effort: `computed_estimates` là con số GỐC đã được tính bằng code (base × hệ số on-prem, tiếng Nhật, độ sẵn sàng dữ liệu, tuân thủ). Dùng đúng các khoảng này cho `min_person_days` / `max_person_days` của từng phase.
 4. Với mỗi phase, nêu `team` (vai trò) và `deliverables` cụ thể.
-5. Vẽ sơ đồ kiến trúc vào `mermaid` theo cú pháp Mermaid `flowchart LR`: mỗi component là một node (id ngắn không dấu, nhãn trong ngoặc vuông), mũi tên thể hiện luồng dữ liệu từ người dùng/nguồn dữ liệu tới kết quả. Không bọc trong code fence. Ví dụ:
+5. Liệt kê 2–5 hạng mục **ngoài phạm vi** vào `out_of_scope` (những gì giải pháp KHÔNG bao gồm: module ứng dụng mobile native, tích hợp hệ thống chưa được liệt kê, migrate dữ liệu lịch sử ngoài PoC…). Viết ngắn gọn, 1 dòng mỗi mục.
+6. Vẽ sơ đồ kiến trúc vào `mermaid` theo cú pháp Mermaid `flowchart LR`: mỗi component là một node (id ngắn không dấu, nhãn trong ngoặc vuông), mũi tên thể hiện luồng dữ liệu từ người dùng/nguồn dữ liệu tới kết quả. Không bọc trong code fence. Ví dụ:
    flowchart LR
      U[Người dùng] --> UI[Web chat]
      UI --> API[Chat API]
      API --> IDX[Vector index]
-6. Đối chiếu dự án tham chiếu bên dưới; nếu có dự án tương tự, ghi id (tên file không đuôi .md) vào `reference_projects`.
+7. Đối chiếu dự án tham chiếu bên dưới; nếu có dự án tương tự, ghi id (tên file không đuôi .md) vào `reference_projects`.
 
 # QUY TẮC
 - KHÔNG tự bịa con số effort. Chỉ được lệch tối đa ±20% so với `computed_estimates`, và mọi điều chỉnh (dù nhỏ) đều phải ghi lý do vào `adjustment_note`.

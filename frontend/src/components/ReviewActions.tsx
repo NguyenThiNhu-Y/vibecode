@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { downloadUrl } from "../api";
 import { STEP_LABELS } from "../labels";
 import { STEPS, type RunStatus, type StepName } from "../types";
 import { IconCheck, IconDownload, IconRefresh, IconX } from "./icons";
@@ -22,6 +23,7 @@ export default function ReviewActions({
   const [note, setNote] = useState("");
   const [fromStep, setFromStep] = useState<StepName>("architecture");
   const [busy, setBusy] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const act = async (action: () => Promise<void>) => {
@@ -44,10 +46,21 @@ export default function ReviewActions({
     <>
       <div className="flex flex-wrap items-center gap-2">
         {downloadHref && (
-          <a href={downloadHref} className={buttonClass.secondary}>
-            <IconDownload />
+          <button
+            type="button"
+            disabled={downloading}
+            onClick={() => {
+              setDownloading(true);
+              setError(null);
+              downloadUrl(downloadHref)
+                .catch((e) => setError(e instanceof Error ? e.message : "Không tải được hồ sơ."))
+                .finally(() => setDownloading(false));
+            }}
+            className={buttonClass.secondary}
+          >
+            {downloading ? <Spinner /> : <IconDownload />}
             Tải trọn bộ hồ sơ
-          </a>
+          </button>
         )}
         {status === "approved" && (
           <Badge tone="success">
@@ -78,6 +91,12 @@ export default function ReviewActions({
           </>
         )}
       </div>
+
+      {!open && error && (
+        <div className="w-full">
+          <ErrorBox>{error}</ErrorBox>
+        </div>
+      )}
 
       {open && (
         <div className="fade-up w-full rounded-lg border border-line bg-surface p-4">

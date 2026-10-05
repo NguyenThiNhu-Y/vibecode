@@ -2,8 +2,11 @@
 // case studies and bid/no-bid criteria. Everything is validated again by the backend.
 import { useEffect, useRef, useState } from "react";
 import {
+  deleteLogo,
   deleteTemplate,
+  downloadUrl,
   getTemplates,
+  logoUrl,
   saveBidCriteria,
   saveCaseStudies,
   saveCompany,
@@ -11,6 +14,7 @@ import {
   saveTemplateConfig,
   setActiveTemplate,
   templateFileUrl,
+  uploadLogo,
   uploadTemplate,
 } from "../api";
 import { Field, ListPicker, SaveBar, input, num, section, useSaver } from "../components/form";
@@ -24,6 +28,7 @@ import type {
   CompanyProfile,
   ContentBlock,
   Language,
+  LogoInfo,
   Market,
   SheetMapping,
   TemplateKind,
@@ -35,6 +40,7 @@ const LANGS: Language[] = ["vi", "en", "ja"];
 const PLACEHOLDERS = [
   "company_name",
   "company_short",
+  "company_logo",
   "client_name",
   "project_name",
   "proposal_title",
@@ -44,7 +50,77 @@ const PLACEHOLDERS = [
 ];
 
 // ---------- company ----------
-export function CompanyTab({ initial }: { initial: CompanyProfile }) {
+function LogoSection({ initial }: { initial: LogoInfo | null }) {
+  const [logo, setLogo] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const file = useRef<HTMLInputElement | null>(null);
+
+  const act = async (action: () => Promise<{ logo: LogoInfo | null }>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      setLogo((await action()).logo);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không cập nhật được logo.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className={section}>
+      <div className="flex flex-wrap items-start gap-5">
+        {/* white like the slide card it lands on, in both themes */}
+        <div className="flex h-24 w-56 shrink-0 items-center justify-center rounded-md border border-line bg-white p-3">
+          {logo ? (
+            <img src={logoUrl(logo.uploaded_at)} alt="Logo công ty" className="max-h-full max-w-full object-contain" />
+          ) : (
+            <span className="text-sm text-gray-500">Chưa có logo</span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1 space-y-2">
+          <h2 className="font-semibold text-fg">Logo công ty</h2>
+          <p className="text-sm text-muted">
+            Hiện trên bìa và góc phải mỗi slide, header file Word; template riêng đặt ô chữ{" "}
+            <code className="rounded bg-surface-2 px-1 text-xs">{"{{company_logo}}"}</code> ở chỗ muốn có logo. PNG nền trong suốt
+            hoặc JPG, tối đa 2 MB; logo ngang hiển thị đẹp nhất. Lưu ngay khi tải lên.
+          </p>
+          {logo && (
+            <p className="text-sm text-subtle tabular-nums">
+              {logo.width}×{logo.height} px · {(logo.size / 1024).toFixed(0)} KB · {formatDateTime(logo.uploaded_at)}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={file}
+              type="file"
+              accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+              className="hidden"
+              onChange={(e) => {
+                const picked = e.target.files?.[0];
+                e.target.value = "";
+                if (picked) act(() => uploadLogo(picked));
+              }}
+            />
+            <button type="button" disabled={busy} onClick={() => file.current?.click()} className={buttonClass.secondary}>
+              {busy ? <Spinner /> : <IconUpload />}
+              {logo ? "Thay logo" : "Tải logo lên"}
+            </button>
+            {logo && (
+              <button type="button" disabled={busy} onClick={() => act(deleteLogo)} className={buttonClass.danger}>
+                <IconTrash /> Xóa logo
+              </button>
+            )}
+          </div>
+          {error && <ErrorBox>{error}</ErrorBox>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function CompanyTab({ initial, logo }: { initial: CompanyProfile; logo: LogoInfo | null }) {
   const [company, setCompany] = useState(initial);
   const saver = useSaver();
   const set = (patch: Partial<CompanyProfile>) => setCompany((c) => ({ ...c, ...patch }));
@@ -57,11 +133,12 @@ export function CompanyTab({ initial }: { initial: CompanyProfile }) {
     .replace("{date}", "20261003");
   return (
     <div className="space-y-6">
+      <LogoSection initial={logo} />
       <section className={`${section} grid gap-4 md:grid-cols-2`}>
         <Field label="Tên công ty (hiện trên slide, Word, Excel)">
           <input className={input} value={company.name} onChange={(e) => set({ name: e.target.value })} />
         </Field>
-        <Field label="Tên viết tắt (logo chữ, tên file)">
+        <Field label="Tên viết tắt (thay logo khi chưa tải logo, tên file)">
           <input className={input} value={company.short_name} onChange={(e) => set({ short_name: e.target.value })} />
         </Field>
         <div className="md:col-span-2">
@@ -100,12 +177,12 @@ export function CompanyTab({ initial }: { initial: CompanyProfile }) {
 const KIND_INFO: Record<TemplateKind, { title: string; hint: string; accept: string }> = {
   slides: {
     title: "Slide proposal (PowerPoint)",
-    hint: "Dùng layout “Title Slide” cho bìa và layout nội dung (mặc định “Title Only”). Ô chữ {{SCOPEAI_CONTENT}} trên layout đánh dấu vùng vẽ bảng/sơ đồ.",
+    hint: "Dùng layout “Title Slide” cho bìa và layout nội dung (mặc định “Title Only”). Ô chữ {{SCOPEAI_CONTENT}} trên layout đánh dấu vùng vẽ bảng/sơ đồ; ô chữ {{company_logo}} được thay bằng logo công ty.",
     accept: ".pptx",
   },
   proposal_docx: {
     title: "Proposal (Word)",
-    hint: "Giữ header/footer, trang bìa và style Heading của template. Đoạn {{SCOPEAI_BODY}} đánh dấu chỗ chèn nội dung proposal.",
+    hint: "Giữ header/footer, trang bìa và style Heading của template. Đoạn {{SCOPEAI_BODY}} đánh dấu chỗ chèn nội dung proposal; chữ {{company_logo}} (thường đặt ở header) được thay bằng logo.",
     accept: ".docx",
   },
   workbook: {
@@ -205,6 +282,9 @@ export function TemplatesTab() {
     }
   };
 
+  const download = (url: string) =>
+    downloadUrl(url).catch((e) => setError(e instanceof Error ? e.message : "Không tải được template."));
+
   if (!data) return error ? <ErrorBox>{error}</ErrorBox> : <Spinner />;
   const cfg = data.config;
   const setCfg = (patch: Partial<typeof cfg>) => setData((d) => (d ? { ...d, config: { ...d.config, ...patch } } : d));
@@ -246,17 +326,25 @@ export function TemplatesTab() {
                     />
                     <span className="text-fg">{SOURCE_LABELS[source]}</span>
                     {source === "sample" && (
-                      <a href={templateFileUrl(item.kind, "sample")} className="text-sm text-accent-strong hover:underline">
+                      <button
+                        type="button"
+                        onClick={() => download(templateFileUrl(item.kind, "sample"))}
+                        className="text-sm text-accent-strong hover:underline"
+                      >
                         <IconDownload className="mr-0.5 inline" />
                         tải về
-                      </a>
+                      </button>
                     )}
                     {source === "custom" && item.custom && (
                       <span className="text-sm text-subtle">
                         {(item.custom.size / 1024).toFixed(0)} KB · {formatDateTime(item.custom.uploaded_at)} ·{" "}
-                        <a href={templateFileUrl(item.kind, "custom")} className="text-accent-strong hover:underline">
+                        <button
+                          type="button"
+                          onClick={() => download(templateFileUrl(item.kind, "custom"))}
+                          className="text-accent-strong hover:underline"
+                        >
                           tải về
-                        </a>
+                        </button>
                       </span>
                     )}
                   </label>

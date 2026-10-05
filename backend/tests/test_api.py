@@ -657,3 +657,30 @@ def test_company_settings_and_templates(client: TestClient, tmp_path, monkeypatc
     assert client.put("/api/templates/config", json=cfg).status_code == 422
     assert client.delete("/api/templates/slides/custom").status_code == 200
     assert client.delete("/api/templates/slides/custom").status_code == 404
+
+
+def test_logo_endpoints(client: TestClient, tmp_path, monkeypatch) -> None:
+    import shutil
+
+    from PIL import Image
+
+    from app.knowledge import loader
+    from app.templates_store import logo_path
+
+    target = tmp_path / "kb"
+    shutil.copytree(loader.KB_DIR, target)
+    monkeypatch.setattr(loader, "KB_DIR", target)
+    logo_path(target).unlink(missing_ok=True)
+    assert client.get("/api/settings").json()["logo"] is None
+    assert client.get("/api/settings/logo").status_code == 404
+    bad = client.post("/api/settings/logo", files={"file": ("logo.png", b"nope")})
+    assert bad.status_code == 422 and "PNG" in bad.json()["detail"]
+    png = io.BytesIO()
+    Image.new("RGBA", (300, 100), (0, 0, 0, 255)).save(png, format="PNG")
+    up = client.post("/api/settings/logo", files={"file": ("logo.png", png.getvalue())})
+    assert up.status_code == 200 and up.json()["logo"]["width"] == 300
+    assert client.get("/api/settings").json()["logo"]["height"] == 100
+    got = client.get("/api/settings/logo")
+    assert got.status_code == 200 and got.headers["content-type"] == "image/png"
+    assert client.delete("/api/settings/logo").json() == {"logo": None}
+    assert client.delete("/api/settings/logo").status_code == 404

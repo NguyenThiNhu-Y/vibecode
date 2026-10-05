@@ -27,7 +27,7 @@ from app.exports.common import (
     requirement_texts,
 )
 from app.exports.i18n import LABELS, format_money
-from app.exports.templating import mix, open_pptx_template, tidy_placeholders
+from app.exports.templating import fit_logo, mix, open_pptx_template, tidy_placeholders
 from app.schemas.run import ScopingRun
 from app.templates_store import ExportKit
 
@@ -66,6 +66,7 @@ def deck_texts(run: ScopingRun) -> list[str]:
         texts += list(graph_for(run).nodes.values())
         for e in run.architecture.estimates:
             texts += e.team + e.deliverables
+        texts += run.architecture.out_of_scope
     if run.wbs:
         texts += [t.name for t in run.wbs.tasks] + [t.role for t in run.wbs.tasks]
     if run.requirements:
@@ -102,11 +103,12 @@ class Deck:
         self.font = FONTS[self.lang]
         self.kit = kit or ExportKit.load()
         self.values = placeholders(run, self.kit.company, self.lang)
+        self.logo = self.kit.logo
         self.count = 0
         self.tpl = None
         path = self.kit.templates.get("slides")
         if path:
-            self.tpl = open_pptx_template(path, self.kit.config.pptx, self.values)
+            self.tpl = open_pptx_template(path, self.kit.config.pptx, self.values, self.logo)
             self.prs = self.tpl.prs
             left, top, width, height = self.tpl.region
             self.k = min(width / DESIGN_W, height / DESIGN_H)
@@ -219,8 +221,15 @@ class Deck:
             return s
         s = self.prs.slides.add_slide(self.blank)
         self.rect(s, Inches(0.5), Inches(0.45), Inches(0.09), Inches(0.62), self.accent)
+        title_w = 11.5
+        if self.logo:  # top-right corner; the title box makes room for it
+            title_w = 10.6
+            box = fit_logo(
+                Inches(11.55), Inches(0.3), Inches(1.3), Inches(0.52), self.logo, 0, "right"
+            )
+            s.shapes.add_picture(str(self.logo), *box)
         self.text(
-            s, Inches(0.72), Inches(0.33), Inches(11.5), Inches(0.6), title, size=26, bold=True
+            s, Inches(0.72), Inches(0.33), Inches(title_w), Inches(0.6), title, size=26, bold=True
         )
         if subtitle:
             self.text(
@@ -313,6 +322,13 @@ class Deck:
         s = self.prs.slides.add_slide(self.blank)
         run, L = self.run, self.L
         self.rect(s, 0, 0, W, H, "0B0F1C")
+        if self.logo:  # on a white card so dark logos stay visible on the dark cover
+            x, y, cx, cy = fit_logo(
+                Inches(1.0), Inches(0.7), Inches(2.6), Inches(0.6), self.logo, 0, "left"
+            )
+            pad = Inches(0.16)
+            self.rounded(s, x - pad, y - pad, cx + 2 * pad, cy + 2 * pad, "FFFFFF", 0.12)
+            s.shapes.add_picture(str(self.logo), x, y, cx, cy)
         title = run.proposal.title if run.proposal else "Proposal"
         # Estimate wrapped lines (~34 chars/line at 38pt, ~42 at 32pt) to place the goal below.
         size = 38 if len(title) <= 34 else 32
@@ -687,6 +703,20 @@ class Deck:
             [1.6, 1.6, 3.6, 5.0],
             size=13,
         )
+        # What the scope does NOT include; kept inside the design area (bottom 7.0 in = footer).
+        if arch.out_of_scope:
+            self.rounded(s, Inches(0.75), Inches(6.2), Inches(11.8), Inches(0.7), self.soft, 0.08)
+            self.text(
+                s,
+                Inches(0.95),
+                Inches(6.26),
+                Inches(11.4),
+                Inches(0.58),
+                f"{L['out_of_scope']}: " + "; ".join(_cut(t(x), 50) for x in arch.out_of_scope[:4]),
+                size=11,
+                bold=True,
+                color=self.strong,
+            )
 
     def wbs_slide(self) -> None:
         wbs, L, t = self.run.wbs, self.L, self.t
@@ -972,6 +1002,42 @@ class Deck:
                 self.text(s, x + Inches(0.3), y + Inches(0.75), Inches(w - 0.5), Inches(h - 0.9), lines,
                           size=12, space=6)  # fmt: skip
 
+    def team_slide(self) -> None:
+        """Project team derived from this run: WBS roles with their main tasks and person-days,
+        plus the company overhead roles (PM, BrSE) priced in the quotation. Company profile and
+        staff credentials belong in the content library, not here."""
+        wbs, q, L, t = self.run.wbs, self.run.quotation, self.L, self.t
+        if not wbs:
+            return
+        by_role: dict[str, list] = {}
+        for task in wbs.tasks:
+            by_role.setdefault(task.role, []).append(task)
+        ranked = sorted(by_role.items(), key=lambda kv: -sum(k.person_days for k in kv[1]))
+        rows = []
+        for role, tasks in ranked[:6]:
+            main = sorted(tasks, key=lambda k: -k.person_days)[:3]
+            rows.append([
+                _cut(t(role), 40),
+                _cut("; ".join(t(k.name) for k in main), 110),
+                str(sum(k.person_days for k in tasks)),
+            ])  # fmt: skip
+        overhead: dict[str, list] = {}
+        for line in q.lines if q else []:
+            if line.kind == "overhead":
+                overhead.setdefault(line.role_key, [line.role_label, 0])[1] += line.person_days
+        for key, (label, days) in overhead.items():
+            rows.append([label, L["team_overhead"].get(key, ""), str(days)])
+        self.table(
+            self.slide(L["team"], L["team_sub"]),
+            Inches(0.75),
+            Inches(1.45),
+            Inches(11.8),
+            L["team_headers"],
+            rows,
+            [3.0, 7.0, 1.8],
+            size=11,
+        )
+
     def case_studies_slide(self) -> None:
         L, t = self.L, self.t
         matches = match_case_studies(self.run, self.kit.case_studies)
@@ -1087,10 +1153,10 @@ class Deck:
 
     def build(self) -> bytes:
         for make in (
-            self.title_slide, lambda: self.block_slides("start"), self.context_slide,
-            self.inputs_slide, self.pattern_slide, self.architecture_slide, self.feasibility_slide,
-            self.effort_slide, self.wbs_slide, self.timeline_slide, self.requirements_slide,
-            self.case_studies_slide, self.pricing_slide, lambda: self.block_slides("end"),
+            self.title_slide, lambda: self.block_slides("start"), self.context_slide, self.inputs_slide, self.pattern_slide, self.architecture_slide,
+            self.feasibility_slide, self.effort_slide, self.wbs_slide, self.timeline_slide,
+            self.team_slide, self.requirements_slide, self.case_studies_slide,
+            self.pricing_slide, lambda: self.block_slides("end"),
             self.assumptions_slide, self.next_steps_slide,
         ):  # fmt: skip
             make()

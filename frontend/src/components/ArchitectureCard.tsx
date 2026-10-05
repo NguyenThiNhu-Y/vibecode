@@ -98,6 +98,16 @@ export default function ArchitectureCard({ data, basis }: { data: ArchitectureRe
           </tbody>
         </table>
       </div>
+      {(data.out_of_scope ?? []).length > 0 && (
+        <>
+          <h3 className="mt-4 mb-1.5 text-sm font-semibold text-muted">Ngoài phạm vi</h3>
+          <ul className="list-disc space-y-0.5 pl-5 text-muted">
+            {data.out_of_scope.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </>
+      )}
       {data.reference_projects.length > 0 && (
         <p className="mt-3 text-sm text-subtle">
           Dự án tham chiếu: <span className="font-mono text-muted">{data.reference_projects.join(", ")}</span>

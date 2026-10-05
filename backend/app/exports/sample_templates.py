@@ -153,8 +153,11 @@ def build_sample_pptx() -> bytes:
     scratch = prs.slides.add_slide(prs.slide_layouts[6])
     tree = master.shapes._spTree
     _move(_shape(scratch, MSO_SHAPE.RECTANGLE, 0, 0, 13.333, 0.08, BRAND), tree)
-    _move(_shape(scratch, MSO_SHAPE.ROUNDED_RECTANGLE, 11.75, 0.42, 1.1, 0.6, NAVY, "{{company_short}}",
-                 14, bold=True, align=PP_ALIGN.CENTER), tree)  # fmt: skip
+    # logo cards: {{company_logo}} becomes the uploaded logo, or the short name without one
+    logo = _shape(scratch, MSO_SHAPE.ROUNDED_RECTANGLE, 11.55, 0.42, 1.3, 0.6, "FFFFFF", "{{company_logo}}",
+                  14, NAVY, bold=True, align=PP_ALIGN.CENTER)  # fmt: skip
+    logo.line.color.rgb = PptxRGB.from_string("D1D5DB")
+    _move(logo, tree)
     _move(_shape(scratch, MSO_SHAPE.RECTANGLE, 0.5, 6.95, 12.333, 0.012, "D1D5DB"), tree)
     _move(_shape(scratch, MSO_SHAPE.RECTANGLE, 0.5, 7.02, 9.5, 0.32, None,
                  "{{company_name}} · {{confidential_footer}}", 9, MUTED), tree)  # fmt: skip
@@ -165,8 +168,8 @@ def build_sample_pptx() -> bytes:
     ctree = cover.shapes._spTree
     _move(_shape(scratch, MSO_SHAPE.RECTANGLE, 0, 0, 13.333, 7.5, NAVY), ctree, at_start=True)
     _move(_shape(scratch, MSO_SHAPE.RECTANGLE, 0.9, 2.05, 0.12, 2.9, BRAND), ctree)
-    _move(_shape(scratch, MSO_SHAPE.ROUNDED_RECTANGLE, 0.9, 0.7, 1.3, 0.62, BRAND, "{{company_short}}",
-                 16, bold=True, align=PP_ALIGN.CENTER), ctree)  # fmt: skip
+    _move(_shape(scratch, MSO_SHAPE.ROUNDED_RECTANGLE, 0.9, 0.6, 2.2, 0.8, "FFFFFF", "{{company_logo}}",
+                 16, NAVY, bold=True, align=PP_ALIGN.CENTER), ctree)  # fmt: skip
     _move(_shape(scratch, MSO_SHAPE.RECTANGLE, 0.9, 6.3, 9, 0.36, None, "{{company_name}}", 13,
                  "FFFFFF", bold=True), ctree)  # fmt: skip
     _move(_shape(scratch, MSO_SHAPE.RECTANGLE, 0.9, 6.65, 11, 0.32, None, "{{confidential_footer}}", 10,
@@ -253,7 +256,7 @@ def build_sample_docx() -> bytes:
     section.different_first_page_header_footer = True
 
     header = section.header.paragraphs[0]
-    run = header.add_run("{{company_short}}")
+    run = header.add_run("{{company_logo}}")
     run.bold, run.font.color.rgb = True, RGBColor.from_string(BRAND)
     header.add_run("   |   {{proposal_title}}").font.color.rgb = RGBColor.from_string(MUTED)
     _bottom_border(header, "D1D5DB")

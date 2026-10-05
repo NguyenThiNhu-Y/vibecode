@@ -1,12 +1,20 @@
 .env
+# .env.preview, .env.local… có thể chứa API key; chỉ commit file mẫu
+.env.*
+!.env.example
 .venv/
 *.db
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+.vite/
+.DS_Store
 backend/eval/reports/*
 !backend/eval/reports/.gitkeep
 node_modules/
 frontend/dist/
 # Template riêng của công ty (upload ở Cài đặt) có thể là tài liệu mật
 backend/knowledge_base/templates/custom/
+# Logo và template mang nhận diện công ty thật: repo đang public, không commit
+templates-fpt/
+assets/fpt-logo.png

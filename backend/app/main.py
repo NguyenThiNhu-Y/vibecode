@@ -70,10 +70,14 @@ from app.templates_store import (
     ExportKit,
     TemplateError,
     delete_custom,
+    delete_logo,
     list_templates,
     load_templates_config,
+    logo_info,
+    logo_path,
     resolve,
     save_custom,
+    save_logo,
     save_templates_config,
     set_active,
 )
@@ -697,7 +701,32 @@ def stats(repo: RunRepo = Depends(get_repo)) -> dict[str, Any]:
 
 @app.get("/api/settings")
 def get_settings_payload() -> dict[str, Any]:
-    return read_settings()
+    return {**read_settings(), "logo": logo_info()}
+
+
+@app.get("/api/settings/logo")
+def get_logo() -> Response:
+    path = logo_path()
+    if not path.exists():
+        raise HTTPException(404, "Chưa có logo")
+    return Response(
+        path.read_bytes(), media_type="image/png", headers={"Cache-Control": "no-store"}
+    )
+
+
+@app.post("/api/settings/logo")
+async def upload_logo(file: UploadFile = File(...)) -> dict[str, Any]:
+    try:
+        return {"logo": save_logo(file.filename or "", await file.read())}
+    except TemplateError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.delete("/api/settings/logo")
+def remove_logo() -> dict[str, Any]:
+    if not delete_logo():
+        raise HTTPException(404, "Chưa có logo để xóa")
+    return {"logo": None}
 
 
 def _settings_error(exc: Exception) -> HTTPException:

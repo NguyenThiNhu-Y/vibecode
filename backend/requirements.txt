@@ -10,3 +10,4 @@ python-multipart>=0.0.9
 openpyxl>=3.1
 python-docx>=1.1
 python-pptx>=1.0
+Pillow>=10.0  # đã có sẵn qua python-pptx; dùng trực tiếp để kiểm tra logo

@@ -23,4 +23,5 @@ class ArchitectureResult(BaseModel):
     deployment: Deployment
     estimates: list[PhaseEstimate]
     reference_projects: list[str] = []
+    out_of_scope: list[str] = []
     mermaid: str | None = None

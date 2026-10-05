@@ -7,7 +7,7 @@ from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Pt, RGBColor
+from docx.shared import Cm, Pt, RGBColor
 
 from app.company import match_case_studies, placeholders, render_blocks
 from app.exports.common import (
@@ -213,7 +213,7 @@ def build_docx(run: ScopingRun, kit: ExportKit | None = None) -> bytes:
     values = placeholders(run, kit.company, lang)
     if template:
         doc = Document(str(template))
-        fill_docx(doc, values)
+        fill_docx(doc, values, kit.logo)
         marker = find_body_marker(doc)
         first_new = len(doc.element.body) - 1  # new content is appended before the final sectPr
     else:
@@ -223,6 +223,10 @@ def build_docx(run: ScopingRun, kit: ExportKit | None = None) -> bytes:
         footer = doc.sections[0].footer.paragraphs[0]
         footer.text = f"{kit.company.name} · {kit.company.confidential_footer}".strip(" ·")
         footer.runs[0].font.size = Pt(8)
+        if kit.logo:
+            doc.sections[0].header.paragraphs[0].add_run().add_picture(
+                str(kit.logo), height=Cm(1.0)
+            )
 
     _blocks(doc, run, kit, "start", lang)
     if run.proposal:
@@ -256,6 +260,10 @@ def build_docx(run: ScopingRun, kit: ExportKit | None = None) -> bytes:
                 for e in run.architecture.estimates
             ],
         )
+        if run.architecture.out_of_scope:
+            _para(doc).add_run("Phạm vi KHÔNG bao gồm: ").bold = True
+            for item in run.architecture.out_of_scope:
+                _para(doc, "List Bullet").add_run(item)
         _heading(doc, "B. Thành phần kiến trúc", 2)
         _table(
             doc,

@@ -97,6 +97,7 @@ export interface ArchitectureResult {
   deployment: Deployment;
   estimates: PhaseEstimate[];
   reference_projects: string[];
+  out_of_scope: string[];
   mermaid: string | null;
 }
 
@@ -489,6 +490,13 @@ export interface BidCriterion {
   auto: BidAutoRule | null;
 }
 
+export interface LogoInfo {
+  width: number;
+  height: number;
+  size: number;
+  uploaded_at: string;
+}
+
 export interface SettingsPayload {
   rate_card: RateCard;
   estimation_template: EstimationTemplate;
@@ -497,6 +505,7 @@ export interface SettingsPayload {
   content_library: ContentBlock[];
   case_studies: CaseStudy[];
   bid_criteria: BidCriterion[];
+  logo: LogoInfo | null;
 }
 
 export type TemplateKind = "slides" | "proposal_docx" | "workbook" | "qa_sheet";

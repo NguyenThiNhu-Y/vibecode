@@ -30,6 +30,10 @@ FILES: dict[str, str] = {
 }
 MAX_TEMPLATE_BYTES = 10 * 1024 * 1024
 HEADER = "# Sửa từ trang Cài đặt → Template của ScopeAI.\n"
+# Company logo uploaded on the Settings page; lives with the custom templates (git-ignored).
+LOGO_FILE = "logo.png"
+MAX_LOGO_BYTES = 2 * 1024 * 1024
+LOGO_MAX_SIDE = 1200  # px; larger logos are scaled down before saving
 
 
 class TemplateError(ValueError):
@@ -81,18 +85,21 @@ class ExportKit:
     case_studies: list[CaseStudy]
     config: TemplatesConfig
     templates: dict[str, Path | None]
+    logo: Path | None = None
 
     @classmethod
     def load(cls, kb_dir: Path | None = None, source: TemplateSource | None = None) -> "ExportKit":
         """source=None uses the active template per document; otherwise forces one source."""
         cfg = load_templates_config(kb_dir)
         templates = {kind: resolve(kind, source or cfg.active[kind], kb_dir) for kind in FILES}  # type: ignore[index]
+        logo = logo_path(kb_dir)
         return cls(
             load_company(kb_dir),
             load_content_blocks(kb_dir),
             load_case_studies(kb_dir),
             cfg,
             templates,
+            logo if logo.exists() else None,
         )
 
 
@@ -231,6 +238,69 @@ def delete_custom(kind: str, kb_dir: Path | None = None) -> bool:
     if cfg.active[kind] == "custom":  # type: ignore[index]
         cfg.active[kind] = "sample"  # type: ignore[index]
         save_templates_config(cfg, kb_dir)
+    return True
+
+
+# ---------- company logo ----------
+def logo_path(kb_dir: Path | None = None) -> Path:
+    return _kb(kb_dir) / "templates" / "custom" / LOGO_FILE
+
+
+def logo_info(kb_dir: Path | None = None) -> dict[str, Any] | None:
+    from PIL import Image
+
+    path = logo_path(kb_dir)
+    if not path.exists():
+        return None
+    with Image.open(path) as img:
+        width, height = img.size
+    stat = path.stat()
+    return {
+        "width": width,
+        "height": height,
+        "size": stat.st_size,
+        "uploaded_at": datetime.fromtimestamp(stat.st_mtime, UTC).isoformat(),
+    }
+
+
+def save_logo(filename: str, data: bytes, kb_dir: Path | None = None) -> dict[str, Any]:
+    """Validate a PNG/JPEG logo and store it re-encoded as PNG (drops metadata and anything
+    that is not pixel data), scaled down to LOGO_MAX_SIDE."""
+    from PIL import Image
+
+    if not re.search(r"\.(png|jpe?g)$", filename.lower()):
+        raise TemplateError("Logo cần file PNG hoặc JPG.")
+    if len(data) > MAX_LOGO_BYTES:
+        raise TemplateError("Logo tối đa 2 MB.")
+    try:
+        with Image.open(io.BytesIO(data)) as probe:
+            fmt, (width, height) = probe.format, probe.size
+            probe.verify()
+        if fmt not in ("PNG", "JPEG"):
+            raise TemplateError("Logo cần file PNG hoặc JPG.")
+        if width * height > 40_000_000:
+            raise TemplateError("Ảnh logo quá lớn.")
+        with Image.open(io.BytesIO(data)) as img:
+            img.load()
+            logo = img.convert("RGBA")
+    except TemplateError:
+        raise
+    except Exception as exc:
+        raise TemplateError("File không phải ảnh PNG/JPG hợp lệ.") from exc
+    if min(logo.size) < 16:
+        raise TemplateError("Logo quá nhỏ (cần tối thiểu 16 px mỗi chiều).")
+    logo.thumbnail((LOGO_MAX_SIDE, LOGO_MAX_SIDE))
+    path = logo_path(kb_dir)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    logo.save(path, format="PNG", optimize=True)
+    return logo_info(kb_dir) or {}
+
+
+def delete_logo(kb_dir: Path | None = None) -> bool:
+    path = logo_path(kb_dir)
+    if not path.exists():
+        return False
+    path.unlink()
     return True
 
 

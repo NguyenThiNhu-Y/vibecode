@@ -457,7 +457,7 @@ export default function Settings() {
           <Spinner /> Đang tải…
         </p>
       )}
-      {data && tab === "company" && <CompanyTab initial={data.company} />}
+      {data && tab === "company" && <CompanyTab initial={data.company} logo={data.logo} />}
       {tab === "templates" && <TemplatesTab />}
       {data && tab === "content" && <ContentTab initial={data.content_library} />}
       {data && tab === "cases" && <CaseStudiesTab initial={data.case_studies} />}

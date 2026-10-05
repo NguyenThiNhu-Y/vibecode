@@ -22,6 +22,7 @@ import type {
   EvalReportInfo,
   ExtractedDocument,
   Language,
+  LogoInfo,
   ReplayInfo,
   RunErrorEvent,
   RunStatus,
@@ -31,7 +32,18 @@ import type {
   StepName,
 } from "./types";
 
-export const API_BASE: string = import.meta.env.VITE_API_BASE ?? "http://localhost:8000/api";
+export function previewBasePath(): string {
+  const m = window.location.pathname.match(/^(\/api\/v1\/sessions\/[^/]+\/preview\/\d+)/);
+  return m ? m[1] : "";
+}
+
+// The preview prefix detected at runtime wins over a build-time VITE_API_BASE, so a build that
+// baked in an older preview session id still calls the session it is served from.
+export const API_BASE: string = (() => {
+  const prefix = previewBasePath();
+  if (prefix) return `${prefix}/api`;
+  return import.meta.env.VITE_API_BASE || "http://localhost:8000/api";
+})();
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let resp: Response;
@@ -165,6 +177,17 @@ export function uploadTemplate(kind: TemplateKind, file: File): Promise<Template
   return request<TemplatesPayload>(`/templates/${kind}`, { method: "POST", body: form });
 }
 
+/** `version` (the upload time) busts the browser cache after the logo is replaced. */
+export const logoUrl = (version: string) => `${API_BASE}/settings/logo?v=${encodeURIComponent(version)}`;
+
+export function uploadLogo(file: File): Promise<{ logo: LogoInfo }> {
+  const form = new FormData();
+  form.append("file", file);
+  return request<{ logo: LogoInfo }>("/settings/logo", { method: "POST", body: form });
+}
+
+export const deleteLogo = () => request<{ logo: null }>("/settings/logo", { method: "DELETE" });
+
 export const deleteTemplate = (kind: TemplateKind) =>
   request<TemplatesPayload>(`/templates/${kind}/custom`, { method: "DELETE" });
 
@@ -248,6 +271,41 @@ export const replayExportUrl = (name: string, file: ExportName, lang?: Language)
   `${API_BASE}/replays/${name}/export/${file}${lang && lang !== "vi" ? `?lang=${lang}` : ""}`;
 
 export const proposalUrl = (id: string) => `${API_BASE}/runs/${id}/proposal.md`;
+
+/** Fetch a binary export as a blob and trigger a browser download via JS.
+ * More reliable than `<a href>` inside a sandboxed preview iframe, where navigation-based
+ * downloads may be silently blocked even though the server returns 200 + Content-Disposition.
+ * Returns the optional filename from Content-Disposition when the server provides one. */
+export async function downloadUrl(url: string): Promise<string | undefined> {
+  const resp = await fetch(url, { credentials: "same-origin" });
+  if (!resp.ok) {
+    let detail = `Lỗi ${resp.status}`;
+    try {
+      const body = await resp.json();
+      if (typeof body.detail === "string") detail = body.detail;
+    } catch {
+      // keep generic
+    }
+    throw new Error(detail);
+  }
+  const blob = await resp.blob();
+  let filename: string | undefined;
+  const cd = resp.headers.get("content-disposition");
+  if (cd) {
+    const m = cd.match(/filename\*=(?:UTF-8'')?"?([^";]+)"?/i) ?? cd.match(/filename="?([^";]+)"?/i);
+    if (m) filename = decodeURIComponent(m[1]);
+  }
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename || "download";
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  return filename;
+}
 
 export const listReplays = () => request<string[]>("/replays");
 

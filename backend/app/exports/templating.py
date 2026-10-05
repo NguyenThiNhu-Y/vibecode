@@ -6,6 +6,9 @@ Conventions a template designer follows (shown in Cài đặt → Template):
 - PowerPoint: the content layout may contain a shape whose text is {{SCOPEAI_CONTENT}}; its box is
   where ScopeAI draws tables and diagrams (the marker itself is removed).
 - Word: a paragraph {{SCOPEAI_BODY}} marks where the proposal body goes.
+- {{company_logo}}: a PowerPoint shape (master/layout) whose whole text is the marker gets the logo
+  uploaded in Cài đặt → Công ty fitted inside it (the shape stays as the logo's card); in Word the
+  marker becomes the logo inline. Without an uploaded logo it falls back to {{company_short}}.
 """
 
 import copy
@@ -14,6 +17,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from docx.shared import Cm
+from docx.text.run import Run
 from lxml import etree
 from pptx import Presentation
 from pptx.enum.shapes import PP_PLACEHOLDER
@@ -24,6 +29,7 @@ from app.company import fill
 
 CONTENT_MARKER = "{{SCOPEAI_CONTENT}}"
 BODY_MARKER = "{{SCOPEAI_BODY}}"
+LOGO_MARKER = "{{company_logo}}"
 A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
 TITLE_TYPES = {PP_PLACEHOLDER.TITLE, PP_PLACEHOLDER.CENTER_TITLE}
 KEEP_ON_SLIDE = {PP_PLACEHOLDER.SLIDE_NUMBER, PP_PLACEHOLDER.FOOTER}
@@ -78,6 +84,43 @@ def fill_shapes(shapes: Any, values: dict[str, str]) -> None:
                 for cell in row.cells:
                     for p in cell.text_frame.paragraphs:
                         _fill_paragraph(p, values)
+
+
+def fit_logo(
+    left: int,
+    top: int,
+    width: int,
+    height: int,
+    logo: Path,
+    pad: float = 0.12,
+    align: str = "center",
+) -> tuple[int, int, int, int]:
+    """Largest box with the logo's aspect ratio inside (left, top, width, height), EMU."""
+    from PIL import Image
+
+    with Image.open(logo) as img:
+        img_w, img_h = img.size
+    gap = int(min(width, height) * pad)
+    scale = min((width - 2 * gap) / img_w, (height - 2 * gap) / img_h)
+    cx, cy = int(img_w * scale), int(img_h * scale)
+    x = {"left": left + gap, "right": left + width - gap - cx}.get(align, left + (width - cx) // 2)
+    return x, top + (height - cy) // 2, cx, cy
+
+
+def place_pptx_logo(shapes: Any, part: Any, logo: Path) -> None:
+    """Put the logo inside every {{company_logo}} shape of a master/layout (marker text cleared)."""
+    for shape in list(shapes):
+        if not getattr(shape, "has_text_frame", False) or not shape.has_text_frame:
+            continue
+        if shape.text_frame.text.strip() != LOGO_MARKER:
+            continue
+        for paragraph in shape.text_frame.paragraphs:
+            for run in paragraph.runs:
+                run.text = ""
+        _, rid = part.get_or_add_image_part(str(logo))
+        x, y, cx, cy = fit_logo(shape.left, shape.top, shape.width, shape.height, logo)
+        pic = shapes._spTree.add_pic(shapes._next_shape_id, "Logo", "", rid, x, y, cx, cy)
+        shape._element.addnext(pic)  # right above its card
 
 
 def drop_slides(prs: Any) -> None:
@@ -141,9 +184,15 @@ def _marker_box(shapes: Any) -> tuple[int, int, int, int] | None:
     return None
 
 
-def open_pptx_template(path: Path, cfg: dict[str, Any], values: dict[str, str]) -> PptxTemplate:
+def open_pptx_template(
+    path: Path, cfg: dict[str, Any], values: dict[str, str], logo: Path | None = None
+) -> PptxTemplate:
     prs = Presentation(str(path))
     drop_slides(prs)
+    if logo:
+        place_pptx_logo(prs.slide_master.shapes, prs.slide_master.part, logo)
+        for layout in prs.slide_layouts:
+            place_pptx_logo(layout.shapes, layout.part, logo)
     fill_shapes(prs.slide_master.shapes, values)
     for layout in prs.slide_layouts:
         fill_shapes(layout.shapes, values)
@@ -179,16 +228,17 @@ def tidy_placeholders(slide: Any, layout: Any) -> None:
 
 
 # ---------- Word ----------
-def fill_docx(doc: Any, values: dict[str, str]) -> None:
-    def paragraphs(container: Any) -> Any:
-        yield from container.paragraphs
-        for table in container.tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    yield from paragraphs(cell)
+def _paragraphs(container: Any) -> Any:
+    yield from container.paragraphs
+    for table in container.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                yield from _paragraphs(cell)
 
-    for p in paragraphs(doc):
-        _fill_paragraph(p, values)
+
+def _docx_paragraphs(doc: Any) -> Any:
+    """Body paragraphs (tables included), then those of every own header/footer."""
+    yield from _paragraphs(doc)
     for section in doc.sections:
         for part in (
             section.header,
@@ -197,8 +247,39 @@ def fill_docx(doc: Any, values: dict[str, str]) -> None:
             section.first_page_footer,
         ):
             if part is not None and not part.is_linked_to_previous:
-                for p in paragraphs(part):
-                    _fill_paragraph(p, values)
+                yield from _paragraphs(part)
+
+
+def _docx_logo(paragraph: Any, logo: Path) -> None:
+    """Split the run holding {{company_logo}} into text before / logo / text after; the three
+    runs keep the original run's formatting."""
+    runs = paragraph.runs
+    run = next((r for r in runs if LOGO_MARKER in r.text), None)
+    if run is None:  # marker split across runs: merge them first
+        full = paragraph.text
+        runs[0].text = full
+        for r in runs[1:]:
+            r.text = ""
+        run = runs[0]
+    before, _, after = run.text.partition(LOGO_MARKER)
+    picture, tail = copy.deepcopy(run._r), copy.deepcopy(run._r)
+    run.text = before
+    run._r.addnext(picture)
+    picture.addnext(tail)
+    Run(tail, paragraph).text = after
+    image = Run(picture, paragraph)
+    image.text = ""
+    image.add_picture(str(logo), height=Cm(1.0))
+
+
+def fill_docx(doc: Any, values: dict[str, str], logo: Path | None = None) -> None:
+    # With a logo the marker is left for _docx_logo; filling text first, because merging runs
+    # (_fill_paragraph) would wipe a picture already placed in them.
+    text_values = {k: v for k, v in values.items() if not (logo and k == "company_logo")}
+    for p in list(_docx_paragraphs(doc)):
+        _fill_paragraph(p, text_values)
+        if logo and LOGO_MARKER in p.text:
+            _docx_logo(p, logo)
 
 
 def find_body_marker(doc: Any) -> Any | None:

@@ -4,12 +4,13 @@ import zipfile
 from docx import Document
 from openpyxl import load_workbook
 from pptx import Presentation
+from pptx.util import Inches
 
 from app.agents.pipeline import run_pipeline
 from app.exports.common import parse_mermaid
 from app.exports.document import build_docx
 from app.exports.package import build_package
-from app.exports.slides import build_slides
+from app.exports.slides import build_slides, deck_texts
 from app.exports.workbook import build_workbook
 from app.ingest import build_attachment
 from app.llm.mock import MockLLM
@@ -49,10 +50,12 @@ async def test_slides_contain_all_sections() -> None:
         for shape in slide.shapes
         if shape.has_text_frame
     )
-    # 13 analysis slides + "Về ABC" + case studies + grouped standard terms (content library)
-    assert len(prs.slides) == 16
+    # 13 analysis slides + team + "Về ABC" + case studies + standard terms
+    assert len(prs.slides) == 17
     for heading in [
         "Về ABC",
+        "Đội ngũ dự án",
+        "Phạm vi KHÔNG bao gồm",
         "Dự án tương tự đã triển khai",
         "Phương pháp, chất lượng & điều khoản",
         "Chi phí dự kiến",
@@ -68,7 +71,36 @@ async def test_slides_contain_all_sections() -> None:
 async def test_slides_skip_optional_sections_without_attachments() -> None:
     run = await finished_run(with_attachments=False)
     prs = Presentation(io.BytesIO(build_slides(run)))
-    assert len(prs.slides) == 14
+    assert len(prs.slides) == 15
+
+
+async def test_team_slide_comes_from_wbs_and_quotation() -> None:
+    run = await finished_run()
+    prs = Presentation(io.BytesIO(build_slides(run)))
+    team = next(
+        s
+        for s in prs.slides
+        if any(sh.has_text_frame and sh.text_frame.text == "Đội ngũ dự án" for sh in s.shapes)
+    )
+    table = next(sh.table for sh in team.shapes if sh.has_table)
+    cells = [cell.text for row in table.rows for cell in row.cells]
+    assert {t.role for t in run.wbs.tasks} <= set(cells)
+    overhead = {ln.role_label for ln in run.quotation.lines if ln.kind == "overhead"}
+    assert overhead and overhead <= set(cells)
+    assert "FPT" not in " ".join(cells)
+
+
+async def test_out_of_scope_is_translated_and_above_footer() -> None:
+    run = await finished_run()
+    assert set(run.architecture.out_of_scope) <= set(deck_texts(run))
+    prs = Presentation(io.BytesIO(build_slides(run)))
+    box = next(
+        sh
+        for s in prs.slides
+        for sh in s.shapes
+        if sh.has_text_frame and sh.text_frame.text.startswith("Phạm vi KHÔNG bao gồm")
+    )
+    assert box.top + box.height <= Inches(7.0)  # footer starts at 7.0 in
 
 
 async def test_workbook_has_formulas_and_matrix() -> None:

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type ExportName } from "../api";
+import { downloadUrl, type ExportName } from "../api";
 import type { Language } from "../types";
 import { IconArchive, IconDownload, IconProposal, IconQuestion, IconSlides, IconTable } from "./icons";
 import { Panel, buttonClass } from "./ui";
@@ -29,6 +29,21 @@ export default function ExportsCard({
   hasQuestions: boolean;
 }) {
   const [lang, setLang] = useState<Language>(customerLanguage);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(url: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      await downloadUrl(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không tải được file.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Panel
       title={<span id="exports-title">Bộ hồ sơ proposal</span>}
@@ -49,10 +64,15 @@ export default function ExportsCard({
               </button>
             ))}
           </div>
-          <a href={urlFor("package.zip", lang)} className={buttonClass.primary}>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => save(urlFor("package.zip", lang))}
+            className={buttonClass.primary}
+          >
             <IconArchive />
-            Tải trọn bộ (.zip)
-          </a>
+            {busy ? "Đang tải…" : "Tải trọn bộ (.zip)"}
+          </button>
         </>
       }
       bodyClassName="p-0"
@@ -61,25 +81,38 @@ export default function ExportsCard({
         <ul className="divide-y divide-line">
           {ITEMS.filter((i) => i.name !== "qa_sheet.xlsx" || hasQuestions).map(({ name, label, hint, icon: Icon }) => (
             <li key={name}>
-              <a href={urlFor(name, name === "slides.pptx" ? lang : undefined)} className="group flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => save(urlFor(name, name === "slides.pptx" ? lang : undefined))}
+                className="group flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2 disabled:opacity-50"
+              >
                 <Icon className="shrink-0 text-subtle" />
                 <span className="font-medium text-fg">{label}</span>
                 <span className="text-sm text-subtle">{hint}</span>
                 <IconDownload className="ml-auto shrink-0 text-subtle group-hover:text-fg" />
-              </a>
+              </button>
             </li>
           ))}
           {markdownUrl && (
             <li>
-              <a href={markdownUrl} className="group flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => save(markdownUrl)}
+                className="group flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-2 disabled:opacity-50"
+              >
                 <IconProposal className="shrink-0 text-subtle" />
                 <span className="font-medium text-fg">Proposal Markdown</span>
                 <span className="text-sm text-subtle">.md · bản gốc</span>
                 <IconDownload className="ml-auto shrink-0 text-subtle group-hover:text-fg" />
-              </a>
+              </button>
             </li>
           )}
         </ul>
+        {error && (
+          <p className="border-t border-line px-4 py-2 text-sm text-danger">{error}</p>
+        )}
         {lang !== "vi" && (
           <p className="border-t border-line px-4 py-2 text-sm text-subtle">
             Slide {lang === "ja" ? "tiếng Nhật" : "tiếng Anh"}: nhãn dịch sẵn, nội dung do LLM dịch khi tải lần đầu (được lưu lại).

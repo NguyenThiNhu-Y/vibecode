@@ -16,6 +16,13 @@ LABELS: dict[str, dict[str, Any]] = {
     "vi": {
         "context": "Bối cảnh & mục tiêu", "item": "Hạng mục", "info": "Thông tin", "unknown": "Chưa rõ",
         "fields": ["Quy trình hiện tại", "Người dùng", "Nguồn dữ liệu", "Ràng buộc", "Ngân sách / Thời hạn"],
+        "team": "Đội ngũ dự án", "team_sub": "Vai trò, công việc chính và ngày công theo WBS",
+        "team_headers": ["Vai trò", "Công việc chính", "Ngày công"],
+        "team_overhead": {
+            "pm": "Quản lý tiến độ, phạm vi, rủi ro; đầu mối liên lạc với khách",
+            "bridge_se": "Cầu nối với khách Nhật: làm rõ yêu cầu, tài liệu, giao tiếp tiếng Nhật",
+        },
+        "out_of_scope": "Phạm vi KHÔNG bao gồm",
         "inputs": "Tài liệu & dữ liệu khách cung cấp", "inputs_sub": "Được phân tích bằng code trước khi đưa vào agent",
         "docs": "{n} tài liệu: {names}", "reqs": "{n} requirement từ file Excel của khách",
         "data": "Data mẫu {name}: {rows} dòng × {cols} cột, độ sẵn sàng {hint}/5", "pii": ", {n} cột nghi PII",
@@ -52,6 +59,13 @@ LABELS: dict[str, dict[str, Any]] = {
     "en": {
         "context": "Background & objectives", "item": "Item", "info": "Details", "unknown": "TBD",
         "fields": ["Current process", "Users", "Data sources", "Constraints", "Budget / Timeline"],
+        "team": "Project team", "team_sub": "Roles, main tasks and person-days from the WBS",
+        "team_headers": ["Role", "Main tasks", "Person-days"],
+        "team_overhead": {
+            "pm": "Schedule, scope and risk management; main point of contact",
+            "bridge_se": "Bridge with the Japanese client: requirements, documents, communication",
+        },
+        "out_of_scope": "Out of scope",
         "inputs": "Documents & data provided", "inputs_sub": "Analyzed by code before being passed to the agent",
         "docs": "{n} document(s): {names}", "reqs": "{n} requirements from your Excel file",
         "data": "Sample data {name}: {rows} rows × {cols} columns, readiness {hint}/5", "pii": ", {n} column(s) may contain personal data",
@@ -96,6 +110,13 @@ LABELS: dict[str, dict[str, Any]] = {
     "ja": {
         "context": "背景と目的", "item": "項目", "info": "内容", "unknown": "未確認",
         "fields": ["現行業務", "利用者", "データソース", "制約条件", "予算／期限"],
+        "team": "プロジェクト体制", "team_sub": "WBSに基づく役割・主な作業・工数",
+        "team_headers": ["役割", "主な作業", "工数（人日）"],
+        "team_overhead": {
+            "pm": "進捗・範囲・リスク管理、お客様窓口",
+            "bridge_se": "お客様とのブリッジ：要件確認、ドキュメント、日本語でのコミュニケーション",
+        },
+        "out_of_scope": "対象外範囲",
         "inputs": "ご提供資料・データ", "inputs_sub": "コードで解析したうえでエージェントに入力",
         "docs": "資料{n}件: {names}", "reqs": "お客様Excelの要件{n}件",
         "data": "サンプルデータ {name}: {rows}行 × {cols}列、データ準備度 {hint}/5", "pii": "、個人情報の可能性がある列 {n}件",

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { draftClientEmail, exportUrl, importAnswers } from "../api";
+import { draftClientEmail, downloadUrl, exportUrl, importAnswers } from "../api";
 import type { ScopingRun } from "../types";
 import { IconDownload, IconMail, IconUpload } from "./icons";
 import { CopyButton, ErrorBox, Spinner, buttonClass } from "./ui";
@@ -53,10 +53,17 @@ export default function ClientOutreach({
           {busy === "email" ? <Spinner /> : <IconMail />}
           Soạn email gửi khách
         </button>
-        <a href={exportUrl(runId, "qa_sheet.xlsx")} className={buttonClass.secondary}>
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => downloadUrl(exportUrl(runId, "qa_sheet.xlsx")).catch((e) =>
+            setError(e instanceof Error ? e.message : "Không tải được file Q&A.")
+          )}
+          className={buttonClass.secondary}
+        >
           <IconDownload />
           Tải Q&A sheet (.xlsx)
-        </a>
+        </button>
         {waiting && (
           <>
             <button type="button" disabled={busy !== null} onClick={() => fileInput.current?.click()} className={buttonClass.secondary}>
