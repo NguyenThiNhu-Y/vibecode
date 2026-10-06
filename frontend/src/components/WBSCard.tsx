@@ -22,12 +22,12 @@ const TYPE_LABEL: Record<WorkType, string> = {
 };
 const TYPE_COLOR: Record<WorkType, string> = {
   PM: "#6366f1",
-  BA: "#0ea5e9",
+  BA: "#06b6d4",
   DATA: "#10b981",
-  AI: "#f26f21",
+  AI: "#3b78c2",
   BE: "#8b5cf6",
   FE: "#ec4899",
-  DESIGN: "#f59e0b",
+  DESIGN: "#eab308",
   INFRA: "#64748b",
   QA: "#ef4444",
 };

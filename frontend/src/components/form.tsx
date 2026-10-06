@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { IconCheck } from "./icons";
 import { ErrorBox, Spinner, buttonClass } from "./ui";
 
@@ -6,6 +6,74 @@ export const input =
   "w-full rounded-md border border-line bg-surface px-3 py-2 text-fg placeholder:text-subtle focus:border-accent focus:outline-none";
 export const num = `${input} text-right tabular-nums`;
 export const section = "rounded-lg border border-line bg-surface p-5";
+
+const SYMBOLS = { VND: "₫", JPY: "¥", USD: "$" } as const;
+const groupDigits = (n: number) => n.toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+
+/** Whole-number money field shown as "4.000.000 ₫": thousands separators are inserted while
+ * typing and the caret stays after the same digit. `nullable`: an empty field gives null. */
+export function MoneyInput({
+  value,
+  onChange,
+  currency = "VND",
+  placeholder,
+  nullable = false,
+  ariaLabel,
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+  currency?: keyof typeof SYMBOLS;
+  placeholder?: number;
+  nullable?: boolean;
+  ariaLabel?: string;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [text, setText] = useState(value == null ? "" : groupDigits(value));
+
+  useEffect(() => {
+    // follow outside changes (e.g. after save) but never rewrite the field while it is being typed in
+    if (document.activeElement !== ref.current) setText(value == null ? "" : groupDigits(value));
+  }, [value]);
+
+  const handle = (e: ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const caret = e.target.selectionStart ?? raw.length;
+    const digitsBefore = raw.slice(0, caret).replace(/\D/g, "").length;
+    const digits = raw.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 15);
+    if (!digits) {
+      setText("");
+      onChange(nullable ? null : 0);
+      return;
+    }
+    const next = groupDigits(Number(digits));
+    setText(next);
+    onChange(Number(digits));
+    requestAnimationFrame(() => {
+      let pos = 0;
+      for (let seen = 0; pos < next.length && seen < digitsBefore; pos++) if (/\d/.test(next[pos])) seen++;
+      ref.current?.setSelectionRange(pos, pos);
+    });
+  };
+
+  return (
+    <span className="relative block">
+      <input
+        ref={ref}
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        className={num}
+        style={{ paddingRight: "1.9rem" }}
+        value={text}
+        placeholder={placeholder != null ? groupDigits(placeholder) : undefined}
+        onChange={handle}
+        onBlur={() => setText(value == null ? "" : groupDigits(value))}
+        aria-label={ariaLabel}
+      />
+      <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-subtle">{SYMBOLS[currency]}</span>
+    </span>
+  );
+}
 
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: ReactNode }) {
   return (

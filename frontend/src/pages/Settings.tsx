@@ -7,10 +7,10 @@ import {
   saveRateCard,
   saveReferenceProject,
 } from "../api";
-import { Field, SaveBar, input, num, useSaver } from "../components/form";
+import { Field, MoneyInput, SaveBar, input, num, useSaver } from "../components/form";
 import { IconPlus, IconTrash } from "../components/icons";
 import { ErrorBox, Spinner, buttonClass, eyebrow } from "../components/ui";
-import { CONTRACT_HINTS, CONTRACT_LABELS, PATTERN_LABELS, PHASE_LABELS } from "../labels";
+import { CONTRACT_HINTS, CONTRACT_LABELS, PATTERN_LABELS, PHASE_LABELS, formatMoney } from "../labels";
 import type { ContractModel, EstimationTemplate, OverheadRule, Phase, RateCard, SettingsPayload, SolutionPattern } from "../types";
 import { BidCriteriaTab, CaseStudiesTab, CompanyTab, ContentTab, TemplatesTab } from "./SettingsCompany";
 
@@ -36,6 +36,16 @@ const MULTIPLIER_LABELS: Record<string, string> = {
   large_data_volume: "Khối lượng dữ liệu lớn",
   many_requirements: "Nhiều requirement (từ ngưỡng trong file)",
 };
+/** "≈ ¥23.529 · $160" under a VND amount, using the exchange rates being edited. */
+function Converted({ vnd, rates }: { vnd: number; rates: RateCard["exchange_rates"] }) {
+  if (!vnd || !rates.JPY || !rates.USD) return null;
+  return (
+    <span className="mt-0.5 block text-right text-xs text-subtle tabular-nums">
+      ≈ {formatMoney(vnd / rates.JPY, "JPY")} · {formatMoney(vnd / rates.USD, "USD")}
+    </span>
+  );
+}
+
 function RatesTab({ initial }: { initial: RateCard }) {
   const [card, setCard] = useState<RateCard>(initial);
   const saver = useSaver();
@@ -75,19 +85,18 @@ function RatesTab({ initial }: { initial: RateCard }) {
                       <input className={input} value={role.label} onChange={(e) => update({ label: e.target.value })} aria-label="Tên vai trò" />
                     </td>
                     <td className="w-40 px-2 py-1.5">
-                      <input type="number" min={0} step={100000} className={num} value={role.day_rate} onChange={(e) => update({ day_rate: Number(e.target.value) })} aria-label="Đơn giá" />
+                      <MoneyInput value={role.day_rate} onChange={(v) => update({ day_rate: v ?? 0 })} ariaLabel="Đơn giá" />
+                      <Converted vnd={role.day_rate} rates={card.exchange_rates} />
                     </td>
                     <td className="w-40 px-2 py-1.5">
-                      <input
-                        type="number"
-                        min={0}
-                        step={100000}
-                        className={num}
-                        value={role.onsite_day_rate ?? ""}
-                        placeholder={String(role.day_rate * 3)}
-                        onChange={(e) => update({ onsite_day_rate: e.target.value ? Number(e.target.value) : null })}
-                        aria-label="Đơn giá onsite"
+                      <MoneyInput
+                        nullable
+                        value={role.onsite_day_rate ?? null}
+                        placeholder={role.day_rate * 3}
+                        onChange={(v) => update({ onsite_day_rate: v })}
+                        ariaLabel="Đơn giá onsite"
                       />
+                      <Converted vnd={role.onsite_day_rate ?? role.day_rate * 3} rates={card.exchange_rates} />
                     </td>
                     <td className="px-2 py-1.5">
                       <input
@@ -132,10 +141,10 @@ function RatesTab({ initial }: { initial: RateCard }) {
           <h2 className="font-bold text-fg">Tỉ giá & dự phòng</h2>
           <div className="grid grid-cols-2 gap-3">
             <Field label="1 USD = ? VND">
-              <input type="number" className={num} value={card.exchange_rates.USD} onChange={(e) => set({ exchange_rates: { ...card.exchange_rates, USD: Number(e.target.value) } })} />
+              <MoneyInput value={card.exchange_rates.USD} onChange={(v) => set({ exchange_rates: { ...card.exchange_rates, USD: v ?? 0 } })} ariaLabel="Tỉ giá USD" />
             </Field>
             <Field label="1 JPY = ? VND">
-              <input type="number" className={num} value={card.exchange_rates.JPY} onChange={(e) => set({ exchange_rates: { ...card.exchange_rates, JPY: Number(e.target.value) } })} />
+              <MoneyInput value={card.exchange_rates.JPY} onChange={(v) => set({ exchange_rates: { ...card.exchange_rates, JPY: v ?? 0 } })} ariaLabel="Tỉ giá JPY" />
             </Field>
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -164,12 +173,8 @@ function RatesTab({ initial }: { initial: RateCard }) {
           <h2 className="font-bold text-fg">Chi phí vận hành / tháng (VND)</h2>
           {Object.entries(card.run_cost_monthly).map(([pattern, value]) => (
             <Field key={pattern} label={PATTERN_LABELS[pattern as SolutionPattern] ?? pattern}>
-              <input
-                type="number"
-                className={num}
-                value={value}
-                onChange={(e) => set({ run_cost_monthly: { ...card.run_cost_monthly, [pattern]: Number(e.target.value) } })}
-              />
+              <MoneyInput value={value} onChange={(v) => set({ run_cost_monthly: { ...card.run_cost_monthly, [pattern]: v ?? 0 } })} ariaLabel={`Chi phí vận hành ${pattern}`} />
+              <Converted vnd={value} rates={card.exchange_rates} />
             </Field>
           ))}
           <Field label="Hệ số khi triển khai on-premise">

@@ -160,7 +160,7 @@ export default function Eval() {
                   type="checkbox"
                   checked={onlyWrong}
                   onChange={(e) => setOnlyWrong(e.target.checked)}
-                  className="h-4 w-4 accent-[#ff7a2f]"
+                  className="h-4 w-4 accent-[var(--accent)]"
                 />
                 Chỉ hiện case sai pattern
               </label>

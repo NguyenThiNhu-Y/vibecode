@@ -221,7 +221,7 @@ const MAPPING_LABELS: Record<string, string> = {
 
 function MappingEditor({ title, value, onChange }: { title: string; value: SheetMapping; onChange: (m: SheetMapping) => void }) {
   return (
-    <div className="rounded-md border border-line p-3">
+    <div className="@container rounded-md border border-line p-3">
       <p className="mb-2 font-medium text-fg">{title}</p>
       <div className="grid grid-cols-2 gap-2">
         <Field label="Tên sheet">
@@ -237,17 +237,20 @@ function MappingEditor({ title, value, onChange }: { title: string; value: Sheet
           />
         </Field>
       </div>
-      <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+      <p className="mt-3 mb-1.5 text-sm text-muted">Cột trong sheet</p>
+      {/* label left, fixed-width input right: a long label wraps on its own line, inputs stay aligned */}
+      <div className="grid grid-cols-1 gap-x-5 gap-y-1.5 @min-[24rem]:grid-cols-2">
         {Object.entries(value.columns).map(([key, col]) => (
-          <Field key={key} label={MAPPING_LABELS[key] ?? key}>
+          <label key={key} className="flex items-center justify-between gap-3">
+            <span className="min-w-0 text-sm text-fg">{MAPPING_LABELS[key] ?? key}</span>
             <input
-              className={`${input} text-center font-mono uppercase`}
+              className="w-14 shrink-0 rounded-md border border-line bg-surface px-2 py-1.5 text-center font-mono text-fg uppercase focus:border-accent focus:outline-none"
               value={col}
               maxLength={3}
               onChange={(e) => onChange({ ...value, columns: { ...value.columns, [key]: e.target.value.toUpperCase() } })}
               aria-label={`Cột ${MAPPING_LABELS[key] ?? key}`}
             />
-          </Field>
+          </label>
         ))}
       </div>
     </div>

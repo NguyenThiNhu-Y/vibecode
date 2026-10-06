@@ -2,8 +2,8 @@ import { useEffect, useId, useState } from "react";
 import { useCurrentTheme } from "../theme";
 
 const THEMES = {
-  light: { background: "#ffffff", primaryColor: "#fff4ed", primaryBorderColor: "#e8590c", primaryTextColor: "#15181d", lineColor: "#6b7280" },
-  dark: { background: "#161a20", primaryColor: "#1d222a", primaryBorderColor: "#ff7a2f", primaryTextColor: "#e7eaee", lineColor: "#8a93a0" },
+  light: { background: "#ffffff", primaryColor: "#eef5fc", primaryBorderColor: "#3b78c2", primaryTextColor: "#15181d", lineColor: "#6b7280" },
+  dark: { background: "#161a20", primaryColor: "#1d222a", primaryBorderColor: "#6ea8e8", primaryTextColor: "#e7eaee", lineColor: "#8a93a0" },
 };
 
 /** Renders a Mermaid flowchart; mermaid is code-split and loaded only when needed. */
@@ -54,7 +54,7 @@ export default function MermaidDiagram({ code }: { code: string }) {
           startOnLoad: false,
           securityLevel: "strict",
           theme: "base",
-          fontFamily: '"Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif',
+          fontFamily: '"Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif',
           themeVariables: { darkMode: theme === "dark", fontSize: "13px", ...THEMES[theme] },
           flowchart: { curve: "basis", padding: 10, htmlLabels: false },
         });

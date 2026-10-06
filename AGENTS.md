@@ -72,7 +72,7 @@ Các quy tắc này áp dụng cho mọi task; nếu một yêu cầu trong task
 
 - **Backend:** `fastapi`, `uvicorn[standard]`, `sse-starlette`, `pydantic>=2`, `pydantic-settings`, `httpx`, `pyyaml`, `pypdf` (đọc RFP dạng PDF), `python-multipart` (upload file), `openpyxl` (đọc/xuất Excel), `python-docx` (đọc/xuất Word), `python-pptx` (xuất slide)
 - **Backend dev:** `pytest`, `pytest-asyncio`, `ruff`
-- **Frontend:** `react`, `react-dom`, `react-router-dom`, `react-markdown`, `remark-gfm` (bảng Markdown), `tailwindcss` + `@tailwindcss/vite`, `vite` + `@vitejs/plugin-react`, `typescript`, `@fontsource/be-vietnam-pro` (font đóng gói sẵn để demo offline), `mermaid` (sơ đồ kiến trúc, lazy-load)
+- **Frontend:** `react`, `react-dom`, `react-router-dom`, `react-markdown`, `remark-gfm` (bảng Markdown), `tailwindcss` + `@tailwindcss/vite`, `vite` + `@vitejs/plugin-react`, `typescript`, `@fontsource-variable/inter` (font Inter đóng gói sẵn để demo offline; thay Be Vietnam Pro vì chủ dự án muốn nét mảnh, gọn hơn), `mermaid` (sơ đồ kiến trúc, lazy-load)
 
 ### 3.2 Cấu trúc repo (đích đến)
 

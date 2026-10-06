@@ -5,7 +5,9 @@
 
 /* Role-based tokens: components use these names only, values switch per theme below. */
 @theme inline {
-  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Inter for Latin + Vietnamese; Japanese falls back to the OS UI font of a similar weight */
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 
   --color-canvas: var(--canvas);
@@ -46,10 +48,10 @@
   --muted: #4a5260;
   --subtle: #6b7280;
 
-  --accent: #e8590c;
+  --accent: #3b78c2;
   --on-accent: #ffffff;
-  --accent-strong: #c2410c;
-  --accent-soft: #fff1e8;
+  --accent-strong: #255a94;
+  --accent-soft: #eaf2fb;
 
   --success: #047857;
   --success-soft: #e8f7f0;
@@ -57,18 +59,18 @@
   --warning-soft: #fef6e4;
   --danger: #b91c1c;
   --danger-soft: #fdecec;
-  --info: #1d4ed8;
-  --info-soft: #eaf1fe;
+  --info: #4f46e5;
+  --info-soft: #eef0fe;
   --violet: #6d28d9;
   --violet-soft: #f1ebfe;
 
   --paper: #ffffff;
   --series-1: #2a78d6;
-  --series-2: #eb6834;
+  --series-2: #eda100; /* validated with series-1/3 (dataviz validate_palette, light + dark) */
   --series-3: #1baf7a;
-  --phase-poc: #f9a66c;
-  --phase-mvp: #e8590c;
-  --phase-production: #9a3412;
+  --phase-poc: #86b6e6;
+  --phase-mvp: #3b78c2;
+  --phase-production: #1f4e80;
 }
 
 .dark {
@@ -81,10 +83,10 @@
   --muted: #a8b0bc;
   --subtle: #8a93a0;
 
-  --accent: #ff7a2f;
-  --on-accent: #1a0d04;
-  --accent-strong: #ffa266;
-  --accent-soft: rgb(255 122 47 / 0.14);
+  --accent: #6ea8e8;
+  --on-accent: #0b1a2b;
+  --accent-strong: #9cc4f0;
+  --accent-soft: rgb(110 168 232 / 0.15);
 
   --success: #34d399;
   --success-soft: rgb(52 211 153 / 0.13);
@@ -92,18 +94,18 @@
   --warning-soft: rgb(251 191 36 / 0.13);
   --danger: #f87171;
   --danger-soft: rgb(248 113 113 / 0.13);
-  --info: #60a5fa;
-  --info-soft: rgb(96 165 250 / 0.13);
+  --info: #818cf8;
+  --info-soft: rgb(129 140 248 / 0.14);
   --violet: #a78bfa;
   --violet-soft: rgb(167 139 250 / 0.14);
 
   --paper: #fffdf8;
   --series-1: #3987e5;
-  --series-2: #d95926;
+  --series-2: #c98500;
   --series-3: #199e70;
-  --phase-poc: #ffb27f;
-  --phase-mvp: #ff7a2f;
-  --phase-production: #c2500c;
+  --phase-poc: #a9cdf2;
+  --phase-mvp: #6ea8e8;
+  --phase-production: #3d79b8;
 }
 
 html {
