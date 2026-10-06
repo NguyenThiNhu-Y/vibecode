@@ -1,9 +1,9 @@
 # Sửa từ trang Cài đặt → Template của ScopeAI.
 active:
-  slides: builtin
-  proposal_docx: builtin
-  workbook: builtin
-  qa_sheet: builtin
+  slides: sample
+  proposal_docx: sample
+  workbook: sample
+  qa_sheet: sample
 pptx:
   content_layout: Title Only
   bottom_margin_in: 0.55

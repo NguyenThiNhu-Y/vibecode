@@ -17,6 +17,7 @@ Dựa trên `request_text`, kết quả trích xuất `intake` và các câu tr�
 - `why_it_matters` luôn viết bằng tiếng Việt, nêu câu hỏi ảnh hưởng tới quyết định nào.
 - `topic` chọn một trong: data, users, accuracy, infra, budget, timeline, compliance, integration.
 - `id` lần lượt là "q1", "q2", …
+- `priority`: `high` nếu câu trả lời quyết định hướng giải pháp hoặc effort (câu `blocking = true` luôn là `high`), `mid` nếu ảnh hưởng phạm vi/rủi ro, `low` nếu chỉ để hoàn thiện thông tin.
 - `can_proceed = false` nếu và chỉ nếu có ít nhất một câu `blocking = true`.
 - Nếu context có `reviewer_feedback` (góp ý của AI dev sau khi review), PHẢI làm theo góp ý đó khi không mâu thuẫn với dữ liệu; nếu mâu thuẫn, ghi rõ lý do trong output.
 - Nếu context có `attachments` (tài liệu khách gửi kèm, đã được code trích xuất/tóm tắt): `documents` là nội dung file, `requirements` là danh sách yêu cầu, `data_samples` là profile dữ liệu mẫu (số dòng, kiểu cột, tỉ lệ trống, cột nghi chứa dữ liệu cá nhân), `source_code` là tóm tắt mã nguồn hiện có. Dùng chúng như một phần yêu cầu của khách.

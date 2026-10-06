@@ -14,6 +14,7 @@ _KEY_FILES: dict[str, str] = {
     "estimation_template": "estimation_template.yaml",
     "compliance_markets": "compliance_markets.yaml",
     "reference_projects": "reference_projects",
+    "wbs_templates": "wbs_templates.yaml",
 }
 
 _cache: dict[tuple[str, str], str] = {}

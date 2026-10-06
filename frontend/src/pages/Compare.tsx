@@ -70,12 +70,12 @@ const ROWS: Row[] = [
     label: "WBS",
     value: (r) =>
       r.wbs
-        ? `${r.wbs.tasks.length} đầu việc · ${r.wbs.tasks.reduce((s, t) => s + t.person_days, 0)} ngày công`
+        ? `${r.wbs.items.filter((i) => i.level === 2).length} task · ${r.wbs.totals.reduce((s, t) => s + t.total_md, 0)} man-day`
         : "—",
   },
   {
     label: "Timeline",
-    value: (r) => (r.schedule ? `khoảng ${Math.ceil(r.schedule.total_days / 5)} tuần` : "—"),
+    value: (r) => (r.schedule ? `${r.schedule.phases.reduce((s, p) => s + p.working_days, 0)} ngày làm việc` : "—"),
   },
   {
     label: "Báo giá sơ bộ",

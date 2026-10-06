@@ -7,8 +7,10 @@ from pptx import Presentation
 from pptx.util import Inches
 
 from app.agents.pipeline import run_pipeline
+from app.agents.pricing import compute_quotation, load_rate_card
 from app.exports.common import parse_mermaid
 from app.exports.document import build_docx
+from app.exports.i18n import LABELS
 from app.exports.package import build_package
 from app.exports.slides import build_slides, deck_texts
 from app.exports.workbook import build_workbook
@@ -84,10 +86,19 @@ async def test_team_slide_comes_from_wbs_and_quotation() -> None:
     )
     table = next(sh.table for sh in team.shapes if sh.has_table)
     cells = [cell.text for row in table.rows for cell in row.cells]
-    assert {t.role for t in run.wbs.tasks} <= set(cells)
-    overhead = {ln.role_label for ln in run.quotation.lines if ln.kind == "overhead"}
-    assert overhead and overhead <= set(cells)
+    labels = LABELS["vi"]["type_labels"]
+    assert {labels[t.value] for total in run.wbs.totals for t in total.by_type} <= set(cells)
     assert "FPT" not in " ".join(cells)
+    run.intake.language = "ja"  # a Japanese client adds the BrSE overhead row
+    run.quotation = compute_quotation(run, load_rate_card())
+    prs = Presentation(io.BytesIO(build_slides(run)))
+    texts = " ".join(sh.text_frame.text for s in prs.slides for sh in s.shapes if sh.has_text_frame)
+    tables = " ".join(
+        c.text for s in prs.slides for sh in s.shapes if sh.has_table
+        for row in sh.table.rows for c in row.cells
+    )  # fmt: skip
+    brse = next(ln.role_label for ln in run.quotation.lines if ln.kind == "overhead")
+    assert brse in tables and texts
 
 
 async def test_out_of_scope_is_translated_and_above_footer() -> None:
@@ -161,4 +172,5 @@ async def test_package_zip_lists_all_deliverables() -> None:
         "proposal.md",
         "architecture.mmd",
         "qa_sheet.xlsx",
+        "bidding.xlsx",
     }

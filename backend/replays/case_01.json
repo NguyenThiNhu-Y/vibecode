@@ -1,6 +1,6 @@
 {
   "name": "case_01",
-  "recorded_at": "2026-10-02T16:48:44.099901+00:00",
+  "recorded_at": "2026-10-05T16:15:57.571688+00:00",
   "llm_provider": "mock",
   "request_text": "お世話になっております。架空精機株式会社（仮）の保守部門です。\n当社では工作機械の保守マニュアルが約2,000ページ（PDF）あり、現場の保守担当者が必要な情報を探すのに毎回30分以上かかっています。\nマニュアルの内容について日本語で質問すると、該当ページを示しながら回答してくれるチャットボットを検討しています。\nセキュリティ上の理由で、データは社外に出せないため、オンプレミス環境での構築が必須です。\n利用者は全国の保守担当者約150名です。まずは3ヶ月以内にPoCを実施したいと考えております。\n",
   "segments": [
@@ -44,9 +44,9 @@
               "language": "vi",
               "industry": "Tài chính – bảo hiểm (giả lập)"
             },
-            "latency_ms": 802
+            "latency_ms": 803
           },
-          "delay_ms": 805
+          "delay_ms": 804
         },
         {
           "event": "step_started",
@@ -71,28 +71,31 @@
                   "topic": "data",
                   "question": "Các văn bản quy định được cập nhật bao lâu một lần và ai là người cập nhật?",
                   "why_it_matters": "Quyết định cơ chế đồng bộ và đánh chỉ mục lại tài liệu.",
-                  "blocking": false
+                  "blocking": false,
+                  "priority": "mid"
                 },
                 {
                   "id": "q2",
                   "topic": "accuracy",
                   "question": "Câu trả lời có bắt buộc kèm trích dẫn điều khoản và số trang không?",
                   "why_it_matters": "Ảnh hưởng thiết kế phần hiển thị nguồn và cách chia đoạn tài liệu.",
-                  "blocking": false
+                  "blocking": false,
+                  "priority": "mid"
                 },
                 {
                   "id": "q3",
                   "topic": "integration",
                   "question": "Công ty đang dùng hệ thống đăng nhập tập trung (SSO) nào?",
                   "why_it_matters": "Xác định effort tích hợp phân quyền theo phòng ban.",
-                  "blocking": false
+                  "blocking": false,
+                  "priority": "mid"
                 }
               ],
               "can_proceed": true
             },
             "latency_ms": 802
           },
-          "delay_ms": 814
+          "delay_ms": 819
         },
         {
           "event": "step_started",
@@ -133,7 +136,7 @@
             },
             "latency_ms": 802
           },
-          "delay_ms": 804
+          "delay_ms": 806
         },
         {
           "event": "step_started",
@@ -172,16 +175,16 @@
               ],
               "go_recommendation": "go_with_poc"
             },
-            "latency_ms": 802
+            "latency_ms": 804
           },
-          "delay_ms": 805
+          "delay_ms": 807
         },
         {
           "event": "step_started",
           "data": {
             "step": "architecture"
           },
-          "delay_ms": 4
+          "delay_ms": 5
         },
         {
           "event": "step_done",
@@ -274,9 +277,14 @@
               "reference_projects": [
                 "rp_example"
               ],
+              "out_of_scope": [
+                "Ứng dụng di động native (iOS/Android)",
+                "Tích hợp hệ thống ERP hiện có chưa được liệt kê trong requirements",
+                "Di chuyển (migrate) toàn bộ dữ liệu lịch sử (chỉ nạp dữ liệu mẫu trong PoC)"
+              ],
               "mermaid": "flowchart LR\n  U[Nhân viên] --> UI[Web chat]\n  UI --> API[Chat API]\n  DOC[Văn bản Word/PDF] --> ING[Ingestion]\n  ING --> IDX[Vector index]\n  API --> IDX\n  API --> LLM[LLM API]"
             },
-            "latency_ms": 802,
+            "latency_ms": 801,
             "effort_basis": {
               "pattern": "rag",
               "base": {
@@ -311,7 +319,7 @@
               }
             }
           },
-          "delay_ms": 807
+          "delay_ms": 811
         },
         {
           "event": "step_started",
@@ -325,366 +333,1051 @@
           "data": {
             "step": "wbs",
             "result": {
-              "tasks": [
+              "items": [
                 {
-                  "id": "W1",
+                  "id": "1",
+                  "phase": "poc",
+                  "name": "Giai đoạn PoC",
+                  "level": 1,
+                  "type": null,
+                  "priority": "mid",
+                  "estimate_md": 12.0,
+                  "depends_on": [],
+                  "deliverable": null,
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "1.1",
+                  "phase": "poc",
+                  "name": "Kick-off và quản lý PoC",
+                  "level": 2,
+                  "type": "PM",
+                  "priority": "mid",
+                  "estimate_md": 2.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: kick-off và quản lý poc",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "1.2",
                   "phase": "poc",
                   "name": "Khảo sát dữ liệu & yêu cầu",
-                  "role": "AI engineer",
-                  "person_days": 4,
+                  "level": 2,
+                  "type": "BA",
+                  "priority": "mid",
+                  "estimate_md": 2.0,
                   "depends_on": [],
-                  "deliverable": null
+                  "deliverable": "Kết quả: khảo sát dữ liệu & yêu cầu",
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W2",
+                  "id": "1.3",
                   "phase": "poc",
-                  "name": "Dựng prototype Ingestion",
-                  "role": "Backend developer",
-                  "person_days": 4,
+                  "name": "Chuẩn bị dữ liệu mẫu",
+                  "level": 2,
+                  "type": "DATA",
+                  "priority": "mid",
+                  "estimate_md": 2.0,
                   "depends_on": [
-                    "W1"
+                    "1.2"
                   ],
-                  "deliverable": null
+                  "deliverable": "Kết quả: chuẩn bị dữ liệu mẫu",
+                  "tags": [
+                    "data_prep"
+                  ],
+                  "note": null
                 },
                 {
-                  "id": "W3",
+                  "id": "1.4",
                   "phase": "poc",
-                  "name": "Đánh giá kết quả PoC với khách",
-                  "role": "AI engineer",
-                  "person_days": 4,
+                  "name": "Dựng prototype Chat API",
+                  "level": 2,
+                  "type": "AI",
+                  "priority": "high",
+                  "estimate_md": 2.0,
                   "depends_on": [
-                    "W2"
+                    "1.2"
                   ],
-                  "deliverable": null
+                  "deliverable": "Kết quả: dựng prototype chat api",
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W4",
+                  "id": "1.5",
+                  "phase": "poc",
+                  "name": "Đánh giá kết quả PoC",
+                  "level": 2,
+                  "type": "AI",
+                  "priority": "high",
+                  "estimate_md": 2.0,
+                  "depends_on": [
+                    "1.2"
+                  ],
+                  "deliverable": "Kết quả: đánh giá kết quả poc",
+                  "tags": [
+                    "evaluation"
+                  ],
+                  "note": null
+                },
+                {
+                  "id": "1.6",
+                  "phase": "poc",
+                  "name": "Test và nghiệm thu PoC",
+                  "level": 2,
+                  "type": "QA",
+                  "priority": "high",
+                  "estimate_md": 2.0,
+                  "depends_on": [
+                    "1.3",
+                    "1.4",
+                    "1.5"
+                  ],
+                  "deliverable": "Kết quả: test và nghiệm thu poc",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2",
+                  "phase": "mvp",
+                  "name": "Giai đoạn MVP",
+                  "level": 1,
+                  "type": null,
+                  "priority": "mid",
+                  "estimate_md": 40.0,
+                  "depends_on": [],
+                  "deliverable": null,
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2.1",
+                  "phase": "mvp",
+                  "name": "Quản lý dự án MVP",
+                  "level": 2,
+                  "type": null,
+                  "priority": "mid",
+                  "estimate_md": 5.0,
+                  "depends_on": [
+                    "1.6"
+                  ],
+                  "deliverable": null,
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2.1.1",
+                  "phase": "mvp",
+                  "name": "Quản lý dự án MVP – phần 1",
+                  "level": 3,
+                  "type": "PM",
+                  "priority": "mid",
+                  "estimate_md": 3.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: quản lý dự án mvp",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2.1.2",
+                  "phase": "mvp",
+                  "name": "Quản lý dự án MVP – phần 2",
+                  "level": 3,
+                  "type": "PM",
+                  "priority": "mid",
+                  "estimate_md": 2.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: quản lý dự án mvp",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2.2",
                   "phase": "mvp",
                   "name": "Phân tích & thiết kế chi tiết",
-                  "role": "AI engineer",
-                  "person_days": 8,
-                  "depends_on": [
-                    "W3"
-                  ],
-                  "deliverable": null
+                  "level": 2,
+                  "type": null,
+                  "priority": "mid",
+                  "estimate_md": 5.0,
+                  "depends_on": [],
+                  "deliverable": null,
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W5",
+                  "id": "2.2.1",
                   "phase": "mvp",
-                  "name": "Xây dựng Ingestion",
-                  "role": "Backend developer",
-                  "person_days": 8,
-                  "depends_on": [
-                    "W4"
-                  ],
-                  "deliverable": null
+                  "name": "Phân tích & thiết kế chi tiết – phần 1",
+                  "level": 3,
+                  "type": "BA",
+                  "priority": "mid",
+                  "estimate_md": 3.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: phân tích & thiết kế chi tiết",
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W6",
+                  "id": "2.2.2",
                   "phase": "mvp",
-                  "name": "Xây dựng Vector index",
-                  "role": "Frontend developer",
-                  "person_days": 8,
-                  "depends_on": [
-                    "W4"
-                  ],
-                  "deliverable": null
+                  "name": "Phân tích & thiết kế chi tiết – phần 2",
+                  "level": 3,
+                  "type": "BA",
+                  "priority": "mid",
+                  "estimate_md": 2.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: phân tích & thiết kế chi tiết",
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W7",
+                  "id": "2.3",
                   "phase": "mvp",
-                  "name": "Tích hợp hệ thống",
-                  "role": "QA",
-                  "person_days": 8,
+                  "name": "Chuẩn bị & làm sạch dữ liệu",
+                  "level": 2,
+                  "type": null,
+                  "priority": "mid",
+                  "estimate_md": 5.0,
                   "depends_on": [
-                    "W4"
+                    "2.2"
                   ],
-                  "deliverable": null
+                  "deliverable": null,
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W8",
+                  "id": "2.3.1",
                   "phase": "mvp",
-                  "name": "Kiểm thử & đánh giá chất lượng",
-                  "role": "AI engineer",
-                  "person_days": 8,
-                  "depends_on": [
-                    "W5",
-                    "W6",
-                    "W7"
+                  "name": "Chuẩn bị & làm sạch dữ liệu – phần 1",
+                  "level": 3,
+                  "type": "DATA",
+                  "priority": "mid",
+                  "estimate_md": 3.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: chuẩn bị & làm sạch dữ liệu",
+                  "tags": [
+                    "data_prep"
                   ],
-                  "deliverable": null
+                  "note": null
                 },
                 {
-                  "id": "W9",
-                  "phase": "production",
-                  "name": "Hardening & bảo mật",
-                  "role": "AI engineer",
-                  "person_days": 20,
-                  "depends_on": [
-                    "W8"
+                  "id": "2.3.2",
+                  "phase": "mvp",
+                  "name": "Chuẩn bị & làm sạch dữ liệu – phần 2",
+                  "level": 3,
+                  "type": "DATA",
+                  "priority": "mid",
+                  "estimate_md": 2.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: chuẩn bị & làm sạch dữ liệu",
+                  "tags": [
+                    "data_prep"
                   ],
-                  "deliverable": null
+                  "note": null
                 },
                 {
-                  "id": "W10",
-                  "phase": "production",
-                  "name": "Mở rộng Ingestion",
-                  "role": "Backend developer",
-                  "person_days": 20,
+                  "id": "2.4",
+                  "phase": "mvp",
+                  "name": "Xây dựng Chat API",
+                  "level": 2,
+                  "type": null,
+                  "priority": "mid",
+                  "estimate_md": 5.0,
                   "depends_on": [
-                    "W9"
+                    "2.2"
                   ],
-                  "deliverable": null
+                  "deliverable": null,
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W11",
-                  "phase": "production",
-                  "name": "Giám sát & vận hành",
-                  "role": "Frontend developer",
-                  "person_days": 20,
-                  "depends_on": [
-                    "W9"
-                  ],
-                  "deliverable": null
+                  "id": "2.4.1",
+                  "phase": "mvp",
+                  "name": "Xây dựng Chat API – phần 1",
+                  "level": 3,
+                  "type": "AI",
+                  "priority": "high",
+                  "estimate_md": 3.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: xây dựng chat api",
+                  "tags": [],
+                  "note": null
                 },
                 {
-                  "id": "W12",
-                  "phase": "production",
-                  "name": "Đào tạo người dùng & bàn giao",
-                  "role": "QA",
-                  "person_days": 20,
+                  "id": "2.4.2",
+                  "phase": "mvp",
+                  "name": "Xây dựng Chat API – phần 2",
+                  "level": 3,
+                  "type": "AI",
+                  "priority": "high",
+                  "estimate_md": 2.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: xây dựng chat api",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2.5",
+                  "phase": "mvp",
+                  "name": "Xây dựng Web chat",
+                  "level": 2,
+                  "type": "BE",
+                  "priority": "mid",
+                  "estimate_md": 4.0,
                   "depends_on": [
-                    "W10",
-                    "W11"
+                    "2.2"
                   ],
-                  "deliverable": null
+                  "deliverable": "Kết quả: xây dựng web chat",
+                  "tags": [
+                    "integration"
+                  ],
+                  "note": null
+                },
+                {
+                  "id": "2.6",
+                  "phase": "mvp",
+                  "name": "Giao diện người dùng",
+                  "level": 2,
+                  "type": "FE",
+                  "priority": "mid",
+                  "estimate_md": 4.0,
+                  "depends_on": [
+                    "2.2"
+                  ],
+                  "deliverable": "Kết quả: giao diện người dùng",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2.7",
+                  "phase": "mvp",
+                  "name": "Bộ đánh giá chất lượng",
+                  "level": 2,
+                  "type": "AI",
+                  "priority": "high",
+                  "estimate_md": 4.0,
+                  "depends_on": [
+                    "2.2"
+                  ],
+                  "deliverable": "Kết quả: bộ đánh giá chất lượng",
+                  "tags": [
+                    "evaluation"
+                  ],
+                  "note": null
+                },
+                {
+                  "id": "2.8",
+                  "phase": "mvp",
+                  "name": "Test và nghiệm thu MVP",
+                  "level": 2,
+                  "type": "QA",
+                  "priority": "high",
+                  "estimate_md": 4.0,
+                  "depends_on": [
+                    "2.3",
+                    "2.4",
+                    "2.5",
+                    "2.6",
+                    "2.7"
+                  ],
+                  "deliverable": "Kết quả: test và nghiệm thu mvp",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "2.9",
+                  "phase": "mvp",
+                  "name": "Tài liệu và bàn giao",
+                  "level": 2,
+                  "type": "BA",
+                  "priority": "mid",
+                  "estimate_md": 4.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: tài liệu và bàn giao",
+                  "tags": [
+                    "documentation"
+                  ],
+                  "note": null
+                },
+                {
+                  "id": "3",
+                  "phase": "production",
+                  "name": "Production",
+                  "level": 1,
+                  "type": null,
+                  "priority": "mid",
+                  "estimate_md": 80.0,
+                  "depends_on": [],
+                  "deliverable": null,
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.1",
+                  "phase": "production",
+                  "name": "Quản lý triển khai – đợt 1",
+                  "level": 2,
+                  "type": "PM",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [
+                    "2.8"
+                  ],
+                  "deliverable": "Kết quả: quản lý triển khai – đợt 1",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.2",
+                  "phase": "production",
+                  "name": "Quản lý triển khai – đợt 2",
+                  "level": 2,
+                  "type": "PM",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: quản lý triển khai – đợt 2",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.3",
+                  "phase": "production",
+                  "name": "Hardening & bảo mật – đợt 1",
+                  "level": 2,
+                  "type": "INFRA",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [
+                    "3.2"
+                  ],
+                  "deliverable": "Kết quả: hardening & bảo mật – đợt 1",
+                  "tags": [
+                    "security"
+                  ],
+                  "note": null
+                },
+                {
+                  "id": "3.4",
+                  "phase": "production",
+                  "name": "Hardening & bảo mật – đợt 2",
+                  "level": 2,
+                  "type": "INFRA",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [
+                    "3.2"
+                  ],
+                  "deliverable": "Kết quả: hardening & bảo mật – đợt 2",
+                  "tags": [
+                    "security"
+                  ],
+                  "note": null
+                },
+                {
+                  "id": "3.5",
+                  "phase": "production",
+                  "name": "Mở rộng Vector index – đợt 1",
+                  "level": 2,
+                  "type": "BE",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [
+                    "3.2"
+                  ],
+                  "deliverable": "Kết quả: mở rộng vector index – đợt 1",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.6",
+                  "phase": "production",
+                  "name": "Mở rộng Vector index – đợt 2",
+                  "level": 2,
+                  "type": "BE",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [
+                    "3.2"
+                  ],
+                  "deliverable": "Kết quả: mở rộng vector index – đợt 2",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.7",
+                  "phase": "production",
+                  "name": "Giám sát & vận hành – đợt 1",
+                  "level": 2,
+                  "type": "INFRA",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [
+                    "3.2"
+                  ],
+                  "deliverable": "Kết quả: giám sát & vận hành – đợt 1",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.8",
+                  "phase": "production",
+                  "name": "Giám sát & vận hành – đợt 2",
+                  "level": 2,
+                  "type": "INFRA",
+                  "priority": "mid",
+                  "estimate_md": 7.0,
+                  "depends_on": [
+                    "3.2"
+                  ],
+                  "deliverable": "Kết quả: giám sát & vận hành – đợt 2",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.9",
+                  "phase": "production",
+                  "name": "UAT và nghiệm thu – đợt 1",
+                  "level": 2,
+                  "type": "QA",
+                  "priority": "high",
+                  "estimate_md": 6.0,
+                  "depends_on": [
+                    "3.5",
+                    "3.6"
+                  ],
+                  "deliverable": "Kết quả: uat và nghiệm thu – đợt 1",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.10",
+                  "phase": "production",
+                  "name": "UAT và nghiệm thu – đợt 2",
+                  "level": 2,
+                  "type": "QA",
+                  "priority": "high",
+                  "estimate_md": 6.0,
+                  "depends_on": [
+                    "3.5",
+                    "3.6"
+                  ],
+                  "deliverable": "Kết quả: uat và nghiệm thu – đợt 2",
+                  "tags": [],
+                  "note": null
+                },
+                {
+                  "id": "3.11",
+                  "phase": "production",
+                  "name": "Đào tạo & bàn giao – đợt 1",
+                  "level": 2,
+                  "type": "BA",
+                  "priority": "mid",
+                  "estimate_md": 6.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: đào tạo & bàn giao – đợt 1",
+                  "tags": [
+                    "documentation"
+                  ],
+                  "note": null
+                },
+                {
+                  "id": "3.12",
+                  "phase": "production",
+                  "name": "Đào tạo & bàn giao – đợt 2",
+                  "level": 2,
+                  "type": "BA",
+                  "priority": "mid",
+                  "estimate_md": 6.0,
+                  "depends_on": [],
+                  "deliverable": "Kết quả: đào tạo & bàn giao – đợt 2",
+                  "tags": [
+                    "documentation"
+                  ],
+                  "note": null
                 }
               ],
-              "notes": [
+              "totals": [
+                {
+                  "phase": "poc",
+                  "total_md": 12.0,
+                  "by_type": {
+                    "PM": 2.0,
+                    "BA": 2.0,
+                    "DATA": 2.0,
+                    "AI": 4.0,
+                    "QA": 2.0
+                  },
+                  "adjustment_note": null
+                },
+                {
+                  "phase": "mvp",
+                  "total_md": 40.0,
+                  "by_type": {
+                    "PM": 5.0,
+                    "BA": 9.0,
+                    "DATA": 5.0,
+                    "AI": 9.0,
+                    "BE": 4.0,
+                    "FE": 4.0,
+                    "QA": 4.0
+                  },
+                  "adjustment_note": null
+                },
+                {
+                  "phase": "production",
+                  "total_md": 80.0,
+                  "by_type": {
+                    "PM": 14.0,
+                    "INFRA": 28.0,
+                    "BE": 14.0,
+                    "QA": 12.0,
+                    "BA": 12.0
+                  },
+                  "adjustment_note": null
+                }
+              ],
+              "assumptions": [
                 "WBS sinh bởi mock LLM."
+              ],
+              "out_of_scope": [
+                "Ứng dụng di động native (iOS/Android)",
+                "Tích hợp hệ thống ERP hiện có chưa được liệt kê trong requirements",
+                "Di chuyển (migrate) toàn bộ dữ liệu lịch sử (chỉ nạp dữ liệu mẫu trong PoC)"
               ]
             },
-            "latency_ms": 802,
+            "latency_ms": 803,
             "schedule": {
-              "tasks": [
+              "config": {
+                "start_date": "2026-10-19",
+                "headcount": {
+                  "AI": 2,
+                  "BE": 1,
+                  "FE": 1,
+                  "QA": 1,
+                  "BA": 1,
+                  "PM": 1,
+                  "INFRA": 1,
+                  "DESIGN": 1,
+                  "DATA": 1
+                },
+                "buffer_ratio": 0.15,
+                "holidays": []
+              },
+              "phases": [
                 {
-                  "id": "W1",
-                  "start_day": 0,
-                  "end_day": 4
+                  "phase": "poc",
+                  "start": "2026-10-19",
+                  "end": "2026-10-27",
+                  "working_days": 7
                 },
                 {
-                  "id": "W2",
-                  "start_day": 4,
-                  "end_day": 8
+                  "phase": "mvp",
+                  "start": "2026-10-28",
+                  "end": "2026-11-19",
+                  "working_days": 17
                 },
                 {
-                  "id": "W3",
-                  "start_day": 8,
-                  "end_day": 12
-                },
-                {
-                  "id": "W4",
-                  "start_day": 12,
-                  "end_day": 20
-                },
-                {
-                  "id": "W5",
-                  "start_day": 20,
-                  "end_day": 28
-                },
-                {
-                  "id": "W6",
-                  "start_day": 20,
-                  "end_day": 28
-                },
-                {
-                  "id": "W7",
-                  "start_day": 20,
-                  "end_day": 28
-                },
-                {
-                  "id": "W8",
-                  "start_day": 28,
-                  "end_day": 36
-                },
-                {
-                  "id": "W9",
-                  "start_day": 36,
-                  "end_day": 56
-                },
-                {
-                  "id": "W10",
-                  "start_day": 56,
-                  "end_day": 76
-                },
-                {
-                  "id": "W11",
-                  "start_day": 56,
-                  "end_day": 76
-                },
-                {
-                  "id": "W12",
-                  "start_day": 76,
-                  "end_day": 96
+                  "phase": "production",
+                  "start": "2026-11-20",
+                  "end": "2027-01-05",
+                  "working_days": 33
                 }
               ],
-              "phases": {
-                "poc": [
-                  0,
-                  12
-                ],
-                "mvp": [
-                  12,
-                  36
-                ],
-                "production": [
-                  36,
-                  96
-                ]
-              },
-              "total_days": 96
+              "tasks": [
+                {
+                  "wbs_id": "1.1",
+                  "start": "2026-10-19",
+                  "end": "2026-10-20"
+                },
+                {
+                  "wbs_id": "1.2",
+                  "start": "2026-10-19",
+                  "end": "2026-10-20"
+                },
+                {
+                  "wbs_id": "1.3",
+                  "start": "2026-10-21",
+                  "end": "2026-10-22"
+                },
+                {
+                  "wbs_id": "1.4",
+                  "start": "2026-10-21",
+                  "end": "2026-10-21"
+                },
+                {
+                  "wbs_id": "1.5",
+                  "start": "2026-10-21",
+                  "end": "2026-10-21"
+                },
+                {
+                  "wbs_id": "1.6",
+                  "start": "2026-10-23",
+                  "end": "2026-10-26"
+                },
+                {
+                  "wbs_id": "2.1",
+                  "start": "2026-10-28",
+                  "end": "2026-11-03"
+                },
+                {
+                  "wbs_id": "2.2",
+                  "start": "2026-10-28",
+                  "end": "2026-11-03"
+                },
+                {
+                  "wbs_id": "2.3",
+                  "start": "2026-11-04",
+                  "end": "2026-11-10"
+                },
+                {
+                  "wbs_id": "2.4",
+                  "start": "2026-11-04",
+                  "end": "2026-11-06"
+                },
+                {
+                  "wbs_id": "2.5",
+                  "start": "2026-11-04",
+                  "end": "2026-11-09"
+                },
+                {
+                  "wbs_id": "2.6",
+                  "start": "2026-11-04",
+                  "end": "2026-11-09"
+                },
+                {
+                  "wbs_id": "2.7",
+                  "start": "2026-11-04",
+                  "end": "2026-11-05"
+                },
+                {
+                  "wbs_id": "2.8",
+                  "start": "2026-11-11",
+                  "end": "2026-11-16"
+                },
+                {
+                  "wbs_id": "2.9",
+                  "start": "2026-10-28",
+                  "end": "2026-11-02"
+                },
+                {
+                  "wbs_id": "3.1",
+                  "start": "2026-11-20",
+                  "end": "2026-11-30"
+                },
+                {
+                  "wbs_id": "3.2",
+                  "start": "2026-11-20",
+                  "end": "2026-11-30"
+                },
+                {
+                  "wbs_id": "3.3",
+                  "start": "2026-12-01",
+                  "end": "2026-12-09"
+                },
+                {
+                  "wbs_id": "3.4",
+                  "start": "2026-12-01",
+                  "end": "2026-12-09"
+                },
+                {
+                  "wbs_id": "3.5",
+                  "start": "2026-12-01",
+                  "end": "2026-12-09"
+                },
+                {
+                  "wbs_id": "3.6",
+                  "start": "2026-12-01",
+                  "end": "2026-12-09"
+                },
+                {
+                  "wbs_id": "3.7",
+                  "start": "2026-12-01",
+                  "end": "2026-12-09"
+                },
+                {
+                  "wbs_id": "3.8",
+                  "start": "2026-12-01",
+                  "end": "2026-12-09"
+                },
+                {
+                  "wbs_id": "3.9",
+                  "start": "2026-12-10",
+                  "end": "2026-12-17"
+                },
+                {
+                  "wbs_id": "3.10",
+                  "start": "2026-12-10",
+                  "end": "2026-12-17"
+                },
+                {
+                  "wbs_id": "3.11",
+                  "start": "2026-11-20",
+                  "end": "2026-11-27"
+                },
+                {
+                  "wbs_id": "3.12",
+                  "start": "2026-11-20",
+                  "end": "2026-11-27"
+                }
+              ],
+              "milestones": [
+                {
+                  "id": "M1",
+                  "name": "Kick-off",
+                  "date": "2026-10-19",
+                  "phase": "poc",
+                  "payment_percent": 30
+                },
+                {
+                  "id": "M2",
+                  "name": "Nghiệm thu PoC",
+                  "date": "2026-10-27",
+                  "phase": "poc",
+                  "payment_percent": null
+                },
+                {
+                  "id": "M3",
+                  "name": "Nghiệm thu MVP",
+                  "date": "2026-11-19",
+                  "phase": "mvp",
+                  "payment_percent": 40
+                },
+                {
+                  "id": "M4",
+                  "name": "Go-live",
+                  "date": "2027-01-05",
+                  "phase": "production",
+                  "payment_percent": 30
+                }
+              ],
+              "mermaid_gantt": "gantt\n    title Master schedule\n    dateFormat YYYY-MM-DD\n    axisFormat %d/%m\n    excludes weekends\n    section PoC\n    1.1 Kick-off và quản lý PoC :t1_1, 2026-10-19, 2026-10-21\n    1.2 Khảo sát dữ liệu & yêu cầu :t1_2, 2026-10-19, 2026-10-21\n    1.3 Chuẩn bị dữ liệu mẫu :t1_3, 2026-10-21, 2026-10-23\n    1.4 Dựng prototype Chat API :t1_4, 2026-10-21, 2026-10-22\n    1.5 Đánh giá kết quả PoC :t1_5, 2026-10-21, 2026-10-22\n    1.6 Test và nghiệm thu PoC :t1_6, 2026-10-23, 2026-10-27\n    Kick-off :milestone, m1, 2026-10-19, 0d\n    Nghiệm thu PoC :milestone, m2, 2026-10-27, 0d\n    section MVP\n    2.1 Quản lý dự án MVP :t2_1, 2026-10-28, 2026-11-04\n    2.2 Phân tích & thiết kế chi tiết :t2_2, 2026-10-28, 2026-11-04\n    2.3 Chuẩn bị & làm sạch dữ liệu :t2_3, 2026-11-04, 2026-11-11\n    2.4 Xây dựng Chat API :t2_4, 2026-11-04, 2026-11-07\n    2.5 Xây dựng Web chat :t2_5, 2026-11-04, 2026-11-10\n    2.6 Giao diện người dùng :t2_6, 2026-11-04, 2026-11-10\n    2.7 Bộ đánh giá chất lượng :t2_7, 2026-11-04, 2026-11-06\n    2.8 Test và nghiệm thu MVP :t2_8, 2026-11-11, 2026-11-17\n    2.9 Tài liệu và bàn giao :t2_9, 2026-10-28, 2026-11-03\n    Nghiệm thu MVP :milestone, m3, 2026-11-19, 0d\n    section Production\n    3.1 Quản lý triển khai – đợt 1 :t3_1, 2026-11-20, 2026-12-01\n    3.2 Quản lý triển khai – đợt 2 :t3_2, 2026-11-20, 2026-12-01\n    3.3 Hardening & bảo mật – đợt 1 :t3_3, 2026-12-01, 2026-12-10\n    3.4 Hardening & bảo mật – đợt 2 :t3_4, 2026-12-01, 2026-12-10\n    3.5 Mở rộng Vector index – đợt 1 :t3_5, 2026-12-01, 2026-12-10\n    3.6 Mở rộng Vector index – đợt 2 :t3_6, 2026-12-01, 2026-12-10\n    3.7 Giám sát & vận hành – đợt 1 :t3_7, 2026-12-01, 2026-12-10\n    3.8 Giám sát & vận hành – đợt 2 :t3_8, 2026-12-01, 2026-12-10\n    3.9 UAT và nghiệm thu – đợt 1 :t3_9, 2026-12-10, 2026-12-18\n    3.10 UAT và nghiệm thu – đợt 2 :t3_10, 2026-12-10, 2026-12-18\n    3.11 Đào tạo & bàn giao – đợt 1 :t3_11, 2026-11-20, 2026-11-28\n    3.12 Đào tạo & bàn giao – đợt 2 :t3_12, 2026-11-20, 2026-11-28\n    Go-live :milestone, m4, 2027-01-05, 0d"
             },
             "quotation": {
               "currency": "VND",
+              "contract_model": "fixed_price",
+              "onsite_ratio": 0.0,
+              "wbs_person_days": 132.0,
+              "overhead_person_days": 0.0,
+              "odc_team": [],
+              "odc_monthly_cost": null,
+              "months": 3,
               "lines": [
                 {
                   "phase": "poc",
-                  "role_key": "ai_engineer",
-                  "role_label": "AI engineer",
-                  "person_days": 8,
-                  "day_rate": 4000000.0,
-                  "amount": 32000000.0
+                  "role_key": "pm",
+                  "role_label": "Project manager",
+                  "person_days": 2.0,
+                  "day_rate": 3500000.0,
+                  "amount": 7000000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "poc",
-                  "role_key": "backend",
-                  "role_label": "Backend developer",
-                  "person_days": 4,
-                  "day_rate": 3000000.0,
-                  "amount": 12000000.0
+                  "role_key": "ba",
+                  "role_label": "Business analyst",
+                  "person_days": 2.0,
+                  "day_rate": 2800000.0,
+                  "amount": 5600000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "poc",
+                  "role_key": "data_engineer",
+                  "role_label": "Data engineer",
+                  "person_days": 2.0,
+                  "day_rate": 3300000.0,
+                  "amount": 6600000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "poc",
+                  "role_key": "ai_engineer",
+                  "role_label": "AI engineer",
+                  "person_days": 4.0,
+                  "day_rate": 4000000.0,
+                  "amount": 16000000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "poc",
+                  "role_key": "qa",
+                  "role_label": "QA / Tester",
+                  "person_days": 2.0,
+                  "day_rate": 2200000.0,
+                  "amount": 4400000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "mvp",
+                  "role_key": "pm",
+                  "role_label": "Project manager",
+                  "person_days": 5.0,
+                  "day_rate": 3500000.0,
+                  "amount": 17500000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "mvp",
+                  "role_key": "ba",
+                  "role_label": "Business analyst",
+                  "person_days": 9.0,
+                  "day_rate": 2800000.0,
+                  "amount": 25200000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "mvp",
+                  "role_key": "data_engineer",
+                  "role_label": "Data engineer",
+                  "person_days": 5.0,
+                  "day_rate": 3300000.0,
+                  "amount": 16500000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "mvp",
                   "role_key": "ai_engineer",
                   "role_label": "AI engineer",
-                  "person_days": 16,
+                  "person_days": 9.0,
                   "day_rate": 4000000.0,
-                  "amount": 64000000.0
+                  "amount": 36000000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "mvp",
                   "role_key": "backend",
                   "role_label": "Backend developer",
-                  "person_days": 8,
+                  "person_days": 4.0,
                   "day_rate": 3000000.0,
-                  "amount": 24000000.0
+                  "amount": 12000000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "mvp",
                   "role_key": "frontend",
                   "role_label": "Frontend developer",
-                  "person_days": 8,
+                  "person_days": 4.0,
                   "day_rate": 2800000.0,
-                  "amount": 22400000.0
+                  "amount": 11200000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "mvp",
                   "role_key": "qa",
                   "role_label": "QA / Tester",
-                  "person_days": 8,
+                  "person_days": 4.0,
                   "day_rate": 2200000.0,
-                  "amount": 17600000.0
+                  "amount": 8800000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "production",
-                  "role_key": "ai_engineer",
-                  "role_label": "AI engineer",
-                  "person_days": 20,
-                  "day_rate": 4000000.0,
-                  "amount": 80000000.0
+                  "role_key": "pm",
+                  "role_label": "Project manager",
+                  "person_days": 14.0,
+                  "day_rate": 3500000.0,
+                  "amount": 49000000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "production",
+                  "role_key": "devops",
+                  "role_label": "DevOps",
+                  "person_days": 28.0,
+                  "day_rate": 3200000.0,
+                  "amount": 89600000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "production",
                   "role_key": "backend",
                   "role_label": "Backend developer",
-                  "person_days": 20,
+                  "person_days": 14.0,
                   "day_rate": 3000000.0,
-                  "amount": 60000000.0
-                },
-                {
-                  "phase": "production",
-                  "role_key": "frontend",
-                  "role_label": "Frontend developer",
-                  "person_days": 20,
-                  "day_rate": 2800000.0,
-                  "amount": 56000000.0
+                  "amount": 42000000.0,
+                  "kind": "wbs"
                 },
                 {
                   "phase": "production",
                   "role_key": "qa",
                   "role_label": "QA / Tester",
-                  "person_days": 20,
+                  "person_days": 12.0,
                   "day_rate": 2200000.0,
-                  "amount": 44000000.0
+                  "amount": 26400000.0,
+                  "kind": "wbs"
+                },
+                {
+                  "phase": "production",
+                  "role_key": "ba",
+                  "role_label": "Business analyst",
+                  "person_days": 12.0,
+                  "day_rate": 2800000.0,
+                  "amount": 33600000.0,
+                  "kind": "wbs"
                 }
               ],
               "phases": [
                 {
                   "phase": "poc",
-                  "person_days": 12,
-                  "amount": 44000000.0,
-                  "min_amount": 36667000.0,
-                  "max_amount": 55000000.0
+                  "person_days": 12.0,
+                  "amount": 39600000.0,
+                  "min_amount": 33000000.0,
+                  "max_amount": 49500000.0
                 },
                 {
                   "phase": "mvp",
-                  "person_days": 40,
-                  "amount": 128000000.0,
-                  "min_amount": 96000000.0,
-                  "max_amount": 160000000.0
+                  "person_days": 40.0,
+                  "amount": 127200000.0,
+                  "min_amount": 95400000.0,
+                  "max_amount": 159000000.0
                 },
                 {
                   "phase": "production",
-                  "person_days": 80,
-                  "amount": 240000000.0,
-                  "min_amount": 180000000.0,
-                  "max_amount": 300000000.0
+                  "person_days": 80.0,
+                  "amount": 240600000.0,
+                  "min_amount": 180450000.0,
+                  "max_amount": 300750000.0
                 }
               ],
-              "subtotal": 412000000.0,
+              "subtotal": 407400000.0,
               "contingency_pct": 15.0,
-              "contingency": 61800000.0,
-              "total": 473800000.0,
-              "total_min": 359567000.0,
-              "total_max": 592250000.0,
+              "contingency": 61110000.0,
+              "total": 468510000.0,
+              "total_min": 355178000.0,
+              "total_max": 585638000.0,
               "monthly_run_cost": 15000000.0,
               "milestones": [
                 {
                   "name": "Ký hợp đồng / kick-off",
                   "percent": 30.0,
-                  "amount": 142140000.0
+                  "amount": 140553000.0
                 },
                 {
                   "name": "Nghiệm thu MVP",
                   "percent": 40.0,
-                  "amount": 189520000.0
+                  "amount": 187404000.0
                 },
                 {
                   "name": "Go-live production",
                   "percent": 30.0,
-                  "amount": 142140000.0
+                  "amount": 140553000.0
                 }
               ],
               "assumptions": [
+                "Mô hình hợp đồng: Trọn gói (Fixed price).",
                 "Đơn giá theo vai trò là số giả lập trong bảng đơn giá, cần thay bằng đơn giá thật.",
-                "Chi phí nhân sự tính theo WBS; khoảng min–max theo khoảng effort của từng giai đoạn.",
+                "Ngày công = WBS 132 (PM đã nằm trong WBS).",
+                "Tỉ lệ làm onsite 0% (đơn giá onsite cao hơn offshore).",
                 "Dự phòng rủi ro 15% (cơ bản 10%, +5% cho mỗi rủi ro mức 4–5).",
                 "Chưa bao gồm thuế VAT, chi phí bản quyền phần mềm và phần cứng mua mới.",
                 "Chi phí vận hành/tháng (hạ tầng + LLM API) là ước tính, tính riêng."
               ]
             }
           },
-          "delay_ms": 818
+          "delay_ms": 823
         },
         {
           "event": "step_started",
@@ -723,7 +1416,7 @@
             },
             "latency_ms": 802
           },
-          "delay_ms": 804
+          "delay_ms": 812
         },
         {
           "event": "status",
@@ -738,7 +1431,7 @@
   "attachments": [],
   "final_run": {
     "id": "case_01",
-    "created_at": "2026-10-02T16:48:38.435582Z",
+    "created_at": "2026-10-05T16:15:51.879171Z",
     "request_text": "お世話になっております。架空精機株式会社（仮）の保守部門です。\n当社では工作機械の保守マニュアルが約2,000ページ（PDF）あり、現場の保守担当者が必要な情報を探すのに毎回30分以上かかっています。\nマニュアルの内容について日本語で質問すると、該当ページを示しながら回答してくれるチャットボットを検討しています。\nセキュリティ上の理由で、データは社外に出せないため、オンプレミス環境での構築が必須です。\n利用者は全国の保守担当者約150名です。まずは3ヶ月以内にPoCを実施したいと考えております。\n",
     "status": "done",
     "answers": {},
@@ -773,21 +1466,24 @@
           "topic": "data",
           "question": "Các văn bản quy định được cập nhật bao lâu một lần và ai là người cập nhật?",
           "why_it_matters": "Quyết định cơ chế đồng bộ và đánh chỉ mục lại tài liệu.",
-          "blocking": false
+          "blocking": false,
+          "priority": "mid"
         },
         {
           "id": "q2",
           "topic": "accuracy",
           "question": "Câu trả lời có bắt buộc kèm trích dẫn điều khoản và số trang không?",
           "why_it_matters": "Ảnh hưởng thiết kế phần hiển thị nguồn và cách chia đoạn tài liệu.",
-          "blocking": false
+          "blocking": false,
+          "priority": "mid"
         },
         {
           "id": "q3",
           "topic": "integration",
           "question": "Công ty đang dùng hệ thống đăng nhập tập trung (SSO) nào?",
           "why_it_matters": "Xác định effort tích hợp phân quyền theo phòng ban.",
-          "blocking": false
+          "blocking": false,
+          "priority": "mid"
         }
       ],
       "can_proceed": true
@@ -931,146 +1627,627 @@
       "reference_projects": [
         "rp_example"
       ],
+      "out_of_scope": [
+        "Ứng dụng di động native (iOS/Android)",
+        "Tích hợp hệ thống ERP hiện có chưa được liệt kê trong requirements",
+        "Di chuyển (migrate) toàn bộ dữ liệu lịch sử (chỉ nạp dữ liệu mẫu trong PoC)"
+      ],
       "mermaid": "flowchart LR\n  U[Nhân viên] --> UI[Web chat]\n  UI --> API[Chat API]\n  DOC[Văn bản Word/PDF] --> ING[Ingestion]\n  ING --> IDX[Vector index]\n  API --> IDX\n  API --> LLM[LLM API]"
     },
     "wbs": {
-      "tasks": [
+      "items": [
         {
-          "id": "W1",
+          "id": "1",
+          "phase": "poc",
+          "name": "Giai đoạn PoC",
+          "level": 1,
+          "type": null,
+          "priority": "mid",
+          "estimate_md": 12.0,
+          "depends_on": [],
+          "deliverable": null,
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "1.1",
+          "phase": "poc",
+          "name": "Kick-off và quản lý PoC",
+          "level": 2,
+          "type": "PM",
+          "priority": "mid",
+          "estimate_md": 2.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: kick-off và quản lý poc",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "1.2",
           "phase": "poc",
           "name": "Khảo sát dữ liệu & yêu cầu",
-          "role": "AI engineer",
-          "person_days": 4,
+          "level": 2,
+          "type": "BA",
+          "priority": "mid",
+          "estimate_md": 2.0,
           "depends_on": [],
-          "deliverable": null
+          "deliverable": "Kết quả: khảo sát dữ liệu & yêu cầu",
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W2",
+          "id": "1.3",
           "phase": "poc",
-          "name": "Dựng prototype Ingestion",
-          "role": "Backend developer",
-          "person_days": 4,
+          "name": "Chuẩn bị dữ liệu mẫu",
+          "level": 2,
+          "type": "DATA",
+          "priority": "mid",
+          "estimate_md": 2.0,
           "depends_on": [
-            "W1"
+            "1.2"
           ],
-          "deliverable": null
+          "deliverable": "Kết quả: chuẩn bị dữ liệu mẫu",
+          "tags": [
+            "data_prep"
+          ],
+          "note": null
         },
         {
-          "id": "W3",
+          "id": "1.4",
           "phase": "poc",
-          "name": "Đánh giá kết quả PoC với khách",
-          "role": "AI engineer",
-          "person_days": 4,
+          "name": "Dựng prototype Chat API",
+          "level": 2,
+          "type": "AI",
+          "priority": "high",
+          "estimate_md": 2.0,
           "depends_on": [
-            "W2"
+            "1.2"
           ],
-          "deliverable": null
+          "deliverable": "Kết quả: dựng prototype chat api",
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W4",
+          "id": "1.5",
+          "phase": "poc",
+          "name": "Đánh giá kết quả PoC",
+          "level": 2,
+          "type": "AI",
+          "priority": "high",
+          "estimate_md": 2.0,
+          "depends_on": [
+            "1.2"
+          ],
+          "deliverable": "Kết quả: đánh giá kết quả poc",
+          "tags": [
+            "evaluation"
+          ],
+          "note": null
+        },
+        {
+          "id": "1.6",
+          "phase": "poc",
+          "name": "Test và nghiệm thu PoC",
+          "level": 2,
+          "type": "QA",
+          "priority": "high",
+          "estimate_md": 2.0,
+          "depends_on": [
+            "1.3",
+            "1.4",
+            "1.5"
+          ],
+          "deliverable": "Kết quả: test và nghiệm thu poc",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2",
+          "phase": "mvp",
+          "name": "Giai đoạn MVP",
+          "level": 1,
+          "type": null,
+          "priority": "mid",
+          "estimate_md": 40.0,
+          "depends_on": [],
+          "deliverable": null,
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2.1",
+          "phase": "mvp",
+          "name": "Quản lý dự án MVP",
+          "level": 2,
+          "type": null,
+          "priority": "mid",
+          "estimate_md": 5.0,
+          "depends_on": [
+            "1.6"
+          ],
+          "deliverable": null,
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2.1.1",
+          "phase": "mvp",
+          "name": "Quản lý dự án MVP – phần 1",
+          "level": 3,
+          "type": "PM",
+          "priority": "mid",
+          "estimate_md": 3.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: quản lý dự án mvp",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2.1.2",
+          "phase": "mvp",
+          "name": "Quản lý dự án MVP – phần 2",
+          "level": 3,
+          "type": "PM",
+          "priority": "mid",
+          "estimate_md": 2.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: quản lý dự án mvp",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2.2",
           "phase": "mvp",
           "name": "Phân tích & thiết kế chi tiết",
-          "role": "AI engineer",
-          "person_days": 8,
-          "depends_on": [
-            "W3"
-          ],
-          "deliverable": null
+          "level": 2,
+          "type": null,
+          "priority": "mid",
+          "estimate_md": 5.0,
+          "depends_on": [],
+          "deliverable": null,
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W5",
+          "id": "2.2.1",
           "phase": "mvp",
-          "name": "Xây dựng Ingestion",
-          "role": "Backend developer",
-          "person_days": 8,
-          "depends_on": [
-            "W4"
-          ],
-          "deliverable": null
+          "name": "Phân tích & thiết kế chi tiết – phần 1",
+          "level": 3,
+          "type": "BA",
+          "priority": "mid",
+          "estimate_md": 3.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: phân tích & thiết kế chi tiết",
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W6",
+          "id": "2.2.2",
           "phase": "mvp",
-          "name": "Xây dựng Vector index",
-          "role": "Frontend developer",
-          "person_days": 8,
-          "depends_on": [
-            "W4"
-          ],
-          "deliverable": null
+          "name": "Phân tích & thiết kế chi tiết – phần 2",
+          "level": 3,
+          "type": "BA",
+          "priority": "mid",
+          "estimate_md": 2.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: phân tích & thiết kế chi tiết",
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W7",
+          "id": "2.3",
           "phase": "mvp",
-          "name": "Tích hợp hệ thống",
-          "role": "QA",
-          "person_days": 8,
+          "name": "Chuẩn bị & làm sạch dữ liệu",
+          "level": 2,
+          "type": null,
+          "priority": "mid",
+          "estimate_md": 5.0,
           "depends_on": [
-            "W4"
+            "2.2"
           ],
-          "deliverable": null
+          "deliverable": null,
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W8",
+          "id": "2.3.1",
           "phase": "mvp",
-          "name": "Kiểm thử & đánh giá chất lượng",
-          "role": "AI engineer",
-          "person_days": 8,
-          "depends_on": [
-            "W5",
-            "W6",
-            "W7"
+          "name": "Chuẩn bị & làm sạch dữ liệu – phần 1",
+          "level": 3,
+          "type": "DATA",
+          "priority": "mid",
+          "estimate_md": 3.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: chuẩn bị & làm sạch dữ liệu",
+          "tags": [
+            "data_prep"
           ],
-          "deliverable": null
+          "note": null
         },
         {
-          "id": "W9",
-          "phase": "production",
-          "name": "Hardening & bảo mật",
-          "role": "AI engineer",
-          "person_days": 20,
-          "depends_on": [
-            "W8"
+          "id": "2.3.2",
+          "phase": "mvp",
+          "name": "Chuẩn bị & làm sạch dữ liệu – phần 2",
+          "level": 3,
+          "type": "DATA",
+          "priority": "mid",
+          "estimate_md": 2.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: chuẩn bị & làm sạch dữ liệu",
+          "tags": [
+            "data_prep"
           ],
-          "deliverable": null
+          "note": null
         },
         {
-          "id": "W10",
-          "phase": "production",
-          "name": "Mở rộng Ingestion",
-          "role": "Backend developer",
-          "person_days": 20,
+          "id": "2.4",
+          "phase": "mvp",
+          "name": "Xây dựng Chat API",
+          "level": 2,
+          "type": null,
+          "priority": "mid",
+          "estimate_md": 5.0,
           "depends_on": [
-            "W9"
+            "2.2"
           ],
-          "deliverable": null
+          "deliverable": null,
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W11",
-          "phase": "production",
-          "name": "Giám sát & vận hành",
-          "role": "Frontend developer",
-          "person_days": 20,
-          "depends_on": [
-            "W9"
-          ],
-          "deliverable": null
+          "id": "2.4.1",
+          "phase": "mvp",
+          "name": "Xây dựng Chat API – phần 1",
+          "level": 3,
+          "type": "AI",
+          "priority": "high",
+          "estimate_md": 3.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: xây dựng chat api",
+          "tags": [],
+          "note": null
         },
         {
-          "id": "W12",
-          "phase": "production",
-          "name": "Đào tạo người dùng & bàn giao",
-          "role": "QA",
-          "person_days": 20,
+          "id": "2.4.2",
+          "phase": "mvp",
+          "name": "Xây dựng Chat API – phần 2",
+          "level": 3,
+          "type": "AI",
+          "priority": "high",
+          "estimate_md": 2.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: xây dựng chat api",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2.5",
+          "phase": "mvp",
+          "name": "Xây dựng Web chat",
+          "level": 2,
+          "type": "BE",
+          "priority": "mid",
+          "estimate_md": 4.0,
           "depends_on": [
-            "W10",
-            "W11"
+            "2.2"
           ],
-          "deliverable": null
+          "deliverable": "Kết quả: xây dựng web chat",
+          "tags": [
+            "integration"
+          ],
+          "note": null
+        },
+        {
+          "id": "2.6",
+          "phase": "mvp",
+          "name": "Giao diện người dùng",
+          "level": 2,
+          "type": "FE",
+          "priority": "mid",
+          "estimate_md": 4.0,
+          "depends_on": [
+            "2.2"
+          ],
+          "deliverable": "Kết quả: giao diện người dùng",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2.7",
+          "phase": "mvp",
+          "name": "Bộ đánh giá chất lượng",
+          "level": 2,
+          "type": "AI",
+          "priority": "high",
+          "estimate_md": 4.0,
+          "depends_on": [
+            "2.2"
+          ],
+          "deliverable": "Kết quả: bộ đánh giá chất lượng",
+          "tags": [
+            "evaluation"
+          ],
+          "note": null
+        },
+        {
+          "id": "2.8",
+          "phase": "mvp",
+          "name": "Test và nghiệm thu MVP",
+          "level": 2,
+          "type": "QA",
+          "priority": "high",
+          "estimate_md": 4.0,
+          "depends_on": [
+            "2.3",
+            "2.4",
+            "2.5",
+            "2.6",
+            "2.7"
+          ],
+          "deliverable": "Kết quả: test và nghiệm thu mvp",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "2.9",
+          "phase": "mvp",
+          "name": "Tài liệu và bàn giao",
+          "level": 2,
+          "type": "BA",
+          "priority": "mid",
+          "estimate_md": 4.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: tài liệu và bàn giao",
+          "tags": [
+            "documentation"
+          ],
+          "note": null
+        },
+        {
+          "id": "3",
+          "phase": "production",
+          "name": "Production",
+          "level": 1,
+          "type": null,
+          "priority": "mid",
+          "estimate_md": 80.0,
+          "depends_on": [],
+          "deliverable": null,
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.1",
+          "phase": "production",
+          "name": "Quản lý triển khai – đợt 1",
+          "level": 2,
+          "type": "PM",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [
+            "2.8"
+          ],
+          "deliverable": "Kết quả: quản lý triển khai – đợt 1",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.2",
+          "phase": "production",
+          "name": "Quản lý triển khai – đợt 2",
+          "level": 2,
+          "type": "PM",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: quản lý triển khai – đợt 2",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.3",
+          "phase": "production",
+          "name": "Hardening & bảo mật – đợt 1",
+          "level": 2,
+          "type": "INFRA",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [
+            "3.2"
+          ],
+          "deliverable": "Kết quả: hardening & bảo mật – đợt 1",
+          "tags": [
+            "security"
+          ],
+          "note": null
+        },
+        {
+          "id": "3.4",
+          "phase": "production",
+          "name": "Hardening & bảo mật – đợt 2",
+          "level": 2,
+          "type": "INFRA",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [
+            "3.2"
+          ],
+          "deliverable": "Kết quả: hardening & bảo mật – đợt 2",
+          "tags": [
+            "security"
+          ],
+          "note": null
+        },
+        {
+          "id": "3.5",
+          "phase": "production",
+          "name": "Mở rộng Vector index – đợt 1",
+          "level": 2,
+          "type": "BE",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [
+            "3.2"
+          ],
+          "deliverable": "Kết quả: mở rộng vector index – đợt 1",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.6",
+          "phase": "production",
+          "name": "Mở rộng Vector index – đợt 2",
+          "level": 2,
+          "type": "BE",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [
+            "3.2"
+          ],
+          "deliverable": "Kết quả: mở rộng vector index – đợt 2",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.7",
+          "phase": "production",
+          "name": "Giám sát & vận hành – đợt 1",
+          "level": 2,
+          "type": "INFRA",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [
+            "3.2"
+          ],
+          "deliverable": "Kết quả: giám sát & vận hành – đợt 1",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.8",
+          "phase": "production",
+          "name": "Giám sát & vận hành – đợt 2",
+          "level": 2,
+          "type": "INFRA",
+          "priority": "mid",
+          "estimate_md": 7.0,
+          "depends_on": [
+            "3.2"
+          ],
+          "deliverable": "Kết quả: giám sát & vận hành – đợt 2",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.9",
+          "phase": "production",
+          "name": "UAT và nghiệm thu – đợt 1",
+          "level": 2,
+          "type": "QA",
+          "priority": "high",
+          "estimate_md": 6.0,
+          "depends_on": [
+            "3.5",
+            "3.6"
+          ],
+          "deliverable": "Kết quả: uat và nghiệm thu – đợt 1",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.10",
+          "phase": "production",
+          "name": "UAT và nghiệm thu – đợt 2",
+          "level": 2,
+          "type": "QA",
+          "priority": "high",
+          "estimate_md": 6.0,
+          "depends_on": [
+            "3.5",
+            "3.6"
+          ],
+          "deliverable": "Kết quả: uat và nghiệm thu – đợt 2",
+          "tags": [],
+          "note": null
+        },
+        {
+          "id": "3.11",
+          "phase": "production",
+          "name": "Đào tạo & bàn giao – đợt 1",
+          "level": 2,
+          "type": "BA",
+          "priority": "mid",
+          "estimate_md": 6.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: đào tạo & bàn giao – đợt 1",
+          "tags": [
+            "documentation"
+          ],
+          "note": null
+        },
+        {
+          "id": "3.12",
+          "phase": "production",
+          "name": "Đào tạo & bàn giao – đợt 2",
+          "level": 2,
+          "type": "BA",
+          "priority": "mid",
+          "estimate_md": 6.0,
+          "depends_on": [],
+          "deliverable": "Kết quả: đào tạo & bàn giao – đợt 2",
+          "tags": [
+            "documentation"
+          ],
+          "note": null
         }
       ],
-      "notes": [
+      "totals": [
+        {
+          "phase": "poc",
+          "total_md": 12.0,
+          "by_type": {
+            "PM": 2.0,
+            "BA": 2.0,
+            "DATA": 2.0,
+            "AI": 4.0,
+            "QA": 2.0
+          },
+          "adjustment_note": null
+        },
+        {
+          "phase": "mvp",
+          "total_md": 40.0,
+          "by_type": {
+            "PM": 5.0,
+            "BA": 9.0,
+            "DATA": 5.0,
+            "AI": 9.0,
+            "BE": 4.0,
+            "FE": 4.0,
+            "QA": 4.0
+          },
+          "adjustment_note": null
+        },
+        {
+          "phase": "production",
+          "total_md": 80.0,
+          "by_type": {
+            "PM": 14.0,
+            "INFRA": 28.0,
+            "BE": 14.0,
+            "QA": 12.0,
+            "BA": 12.0
+          },
+          "adjustment_note": null
+        }
+      ],
+      "assumptions": [
         "WBS sinh bởi mock LLM."
+      ],
+      "out_of_scope": [
+        "Ứng dụng di động native (iOS/Android)",
+        "Tích hợp hệ thống ERP hiện có chưa được liệt kê trong requirements",
+        "Di chuyển (migrate) toàn bộ dữ liệu lịch sử (chỉ nạp dữ liệu mẫu trong PoC)"
       ]
     },
     "requirements": {
@@ -1085,12 +2262,12 @@
     "error": null,
     "reviewer_note": null,
     "step_latency_ms": {
-      "intake": 802,
+      "intake": 803,
       "gaps": 802,
       "pattern": 802,
-      "feasibility": 802,
-      "architecture": 802,
-      "wbs": 802,
+      "feasibility": 804,
+      "architecture": 801,
+      "wbs": 803,
       "requirements": 0,
       "proposal": 802
     },
@@ -1132,221 +2309,447 @@
     "revision": 0,
     "redactions": {},
     "proposal_edited": false,
+    "wbs_edited": false,
     "translations": {},
     "attachments": [],
     "schedule": {
-      "tasks": [
+      "config": {
+        "start_date": "2026-10-19",
+        "headcount": {
+          "AI": 2,
+          "BE": 1,
+          "FE": 1,
+          "QA": 1,
+          "BA": 1,
+          "PM": 1,
+          "INFRA": 1,
+          "DESIGN": 1,
+          "DATA": 1
+        },
+        "buffer_ratio": 0.15,
+        "holidays": []
+      },
+      "phases": [
         {
-          "id": "W1",
-          "start_day": 0,
-          "end_day": 4
+          "phase": "poc",
+          "start": "2026-10-19",
+          "end": "2026-10-27",
+          "working_days": 7
         },
         {
-          "id": "W2",
-          "start_day": 4,
-          "end_day": 8
+          "phase": "mvp",
+          "start": "2026-10-28",
+          "end": "2026-11-19",
+          "working_days": 17
         },
         {
-          "id": "W3",
-          "start_day": 8,
-          "end_day": 12
-        },
-        {
-          "id": "W4",
-          "start_day": 12,
-          "end_day": 20
-        },
-        {
-          "id": "W5",
-          "start_day": 20,
-          "end_day": 28
-        },
-        {
-          "id": "W6",
-          "start_day": 20,
-          "end_day": 28
-        },
-        {
-          "id": "W7",
-          "start_day": 20,
-          "end_day": 28
-        },
-        {
-          "id": "W8",
-          "start_day": 28,
-          "end_day": 36
-        },
-        {
-          "id": "W9",
-          "start_day": 36,
-          "end_day": 56
-        },
-        {
-          "id": "W10",
-          "start_day": 56,
-          "end_day": 76
-        },
-        {
-          "id": "W11",
-          "start_day": 56,
-          "end_day": 76
-        },
-        {
-          "id": "W12",
-          "start_day": 76,
-          "end_day": 96
+          "phase": "production",
+          "start": "2026-11-20",
+          "end": "2027-01-05",
+          "working_days": 33
         }
       ],
-      "phases": {
-        "poc": [
-          0,
-          12
-        ],
-        "mvp": [
-          12,
-          36
-        ],
-        "production": [
-          36,
-          96
-        ]
+      "tasks": [
+        {
+          "wbs_id": "1.1",
+          "start": "2026-10-19",
+          "end": "2026-10-20"
+        },
+        {
+          "wbs_id": "1.2",
+          "start": "2026-10-19",
+          "end": "2026-10-20"
+        },
+        {
+          "wbs_id": "1.3",
+          "start": "2026-10-21",
+          "end": "2026-10-22"
+        },
+        {
+          "wbs_id": "1.4",
+          "start": "2026-10-21",
+          "end": "2026-10-21"
+        },
+        {
+          "wbs_id": "1.5",
+          "start": "2026-10-21",
+          "end": "2026-10-21"
+        },
+        {
+          "wbs_id": "1.6",
+          "start": "2026-10-23",
+          "end": "2026-10-26"
+        },
+        {
+          "wbs_id": "2.1",
+          "start": "2026-10-28",
+          "end": "2026-11-03"
+        },
+        {
+          "wbs_id": "2.2",
+          "start": "2026-10-28",
+          "end": "2026-11-03"
+        },
+        {
+          "wbs_id": "2.3",
+          "start": "2026-11-04",
+          "end": "2026-11-10"
+        },
+        {
+          "wbs_id": "2.4",
+          "start": "2026-11-04",
+          "end": "2026-11-06"
+        },
+        {
+          "wbs_id": "2.5",
+          "start": "2026-11-04",
+          "end": "2026-11-09"
+        },
+        {
+          "wbs_id": "2.6",
+          "start": "2026-11-04",
+          "end": "2026-11-09"
+        },
+        {
+          "wbs_id": "2.7",
+          "start": "2026-11-04",
+          "end": "2026-11-05"
+        },
+        {
+          "wbs_id": "2.8",
+          "start": "2026-11-11",
+          "end": "2026-11-16"
+        },
+        {
+          "wbs_id": "2.9",
+          "start": "2026-10-28",
+          "end": "2026-11-02"
+        },
+        {
+          "wbs_id": "3.1",
+          "start": "2026-11-20",
+          "end": "2026-11-30"
+        },
+        {
+          "wbs_id": "3.2",
+          "start": "2026-11-20",
+          "end": "2026-11-30"
+        },
+        {
+          "wbs_id": "3.3",
+          "start": "2026-12-01",
+          "end": "2026-12-09"
+        },
+        {
+          "wbs_id": "3.4",
+          "start": "2026-12-01",
+          "end": "2026-12-09"
+        },
+        {
+          "wbs_id": "3.5",
+          "start": "2026-12-01",
+          "end": "2026-12-09"
+        },
+        {
+          "wbs_id": "3.6",
+          "start": "2026-12-01",
+          "end": "2026-12-09"
+        },
+        {
+          "wbs_id": "3.7",
+          "start": "2026-12-01",
+          "end": "2026-12-09"
+        },
+        {
+          "wbs_id": "3.8",
+          "start": "2026-12-01",
+          "end": "2026-12-09"
+        },
+        {
+          "wbs_id": "3.9",
+          "start": "2026-12-10",
+          "end": "2026-12-17"
+        },
+        {
+          "wbs_id": "3.10",
+          "start": "2026-12-10",
+          "end": "2026-12-17"
+        },
+        {
+          "wbs_id": "3.11",
+          "start": "2026-11-20",
+          "end": "2026-11-27"
+        },
+        {
+          "wbs_id": "3.12",
+          "start": "2026-11-20",
+          "end": "2026-11-27"
+        }
+      ],
+      "milestones": [
+        {
+          "id": "M1",
+          "name": "Kick-off",
+          "date": "2026-10-19",
+          "phase": "poc",
+          "payment_percent": 30
+        },
+        {
+          "id": "M2",
+          "name": "Nghiệm thu PoC",
+          "date": "2026-10-27",
+          "phase": "poc",
+          "payment_percent": null
+        },
+        {
+          "id": "M3",
+          "name": "Nghiệm thu MVP",
+          "date": "2026-11-19",
+          "phase": "mvp",
+          "payment_percent": 40
+        },
+        {
+          "id": "M4",
+          "name": "Go-live",
+          "date": "2027-01-05",
+          "phase": "production",
+          "payment_percent": 30
+        }
+      ],
+      "mermaid_gantt": "gantt\n    title Master schedule\n    dateFormat YYYY-MM-DD\n    axisFormat %d/%m\n    excludes weekends\n    section PoC\n    1.1 Kick-off và quản lý PoC :t1_1, 2026-10-19, 2026-10-21\n    1.2 Khảo sát dữ liệu & yêu cầu :t1_2, 2026-10-19, 2026-10-21\n    1.3 Chuẩn bị dữ liệu mẫu :t1_3, 2026-10-21, 2026-10-23\n    1.4 Dựng prototype Chat API :t1_4, 2026-10-21, 2026-10-22\n    1.5 Đánh giá kết quả PoC :t1_5, 2026-10-21, 2026-10-22\n    1.6 Test và nghiệm thu PoC :t1_6, 2026-10-23, 2026-10-27\n    Kick-off :milestone, m1, 2026-10-19, 0d\n    Nghiệm thu PoC :milestone, m2, 2026-10-27, 0d\n    section MVP\n    2.1 Quản lý dự án MVP :t2_1, 2026-10-28, 2026-11-04\n    2.2 Phân tích & thiết kế chi tiết :t2_2, 2026-10-28, 2026-11-04\n    2.3 Chuẩn bị & làm sạch dữ liệu :t2_3, 2026-11-04, 2026-11-11\n    2.4 Xây dựng Chat API :t2_4, 2026-11-04, 2026-11-07\n    2.5 Xây dựng Web chat :t2_5, 2026-11-04, 2026-11-10\n    2.6 Giao diện người dùng :t2_6, 2026-11-04, 2026-11-10\n    2.7 Bộ đánh giá chất lượng :t2_7, 2026-11-04, 2026-11-06\n    2.8 Test và nghiệm thu MVP :t2_8, 2026-11-11, 2026-11-17\n    2.9 Tài liệu và bàn giao :t2_9, 2026-10-28, 2026-11-03\n    Nghiệm thu MVP :milestone, m3, 2026-11-19, 0d\n    section Production\n    3.1 Quản lý triển khai – đợt 1 :t3_1, 2026-11-20, 2026-12-01\n    3.2 Quản lý triển khai – đợt 2 :t3_2, 2026-11-20, 2026-12-01\n    3.3 Hardening & bảo mật – đợt 1 :t3_3, 2026-12-01, 2026-12-10\n    3.4 Hardening & bảo mật – đợt 2 :t3_4, 2026-12-01, 2026-12-10\n    3.5 Mở rộng Vector index – đợt 1 :t3_5, 2026-12-01, 2026-12-10\n    3.6 Mở rộng Vector index – đợt 2 :t3_6, 2026-12-01, 2026-12-10\n    3.7 Giám sát & vận hành – đợt 1 :t3_7, 2026-12-01, 2026-12-10\n    3.8 Giám sát & vận hành – đợt 2 :t3_8, 2026-12-01, 2026-12-10\n    3.9 UAT và nghiệm thu – đợt 1 :t3_9, 2026-12-10, 2026-12-18\n    3.10 UAT và nghiệm thu – đợt 2 :t3_10, 2026-12-10, 2026-12-18\n    3.11 Đào tạo & bàn giao – đợt 1 :t3_11, 2026-11-20, 2026-11-28\n    3.12 Đào tạo & bàn giao – đợt 2 :t3_12, 2026-11-20, 2026-11-28\n    Go-live :milestone, m4, 2027-01-05, 0d"
+    },
+    "schedule_config": {
+      "start_date": "2026-10-19",
+      "headcount": {
+        "AI": 2,
+        "BE": 1,
+        "FE": 1,
+        "QA": 1,
+        "BA": 1,
+        "PM": 1,
+        "INFRA": 1,
+        "DESIGN": 1,
+        "DATA": 1
       },
-      "total_days": 96
+      "buffer_ratio": 0.15,
+      "holidays": []
     },
     "quotation": {
       "currency": "VND",
+      "contract_model": "fixed_price",
+      "onsite_ratio": 0.0,
+      "wbs_person_days": 132.0,
+      "overhead_person_days": 0.0,
+      "odc_team": [],
+      "odc_monthly_cost": null,
+      "months": 3,
       "lines": [
         {
           "phase": "poc",
-          "role_key": "ai_engineer",
-          "role_label": "AI engineer",
-          "person_days": 8,
-          "day_rate": 4000000.0,
-          "amount": 32000000.0
+          "role_key": "pm",
+          "role_label": "Project manager",
+          "person_days": 2.0,
+          "day_rate": 3500000.0,
+          "amount": 7000000.0,
+          "kind": "wbs"
         },
         {
           "phase": "poc",
-          "role_key": "backend",
-          "role_label": "Backend developer",
-          "person_days": 4,
-          "day_rate": 3000000.0,
-          "amount": 12000000.0
+          "role_key": "ba",
+          "role_label": "Business analyst",
+          "person_days": 2.0,
+          "day_rate": 2800000.0,
+          "amount": 5600000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "poc",
+          "role_key": "data_engineer",
+          "role_label": "Data engineer",
+          "person_days": 2.0,
+          "day_rate": 3300000.0,
+          "amount": 6600000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "poc",
+          "role_key": "ai_engineer",
+          "role_label": "AI engineer",
+          "person_days": 4.0,
+          "day_rate": 4000000.0,
+          "amount": 16000000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "poc",
+          "role_key": "qa",
+          "role_label": "QA / Tester",
+          "person_days": 2.0,
+          "day_rate": 2200000.0,
+          "amount": 4400000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "mvp",
+          "role_key": "pm",
+          "role_label": "Project manager",
+          "person_days": 5.0,
+          "day_rate": 3500000.0,
+          "amount": 17500000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "mvp",
+          "role_key": "ba",
+          "role_label": "Business analyst",
+          "person_days": 9.0,
+          "day_rate": 2800000.0,
+          "amount": 25200000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "mvp",
+          "role_key": "data_engineer",
+          "role_label": "Data engineer",
+          "person_days": 5.0,
+          "day_rate": 3300000.0,
+          "amount": 16500000.0,
+          "kind": "wbs"
         },
         {
           "phase": "mvp",
           "role_key": "ai_engineer",
           "role_label": "AI engineer",
-          "person_days": 16,
+          "person_days": 9.0,
           "day_rate": 4000000.0,
-          "amount": 64000000.0
+          "amount": 36000000.0,
+          "kind": "wbs"
         },
         {
           "phase": "mvp",
           "role_key": "backend",
           "role_label": "Backend developer",
-          "person_days": 8,
+          "person_days": 4.0,
           "day_rate": 3000000.0,
-          "amount": 24000000.0
+          "amount": 12000000.0,
+          "kind": "wbs"
         },
         {
           "phase": "mvp",
           "role_key": "frontend",
           "role_label": "Frontend developer",
-          "person_days": 8,
+          "person_days": 4.0,
           "day_rate": 2800000.0,
-          "amount": 22400000.0
+          "amount": 11200000.0,
+          "kind": "wbs"
         },
         {
           "phase": "mvp",
           "role_key": "qa",
           "role_label": "QA / Tester",
-          "person_days": 8,
+          "person_days": 4.0,
           "day_rate": 2200000.0,
-          "amount": 17600000.0
+          "amount": 8800000.0,
+          "kind": "wbs"
         },
         {
           "phase": "production",
-          "role_key": "ai_engineer",
-          "role_label": "AI engineer",
-          "person_days": 20,
-          "day_rate": 4000000.0,
-          "amount": 80000000.0
+          "role_key": "pm",
+          "role_label": "Project manager",
+          "person_days": 14.0,
+          "day_rate": 3500000.0,
+          "amount": 49000000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "production",
+          "role_key": "devops",
+          "role_label": "DevOps",
+          "person_days": 28.0,
+          "day_rate": 3200000.0,
+          "amount": 89600000.0,
+          "kind": "wbs"
         },
         {
           "phase": "production",
           "role_key": "backend",
           "role_label": "Backend developer",
-          "person_days": 20,
+          "person_days": 14.0,
           "day_rate": 3000000.0,
-          "amount": 60000000.0
-        },
-        {
-          "phase": "production",
-          "role_key": "frontend",
-          "role_label": "Frontend developer",
-          "person_days": 20,
-          "day_rate": 2800000.0,
-          "amount": 56000000.0
+          "amount": 42000000.0,
+          "kind": "wbs"
         },
         {
           "phase": "production",
           "role_key": "qa",
           "role_label": "QA / Tester",
-          "person_days": 20,
+          "person_days": 12.0,
           "day_rate": 2200000.0,
-          "amount": 44000000.0
+          "amount": 26400000.0,
+          "kind": "wbs"
+        },
+        {
+          "phase": "production",
+          "role_key": "ba",
+          "role_label": "Business analyst",
+          "person_days": 12.0,
+          "day_rate": 2800000.0,
+          "amount": 33600000.0,
+          "kind": "wbs"
         }
       ],
       "phases": [
         {
           "phase": "poc",
-          "person_days": 12,
-          "amount": 44000000.0,
-          "min_amount": 36667000.0,
-          "max_amount": 55000000.0
+          "person_days": 12.0,
+          "amount": 39600000.0,
+          "min_amount": 33000000.0,
+          "max_amount": 49500000.0
         },
         {
           "phase": "mvp",
-          "person_days": 40,
-          "amount": 128000000.0,
-          "min_amount": 96000000.0,
-          "max_amount": 160000000.0
+          "person_days": 40.0,
+          "amount": 127200000.0,
+          "min_amount": 95400000.0,
+          "max_amount": 159000000.0
         },
         {
           "phase": "production",
-          "person_days": 80,
-          "amount": 240000000.0,
-          "min_amount": 180000000.0,
-          "max_amount": 300000000.0
+          "person_days": 80.0,
+          "amount": 240600000.0,
+          "min_amount": 180450000.0,
+          "max_amount": 300750000.0
         }
       ],
-      "subtotal": 412000000.0,
+      "subtotal": 407400000.0,
       "contingency_pct": 15.0,
-      "contingency": 61800000.0,
-      "total": 473800000.0,
-      "total_min": 359567000.0,
-      "total_max": 592250000.0,
+      "contingency": 61110000.0,
+      "total": 468510000.0,
+      "total_min": 355178000.0,
+      "total_max": 585638000.0,
       "monthly_run_cost": 15000000.0,
       "milestones": [
         {
           "name": "Ký hợp đồng / kick-off",
           "percent": 30.0,
-          "amount": 142140000.0
+          "amount": 140553000.0
         },
         {
           "name": "Nghiệm thu MVP",
           "percent": 40.0,
-          "amount": 189520000.0
+          "amount": 187404000.0
         },
         {
           "name": "Go-live production",
           "percent": 30.0,
-          "amount": 142140000.0
+          "amount": 140553000.0
         }
       ],
       "assumptions": [
+        "Mô hình hợp đồng: Trọn gói (Fixed price).",
         "Đơn giá theo vai trò là số giả lập trong bảng đơn giá, cần thay bằng đơn giá thật.",
-        "Chi phí nhân sự tính theo WBS; khoảng min–max theo khoảng effort của từng giai đoạn.",
+        "Ngày công = WBS 132 (PM đã nằm trong WBS).",
+        "Tỉ lệ làm onsite 0% (đơn giá onsite cao hơn offshore).",
         "Dự phòng rủi ro 15% (cơ bản 10%, +5% cho mỗi rủi ro mức 4–5).",
         "Chưa bao gồm thuế VAT, chi phí bản quyền phần mềm và phần cứng mua mới.",
         "Chi phí vận hành/tháng (hạ tầng + LLM API) là ước tính, tính riêng."
@@ -1357,6 +2760,9 @@
     "project_name": null,
     "client_name": null,
     "due_date": null,
-    "deal_stage": "reviewing"
+    "deal_stage": "reviewing",
+    "bid": null,
+    "pricing_approval": null,
+    "versions": []
   }
 }

@@ -12,7 +12,7 @@ class QuoteLine(BaseModel):
     phase: Phase
     role_key: str
     role_label: str
-    person_days: int
+    person_days: float  # WBS leaves are man-days with decimals
     day_rate: float
     amount: float
     kind: Literal["wbs", "overhead"] = "wbs"
@@ -20,7 +20,7 @@ class QuoteLine(BaseModel):
 
 class PhaseCost(BaseModel):
     phase: Phase
-    person_days: int
+    person_days: float
     amount: float  # from the WBS
     min_amount: float  # estimate range x blended rate of the phase
     max_amount: float
@@ -44,8 +44,8 @@ class Quotation(BaseModel):
     currency: Currency
     contract_model: ContractModel = "fixed_price"
     onsite_ratio: float = 0  # % of person-days delivered onsite
-    wbs_person_days: int = 0
-    overhead_person_days: int = 0
+    wbs_person_days: float = 0
+    overhead_person_days: float = 0
     odc_team: list[OdcMember] = []
     odc_monthly_cost: float | None = None
     months: int | None = None

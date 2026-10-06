@@ -4,6 +4,7 @@ import io
 import zipfile
 from collections.abc import Callable
 
+from app.exports.bidding import build_bidding_xlsx
 from app.exports.document import build_docx
 from app.exports.qa_sheet import build_qa_sheet
 from app.exports.slides import build_slides
@@ -18,6 +19,7 @@ README = """Bộ hồ sơ proposal sơ bộ do ScopeAI tạo (phiên {id}).
 - proposal.md        : proposal dạng Markdown
 - workbook.xlsx      : effort và báo giá (công thức), WBS, timeline, bảng đáp ứng yêu cầu, rủi ro
 - qa_sheet.xlsx      : danh sách câu hỏi làm rõ để gửi khách (theo ngôn ngữ của khách)
+- bidding.xlsx       : bộ bidding: Q&A, WBS (công thức), Summary, Master Schedule
 - architecture.mmd   : sơ đồ kiến trúc dạng Mermaid
 
 Tên file theo quy tắc đặt tên của công ty (Cài đặt → Công ty); định dạng theo template đang chọn.
@@ -46,6 +48,8 @@ def build_package(
             archive.writestr(name("proposal.md"), run.proposal.markdown)
         if run.gaps and run.gaps.questions:
             archive.writestr(name("qa_sheet.xlsx"), build_qa_sheet(run, kit))
+        if run.gaps:
+            archive.writestr(name("bidding.xlsx"), build_bidding_xlsx(run))
         if run.architecture and run.architecture.mermaid:
             archive.writestr(name("architecture.mmd"), run.architecture.mermaid)
     return buffer.getvalue()

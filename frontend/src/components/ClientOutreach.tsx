@@ -64,6 +64,18 @@ export default function ClientOutreach({
           <IconDownload />
           Tải Q&A sheet (.xlsx)
         </button>
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => downloadUrl(exportUrl(runId, "bidding.xlsx")).catch((e) =>
+            setError(e instanceof Error ? e.message : "Không tải được bộ bidding.")
+          )}
+          className={buttonClass.secondary}
+          title="Sheet Q&A có Priority/Status; khi đã có WBS thì kèm WBS, Summary và Master Schedule"
+        >
+          <IconDownload />
+          Tải bộ bidding (.xlsx)
+        </button>
         {waiting && (
           <>
             <button type="button" disabled={busy !== null} onClick={() => fileInput.current?.click()} className={buttonClass.secondary}>

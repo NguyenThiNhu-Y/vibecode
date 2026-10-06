@@ -8,8 +8,9 @@ import math
 import re
 from pathlib import Path
 
+from app.agents.schedule import total_working_days
 from app.knowledge.loader import KB_DIR, load_yaml
-from app.schemas.common import Phase, SolutionPattern
+from app.schemas.common import Phase, SolutionPattern, WorkType
 from app.schemas.quotation import (
     ContractModel,
     Currency,
@@ -21,6 +22,7 @@ from app.schemas.quotation import (
 )
 from app.schemas.run import ScopingRun
 from app.schemas.settings import RateCard, RoleRate
+from app.schemas.wbs import leaves
 
 RATE_CARD_FILE = "rate_card.yaml"
 PHASE_ORDER = [Phase.POC, Phase.MVP, Phase.PRODUCTION]
@@ -43,6 +45,24 @@ def match_role(role: str, card: RateCard) -> RoleRate:
         if any(re.search(rf"(?<![a-z]){re.escape(k.lower())}(?![a-z])", text) for k in rate.match):
             return rate
     return next(r for r in card.roles if r.key == card.default_role)
+
+
+# WBS work type -> rate card role (BIDDING_SPEC 3.1); a missing role falls back to default_role.
+TYPE_ROLE = {
+    WorkType.AI: "ai_engineer",
+    WorkType.BE: "backend",
+    WorkType.FE: "frontend",
+    WorkType.QA: "qa",
+    WorkType.BA: "ba",
+    WorkType.PM: "pm",
+    WorkType.INFRA: "devops",
+    WorkType.DATA: "data_engineer",
+}
+
+
+def role_for_type(kind: WorkType | None, card: RateCard) -> RoleRate:
+    keys = {r.key: r for r in card.roles}
+    return keys.get(TYPE_ROLE.get(kind, "") if kind else "") or keys[card.default_role]
 
 
 def default_currency(run: ScopingRun) -> Currency:
@@ -83,19 +103,22 @@ def compute_quotation(
     def money(vnd: float) -> float:
         return float(round(vnd / unit / step) * step)
 
-    # Person-days per (phase, role): WBS tasks, then company overheads on each phase's WBS effort.
-    grouped: dict[tuple[Phase, str, str], int] = {}
-    wbs_days: dict[Phase, int] = {}
-    for task in run.wbs.tasks:
-        rate = match_role(task.role, card)
-        grouped[(task.phase, rate.key, "wbs")] = (
-            grouped.get((task.phase, rate.key, "wbs"), 0) + task.person_days
-        )
-        wbs_days[task.phase] = wbs_days.get(task.phase, 0) + task.person_days
+    # Man-days per (phase, role): WBS leaves by work type, then company overheads on each phase's
+    # WBS effort. An overhead role the WBS already plans in that phase (e.g. PM tasks, mandatory
+    # in BIDDING_SPEC 3.2) is not added again.
+    grouped: dict[tuple[Phase, str, str], float] = {}
+    wbs_days: dict[Phase, float] = {}
+    for leaf in leaves(run.wbs):
+        key = role_for_type(leaf.type, card).key
+        days = leaf.estimate_md or 0
+        grouped[(leaf.phase, key, "wbs")] = grouped.get((leaf.phase, key, "wbs"), 0) + days
+        wbs_days[leaf.phase] = wbs_days.get(leaf.phase, 0) + days
     for rule in card.overheads:
         if rule.when == "japanese" and not japanese:
             continue
         for phase, days in wbs_days.items():
+            if (phase, rule.role, "wbs") in grouped:
+                continue
             extra = max(1, round(days * rule.percent / 100)) if rule.percent > 0 else 0
             if extra:
                 key = (phase, rule.role, "overhead")
@@ -106,7 +129,7 @@ def compute_quotation(
             phase=phase,
             role_key=key,
             role_label=rates[key].label,
-            person_days=days,
+            person_days=round(days, 2),
             day_rate=money(blended_rate(rates[key], onsite)),
             amount=money(blended_rate(rates[key], onsite) * days),
             kind=kind,  # type: ignore[arg-type]
@@ -122,7 +145,7 @@ def compute_quotation(
         phase_lines = [line for line in lines if line.phase == phase]
         if not phase_lines:
             continue
-        days = sum(line.person_days for line in phase_lines)
+        days = round(sum(line.person_days for line in phase_lines), 2)
         vnd = sum(
             blended_rate(rates[line.role_key], onsite) * line.person_days for line in phase_lines
         )
@@ -140,10 +163,8 @@ def compute_quotation(
             )
         )
 
-    total_days = sum(line.person_days for line in lines)
-    timeline_days = (
-        run.schedule.total_days if run.schedule and run.schedule.total_days else total_days
-    )
+    total_days = round(sum(line.person_days for line in lines), 2)
+    timeline_days = total_working_days(run.schedule) or total_days
     per_month = card.contract.working_days_per_month
     months = max(1, math.ceil(timeline_days / per_month))
     subtotal = sum(p.amount for p in phases)
@@ -164,7 +185,7 @@ def compute_quotation(
         ]
     else:  # odc: dedicated team billed monthly
         pct, contingency, factor = 0.0, 0.0, 1.0
-        by_role: dict[str, int] = {}
+        by_role: dict[str, float] = {}
         for line in lines:
             by_role[line.role_key] = by_role.get(line.role_key, 0) + line.person_days
         for key, days in by_role.items():
@@ -181,13 +202,17 @@ def compute_quotation(
     if run_cost is not None and run.architecture.deployment.value == "on_prem":
         run_cost *= card.on_prem_run_cost_factor
 
-    overhead_days = sum(line.person_days for line in lines if line.kind == "overhead")
+    overhead_days = round(sum(line.person_days for line in lines if line.kind == "overhead"), 2)
+    overhead_roles = sorted({line.role_label for line in lines if line.kind == "overhead"})
     assumptions = [
         f"Mô hình hợp đồng: {MODEL_LABELS[model]}.",
         "Đơn giá theo vai trò là số giả lập trong bảng đơn giá, cần thay bằng đơn giá thật.",
-        f"Ngày công = WBS {total_days - overhead_days} + overhead quản lý {overhead_days} (PM"
-        + (", BrSE" if japanese else "")
-        + " theo tỉ lệ chuẩn công ty).",
+        f"Ngày công = WBS {round(total_days - overhead_days, 2):g}"
+        + (
+            f" + overhead {overhead_days:g} ({', '.join(overhead_roles)} theo tỉ lệ chuẩn công ty)."
+            if overhead_days
+            else " (PM đã nằm trong WBS)."
+        ),
         f"Tỉ lệ làm onsite {onsite:g}% (đơn giá onsite cao hơn offshore).",
     ]
     if model == "fixed_price":
@@ -211,7 +236,7 @@ def compute_quotation(
         currency=currency,
         contract_model=model,
         onsite_ratio=onsite,
-        wbs_person_days=total_days - overhead_days,
+        wbs_person_days=round(total_days - overhead_days, 2),
         overhead_person_days=overhead_days,
         odc_team=odc_team,
         odc_monthly_cost=odc_monthly,

@@ -53,10 +53,13 @@ async def test_quotation_is_consistent() -> None:
     q = run.quotation
     assert q is not None and q.currency == "VND"
     assert q.subtotal == sum(p.amount for p in q.phases) == sum(line.amount for line in q.lines)
-    wbs_days = sum(t.person_days for t in run.wbs.tasks)
+    wbs_days = sum(t.total_md for t in run.wbs.totals)
     assert sum(line.person_days for line in q.lines if line.kind == "wbs") == wbs_days
-    assert q.wbs_person_days == wbs_days and q.overhead_person_days > 0  # PM overhead
-    assert {line.role_key for line in q.lines if line.kind == "overhead"} == {"pm"}  # no BrSE (vi)
+    assert q.wbs_person_days == wbs_days
+    # PM is planned in the WBS (mandatory task), so the 10% PM overhead is not added on top;
+    # no BrSE either for a Vietnamese client
+    assert any(line.role_key == "pm" and line.kind == "wbs" for line in q.lines)
+    assert q.overhead_person_days == 0 and not [ln for ln in q.lines if ln.kind == "overhead"]
     assert q.contract_model == "fixed_price" and q.onsite_ratio == 0
     assert q.total == q.subtotal + q.contingency
     assert q.total_min <= q.total <= q.total_max
@@ -97,7 +100,7 @@ async def test_quotation_adds_brse_for_japanese_client() -> None:
     run.intake.language = "ja"
     q = compute_quotation(run, load_rate_card())
     assert q and q.currency == "JPY"
-    assert {line.role_key for line in q.lines if line.kind == "overhead"} == {"pm", "bridge_se"}
+    assert {line.role_key for line in q.lines if line.kind == "overhead"} == {"bridge_se"}
 
 
 async def test_no_quotation_without_wbs() -> None:

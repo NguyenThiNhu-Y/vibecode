@@ -684,3 +684,101 @@ def test_logo_endpoints(client: TestClient, tmp_path, monkeypatch) -> None:
     assert got.status_code == 200 and got.headers["content-type"] == "image/png"
     assert client.delete("/api/settings/logo").json() == {"logo": None}
     assert client.delete("/api/settings/logo").status_code == 404
+
+
+def test_bidding_workbook_endpoint(client: TestClient) -> None:
+    from openpyxl import load_workbook
+
+    run_id = create(client)
+    assert client.get(f"/api/runs/{run_id}/bidding.xlsx").status_code == 409  # no gaps yet
+    waiting = create(client, "Chúng tôi muốn dùng AI để tăng năng suất cho nhân viên văn phòng.")
+    read_sse(client, f"/api/runs/{waiting}/stream")
+    early = client.get(f"/api/runs/{waiting}/bidding.xlsx")
+    assert early.status_code == 200 and "attachment" in early.headers["content-disposition"]
+    assert load_workbook(io.BytesIO(early.content)).sheetnames == ["Q&A"]
+
+    read_sse(client, f"/api/runs/{run_id}/stream")
+    full = client.get(f"/api/runs/{run_id}/bidding.xlsx")
+    assert full.headers["content-type"].startswith("application/vnd.openxmlformats")
+    assert "Bidding" in full.headers["content-disposition"]
+    names = load_workbook(io.BytesIO(full.content)).sheetnames
+    assert names == ["Q&A", "WBS", "Summary", "Master Schedule"]
+    same = client.get(f"/api/runs/{run_id}/export/bidding.xlsx")
+    assert same.status_code == 200
+
+
+def test_schedule_config_recomputes_without_llm(client: TestClient) -> None:
+    run_id = create(client)
+    config = {"start_date": "2026-11-02", "headcount": {"AI": 2, "BE": 1, "FE": 1, "QA": 1,
+              "BA": 1, "PM": 1, "INFRA": 1, "DESIGN": 1, "DATA": 1}}  # fmt: skip
+    url = f"/api/runs/{run_id}/schedule-config"
+    assert client.put(url, json=config).status_code == 409  # no WBS yet
+    read_sse(client, f"/api/runs/{run_id}/stream")
+
+    two = client.put(url, json=config).json()
+    assert two["schedule"]["phases"][0]["start"] == "2026-11-02"
+    assert two["schedule"]["milestones"][0] == {
+        "id": "M1", "name": "Kick-off", "date": "2026-11-02", "phase": "poc", "payment_percent": 30,
+    }  # fmt: skip
+    four = client.put(url, json={**config, "headcount": {**config["headcount"], "AI": 4}}).json()
+    mvp = lambda run: next(p for p in run["schedule"]["phases"] if p["phase"] == "mvp")  # noqa: E731
+    assert mvp(four)["end"] <= mvp(two)["end"]
+    assert four["schedule_config"]["headcount"]["AI"] == 4
+    assert four["quotation"]["months"] is not None  # quotation follows the new timeline
+
+    zero = client.put(url, json={**config, "headcount": {**config["headcount"], "QA": 0}})
+    assert zero.status_code == 422 and "QA" in zero.json()["detail"]
+    assert client.get(f"/api/runs/{run_id}").json()["schedule_config"]["headcount"]["AI"] == 4
+
+
+def test_create_run_with_schedule_config(client: TestClient) -> None:
+    headcount = {"AI": 3, "BE": 2, "FE": 1, "QA": 1, "BA": 1, "PM": 1, "INFRA": 1, "DESIGN": 1}
+    config = {"start_date": "2026-12-07", "headcount": headcount | {"DATA": 1}, "buffer_ratio": 0.1}
+    resp = client.post("/api/runs", json={"request_text": REQUEST, "schedule_config": config})
+    run_id = resp.json()["run_id"]
+    read_sse(client, f"/api/runs/{run_id}/stream")
+    run = client.get(f"/api/runs/{run_id}").json()
+    assert run["schedule"]["phases"][0]["start"] == "2026-12-07"
+    assert run["schedule"]["config"]["buffer_ratio"] == 0.1
+
+
+def test_edit_wbs_estimates_recomputes_by_code(client: TestClient) -> None:
+    run_id = create(client)
+    url = f"/api/runs/{run_id}/wbs"
+    assert client.patch(url, json={"estimates": {"1.1": 2}}).status_code == 409  # no WBS yet
+    read_sse(client, f"/api/runs/{run_id}/stream")
+    before = client.get(f"/api/runs/{run_id}").json()
+    items = before["wbs"]["items"]
+    parents = {i["id"].rsplit(".", 1)[0] for i in items if "." in i["id"]}
+    leaf = next(i for i in items if i["id"] not in parents and i["phase"] == "mvp")
+    parent = leaf["id"].rsplit(".", 1)[0]
+    old_parent = next(i["estimate_md"] for i in items if i["id"] == parent)
+    new_value = 10 if leaf["estimate_md"] != 10 else 1
+
+    after = client.patch(url, json={"estimates": {leaf["id"]: new_value}}).json()
+    delta = new_value - leaf["estimate_md"]
+    by_id = {i["id"]: i for i in after["wbs"]["items"]}
+    assert by_id[leaf["id"]]["estimate_md"] == new_value and after["wbs_edited"] is True
+    assert by_id[parent]["estimate_md"] == old_parent + delta  # parent re-summed by code
+    mvp = lambda run: next(t for t in run["wbs"]["totals"] if t["phase"] == "mvp")  # noqa: E731
+    assert mvp(after)["total_md"] == mvp(before)["total_md"] + delta
+    assert after["quotation"]["wbs_person_days"] == before["quotation"]["wbs_person_days"] + delta
+    assert after["schedule"]["config"] == before["schedule"]["config"]  # same start / headcount
+
+    for body, fragment in [
+        ({"estimates": {parent: 5}}, "node cha"),
+        ({"estimates": {"9.9.9": 1}}, "Không có task"),
+        ({"estimates": {leaf["id"]: 11}}, ""),
+        ({"estimates": {}}, ""),
+    ]:
+        resp = client.patch(url, json=body)
+        assert resp.status_code == 422 and fragment in str(resp.json()["detail"])
+
+    approve = {"approved": True, "note": None}
+    assert client.post(f"/api/runs/{run_id}/pricing-approval", json=approve).status_code == 200
+    locked = client.patch(url, json={"estimates": {leaf["id"]: 3}})
+    assert locked.status_code == 409 and "duyệt giá" in locked.json()["detail"]
+
+    body = {"from_step": "wbs", "feedback": "Tách nhỏ task tích hợp hơn"}
+    client.post(f"/api/runs/{run_id}/pricing-approval", json={"approved": False, "note": "sửa"})
+    assert client.post(f"/api/runs/{run_id}/rerun", json=body).json()["wbs_edited"] is False

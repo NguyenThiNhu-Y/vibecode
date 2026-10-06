@@ -157,9 +157,9 @@ async def test_workbook_fills_template_mapping() -> None:
     wb = load_workbook(io.BytesIO(build_workbook(run, kit)))
     assert wb.sheetnames[:3] == ["Cover", "WBS", "Pricing"] and "Báo giá" in wb.sheetnames
     wbs, pricing = wb["WBS"], wb["Pricing"]
-    assert (
-        wbs["A6"].value == run.wbs.tasks[0].id and wbs["E6"].value == run.wbs.tasks[0].person_days
-    )
+    first = next(i for i in run.wbs.items if i.level == 2)  # one template row per level-2 task
+    assert wbs["A6"].value == first.id and wbs["E6"].value == first.estimate_md
+    assert wbs["D6"].value and wbs["F6"].value == 1  # work types, project week
     assert pricing["E6"].value == "=C6*D6" and pricing["E3"].value == "=SUM(E6:E500)"
     assert "{{" not in str(wb["Cover"]["A5"].value)
 

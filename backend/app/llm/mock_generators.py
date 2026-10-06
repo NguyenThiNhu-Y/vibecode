@@ -6,22 +6,37 @@ import json
 import re
 from typing import Any
 
-PHASE_TASKS = {
-    "poc": ["Khảo sát dữ liệu & yêu cầu", "Dựng prototype {c}", "Đánh giá kết quả PoC với khách"],
+# (name, type, tags) per phase; "{c}" takes a component name from the architecture.
+PHASE_TASKS: dict[str, list[tuple[str, str, list[str]]]] = {
+    "poc": [
+        ("Kick-off và quản lý PoC", "PM", []),
+        ("Khảo sát dữ liệu & yêu cầu", "BA", []),
+        ("Chuẩn bị dữ liệu mẫu", "DATA", ["data_prep"]),
+        ("Dựng prototype {c}", "AI", []),
+        ("Đánh giá kết quả PoC", "AI", ["evaluation"]),
+        ("Test và nghiệm thu PoC", "QA", []),
+    ],
     "mvp": [
-        "Phân tích & thiết kế chi tiết",
-        "Xây dựng {c}",
-        "Xây dựng {c}",
-        "Tích hợp hệ thống",
-        "Kiểm thử & đánh giá chất lượng",
+        ("Quản lý dự án MVP", "PM", []),
+        ("Phân tích & thiết kế chi tiết", "BA", []),
+        ("Chuẩn bị & làm sạch dữ liệu", "DATA", ["data_prep"]),
+        ("Xây dựng {c}", "AI", []),
+        ("Xây dựng {c}", "BE", ["integration"]),
+        ("Giao diện người dùng", "FE", []),
+        ("Bộ đánh giá chất lượng", "AI", ["evaluation"]),
+        ("Test và nghiệm thu MVP", "QA", []),
+        ("Tài liệu và bàn giao", "BA", ["documentation"]),
     ],
     "production": [
-        "Hardening & bảo mật",
-        "Mở rộng {c}",
-        "Giám sát & vận hành",
-        "Đào tạo người dùng & bàn giao",
+        ("Quản lý triển khai", "PM", []),
+        ("Hardening & bảo mật", "INFRA", ["security"]),
+        ("Mở rộng {c}", "BE", []),
+        ("Giám sát & vận hành", "INFRA", []),
+        ("UAT và nghiệm thu", "QA", []),
+        ("Đào tạo & bàn giao", "BA", ["documentation"]),
     ],
 }
+PHASE_GROUPS = {"poc": "Giai đoạn PoC", "mvp": "Giai đoạn MVP", "production": "Production"}
 
 
 def _context(user: str) -> dict[str, Any]:
@@ -35,41 +50,68 @@ def _split(total: int, parts: int) -> list[int]:
 
 
 def generate_wbs(user: str) -> str:
+    """3-level WBS that passes the code checks: phase totals at the middle of
+    computed_estimates, leaves <= 10 MD, PM and QA in every phase, data_prep / evaluation tags."""
     ctx = _context(user)
     arch = ctx.get("architecture") or {}
+    computed = ctx.get("computed_estimates") or {}
+    no_ai = (ctx.get("pattern") or {}).get("pattern") == "no_ai_rule_based"
     components = [c["name"] for c in arch.get("components", [])] or ["giải pháp"]
-    tasks: list[dict[str, Any]] = []
-    previous_last: str | None = None
-    for estimate in arch.get("estimates", []):
+    items: list[dict[str, Any]] = []
+    previous_qa: str | None = None
+    for group, estimate in enumerate(arch.get("estimates", []), start=1):
         phase = estimate["phase"]
-        target = (estimate["min_person_days"] + estimate["max_person_days"]) // 2
-        team = estimate.get("team") or ["Engineer"]
-        names = PHASE_TASKS.get(phase, PHASE_TASKS["mvp"])
-        days = _split(target, len(names))
-        first_id = f"W{len(tasks) + 1}"
-        middle: list[str] = []
-        for i, (name, d) in enumerate(zip(names, days, strict=False)):
-            task_id = f"W{len(tasks) + 1}"
-            if i == 0:
-                deps = [previous_last] if previous_last else []
-            elif i == len(names) - 1:
-                deps = middle or [first_id]
-            else:
-                deps = [first_id]
-                middle.append(task_id)
-            tasks.append(
-                {
-                    "id": task_id,
-                    "phase": phase,
-                    "name": name.format(c=components[(i - 1) % len(components)]),
-                    "role": team[i % len(team)],
-                    "person_days": d,
-                    "depends_on": deps,
-                    "deliverable": None,
-                }
-            )
-        previous_last = tasks[-1]["id"]
-    return json.dumps({"tasks": tasks, "notes": ["WBS sinh bởi mock LLM."]}, ensure_ascii=False)
+        low, high = computed.get(phase) or (
+            estimate["min_person_days"],
+            estimate["max_person_days"],
+        )
+        target = max(len(PHASE_TASKS[phase]), round((low + high) / 2))
+        items.append({"id": str(group), "phase": phase, "name": PHASE_GROUPS[phase], "level": 1})
+        plan = [
+            (name.format(c=components[(i - 1) % len(components)]), "BE" if no_ai and kind == "AI" else kind, tags)
+            for i, (name, kind, tags) in enumerate(PHASE_TASKS[phase])
+        ]  # fmt: skip
+        if phase == "production":  # no sub-tasks: a task over 10 MD becomes several tasks
+            waves = max(1, -(-target // (len(plan) * 10)))
+            plan = [
+                (f"{name} – đợt {k}" if waves > 1 else name, kind, tags)
+                for name, kind, tags in plan
+                for k in range(1, waves + 1)
+            ]
+        days = _split(target, len(plan))
+        analysis, build, n, qa_task = f"{group}.2", [], 0, None
+        for (name, kind, tags), d in zip(plan, days, strict=False):
+            n += 1
+            tid = f"{group}.{n}"
+            deps = (
+                [] if n <= 2 else [f"{group}.{k}" for k in build] if kind == "QA" and build
+                else [analysis] if kind in ("AI", "BE", "FE", "DATA", "INFRA") else []
+            )  # fmt: skip
+            if n == 1 and previous_qa:
+                deps = [previous_qa]
+            if kind in ("AI", "BE", "FE", "DATA"):
+                build.append(n)
+            if kind == "QA":
+                qa_task = tid
+            base = {"id": tid, "phase": phase, "name": name, "level": 2, "depends_on": deps}
+            leaf = {"type": kind, "priority": "high" if kind in ("AI", "QA") else "mid", "tags": tags,
+                    "deliverable": f"Kết quả: {name.lower()}"}  # fmt: skip
+            if phase == "production" or d <= 4:
+                items.append({**base, **leaf, "estimate_md": d})
+                continue
+            items.append(base)
+            for k, part in enumerate(_split(d, max(2, -(-d // 5))), start=1):  # >= 2 sub-tasks
+                items.append({**leaf, "id": f"{tid}.{k}", "phase": phase, "level": 3,
+                              "name": f"{name} – phần {k}", "estimate_md": part})  # fmt: skip
+        previous_qa = qa_task  # next phase starts after this phase's acceptance
+    return json.dumps(
+        {
+            "items": items,
+            "assumptions": ["WBS sinh bởi mock LLM."],
+            "out_of_scope": arch.get("out_of_scope", []),
+        },
+        ensure_ascii=False,
+    )
 
 
 def generate_requirements(user: str) -> str:

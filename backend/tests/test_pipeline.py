@@ -174,9 +174,11 @@ async def test_attachments_feed_contexts_and_requirements_step(memory_repo: Memo
     )
     assert "0912 345 678" not in " ".join(llm.users["intake"])
     assert run.redactions.get("phone") == 1
-    assert run.schedule is not None and run.schedule.total_days > 0
+    assert run.schedule is not None and run.schedule_config is not None
+    assert [m.id for m in run.schedule.milestones] == ["M1", "M2", "M3", "M4"]
     wbs_event = next(e for e in events if e["event"] == "step_done" and e["data"]["step"] == "wbs")
-    assert wbs_event["data"]["schedule"]["total_days"] == run.schedule.total_days
+    assert wbs_event["data"]["schedule"]["milestones"][0]["id"] == "M1"
+    assert wbs_event["data"]["schedule"] == run.schedule.model_dump(mode="json")
 
 
 async def test_requirements_skipped_without_file(memory_repo: MemoryRepo) -> None:

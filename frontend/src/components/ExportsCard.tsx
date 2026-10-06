@@ -9,6 +9,7 @@ const ITEMS: { name: ExportName; label: string; hint: string; icon: typeof IconS
   { name: "proposal.docx", label: "Proposal Word", hint: ".docx · phụ lục effort, WBS, báo giá", icon: IconProposal },
   { name: "workbook.xlsx", label: "Báo giá, WBS & đáp ứng", hint: ".xlsx · có công thức", icon: IconTable },
   { name: "qa_sheet.xlsx", label: "Q&A sheet cho khách", hint: ".xlsx · ngôn ngữ của khách", icon: IconQuestion },
+  { name: "bidding.xlsx", label: "Bộ bidding", hint: ".xlsx · Q&A, WBS, Summary, Master schedule", icon: IconTable },
 ];
 
 const LANGS: { lang: Language; label: string }[] = [

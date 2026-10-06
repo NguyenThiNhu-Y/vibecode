@@ -43,7 +43,7 @@ export const STEP_ACTIVITY: Record<StepName, string> = {
   pattern: "Đang cân nhắc 5 hướng giải pháp, bắt đầu từ “không cần AI”…",
   feasibility: "Đang chấm điểm và đối chiếu danh mục rủi ro…",
   architecture: "Đang thiết kế kiến trúc và tính effort theo bảng chuẩn…",
-  wbs: "Đang chia công việc; code kiểm tra tổng ngày công và dựng timeline…",
+  wbs: "Đang chia WBS 3 cấp; code cộng man-day và tính master schedule…",
   requirements: "Đang đối chiếu từng requirement của khách với giải pháp…",
   proposal: "Đang soạn proposal từ kết quả các bước…",
 };

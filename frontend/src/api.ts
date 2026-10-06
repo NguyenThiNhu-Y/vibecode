@@ -24,6 +24,7 @@ import type {
   Language,
   LogoInfo,
   ReplayInfo,
+  ScheduleConfig,
   RunErrorEvent,
   RunStatus,
   RunSummary,
@@ -93,6 +94,14 @@ export interface QuotationOptions {
   contract_model?: ContractModel;
   onsite_ratio?: number;
 }
+
+/** Human edit of leaf man-days; parents, totals, schedule and quotation are recomputed by code. */
+export const patchWbsEstimates = (id: string, estimates: Record<string, number>) =>
+  request<ScopingRun>(`/runs/${id}/wbs`, { method: "PATCH", body: JSON.stringify({ estimates }) });
+
+/** Recompute the master schedule by code (no LLM) with a new start date / headcount. */
+export const putScheduleConfig = (id: string, config: ScheduleConfig) =>
+  request<ScopingRun>(`/runs/${id}/schedule-config`, { method: "PUT", body: JSON.stringify(config) });
 
 export const updateQuotation = (id: string, body: QuotationOptions) =>
   request<ScopingRun>(`/runs/${id}/quotation`, { method: "POST", body: JSON.stringify(body) });
@@ -262,7 +271,7 @@ export function uploadAttachments(
   return request<ScopingRun>(`/runs/${id}/attachments`, { method: "POST", body: form });
 }
 
-export type ExportName = "slides.pptx" | "proposal.docx" | "workbook.xlsx" | "package.zip" | "qa_sheet.xlsx";
+export type ExportName = "slides.pptx" | "proposal.docx" | "workbook.xlsx" | "package.zip" | "qa_sheet.xlsx" | "bidding.xlsx";
 
 export const exportUrl = (id: string, name: ExportName, lang?: Language) =>
   `${API_BASE}/runs/${id}/export/${name}${lang && lang !== "vi" ? `?lang=${lang}` : ""}`;

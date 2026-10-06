@@ -68,3 +68,31 @@ class Phase(str, Enum):
     POC = "poc"
     MVP = "mvp"
     PRODUCTION = "production"
+
+
+# Bidding extension (docs/BIDDING_SPEC.md 3.1)
+class WorkType(str, Enum):
+    AI = "AI"
+    BE = "BE"
+    FE = "FE"
+    QA = "QA"
+    BA = "BA"
+    PM = "PM"
+    INFRA = "INFRA"
+    DESIGN = "DESIGN"
+    DATA = "DATA"
+
+
+class Priority(str, Enum):
+    LOW = "low"
+    MID = "mid"
+    HIGH = "high"
+
+
+class TaskTag(str, Enum):
+    DATA_PREP = "data_prep"
+    EVALUATION = "evaluation"
+    PROMPT_TUNING = "prompt_tuning"
+    INTEGRATION = "integration"
+    SECURITY = "security"
+    DOCUMENTATION = "documentation"

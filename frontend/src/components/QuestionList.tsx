@@ -68,6 +68,8 @@ export default function QuestionList({
                   <span className="ml-2 inline-flex gap-1 align-middle">
                     <Badge>{TOPIC_LABELS[q.topic]}</Badge>
                     {q.blocking && <Badge tone="danger">Bắt buộc</Badge>}
+                    {!q.blocking && q.priority === "high" && <Badge tone="warning">Ưu tiên cao</Badge>}
+                    {q.priority === "low" && <Badge>Ưu tiên thấp</Badge>}
                   </span>
                 </p>
                 <p className="mt-0.5 text-sm text-subtle">{q.why_it_matters}</p>

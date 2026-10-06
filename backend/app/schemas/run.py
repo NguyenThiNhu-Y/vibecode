@@ -1,7 +1,8 @@
 from datetime import date, datetime
 from enum import Enum
+from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from app.schemas.architecture import ArchitectureResult
 from app.schemas.attachments import Attachment
@@ -15,7 +16,8 @@ from app.schemas.pattern import PatternResult
 from app.schemas.proposal import ProposalResult
 from app.schemas.quotation import Currency, Quotation
 from app.schemas.requirements import RequirementMatrix
-from app.schemas.wbs import Schedule, WBSResult
+from app.schemas.schedule import ScheduleConfig, ScheduleResult
+from app.schemas.wbs import WbsResult
 
 
 class RunStatus(str, Enum):
@@ -39,7 +41,7 @@ class ScopingRun(BaseModel):
     pattern: PatternResult | None = None
     feasibility: FeasibilityResult | None = None
     architecture: ArchitectureResult | None = None
-    wbs: WBSResult | None = None
+    wbs: WbsResult | None = None
     requirements: RequirementMatrix | None = None
     proposal: ProposalResult | None = None
     error: str | None = None
@@ -52,9 +54,11 @@ class ScopingRun(BaseModel):
     revision: int = 0  # number of re-runs requested by the reviewer
     redactions: dict[str, int] = {}  # PII type -> count masked before sending to the LLM
     proposal_edited: bool = False  # proposal markdown edited by a human
+    wbs_edited: bool = False  # WBS leaf estimates edited by a human (totals still by code)
     translations: dict[str, str] = {}  # language -> translated proposal markdown
     attachments: list[Attachment] = []  # files the customer sent, parsed by code
-    schedule: Schedule | None = None  # computed from wbs by code
+    schedule: ScheduleResult | None = None  # computed from wbs by code (BIDDING_SPEC 4)
+    schedule_config: ScheduleConfig | None = None  # start date, headcount; set on first schedule
     quotation: Quotation | None = None  # computed from wbs x rate card by code
     client_email: ClientEmail | None = None  # draft email with clarifying questions
     deck_translations: dict[str, dict[str, str]] = {}  # language -> original -> translated
@@ -66,6 +70,16 @@ class ScopingRun(BaseModel):
     bid: BidDecision | None = None
     pricing_approval: PricingApproval | None = None
     versions: list[ProposalVersion] = []
+
+    @model_validator(mode="before")
+    @classmethod
+    def _legacy_schedule(cls, data: Any) -> Any:
+        """Runs saved before the bidding extension stored a day-offset schedule; it is
+        recomputed from the WBS the next time the schedule is needed."""
+        if isinstance(data, dict) and isinstance(data.get("schedule"), dict):
+            if "milestones" not in data["schedule"]:
+                data = {**data, "schedule": None}
+        return data
 
 
 class RunSummary(BaseModel):

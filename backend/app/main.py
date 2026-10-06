@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.exceptions import RequestValidationError
@@ -18,6 +18,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.agents.pipeline import Event, reset_from, run_pipeline
 from app.agents.pricing import compute_quotation, load_rate_card
+from app.agents.schedule import ScheduleError, build_schedule, default_config
 from app.agents.step import StepError
 from app.agents.steps import CLIENT_EMAIL, TRANSLATE
 from app.bid import evaluate_bid, load_bid_criteria
@@ -31,6 +32,7 @@ from app.company import (
 from app.config import BACKEND_DIR, get_settings
 from app.deal import MANUAL, sync_deal_stage
 from app.documents import DocumentError, extract_text
+from app.exports.bidding import build_bidding_xlsx
 from app.exports.document import build_docx
 from app.exports.package import build_package
 from app.exports.qa_sheet import build_qa_sheet, parse_qa_answers
@@ -49,7 +51,9 @@ from app.schemas.deal import (
 )
 from app.schemas.quotation import ContractModel, Currency
 from app.schemas.run import RunStatus, RunSummary, ScopingRun
+from app.schemas.schedule import ScheduleConfig
 from app.schemas.settings import TemplateKind, TemplatesConfig, TemplateSource
+from app.schemas.wbs import MAX_LEAF_MD, WbsResult
 from app.settings_store import (
     delete_reference_project,
     read_settings,
@@ -136,6 +140,11 @@ class CreateRunBody(BaseModel):
     project_name: str | None = Field(default=None, max_length=120)
     client_name: str | None = Field(default=None, max_length=120)
     due_date: date | None = None
+    schedule_config: ScheduleConfig | None = None  # start date / headcount for the schedule
+
+
+class WbsEditBody(BaseModel):
+    estimates: dict[str, Annotated[float, Field(ge=0, le=MAX_LEAF_MD)]] = Field(min_length=1)
 
 
 class MetaBody(BaseModel):
@@ -233,6 +242,7 @@ def create_run(body: CreateRunBody, repo: RunRepo = Depends(get_repo)) -> dict[s
         project_name=(body.project_name or "").strip() or None,
         client_name=(body.client_name or "").strip() or None,
         due_date=body.due_date,
+        schedule_config=body.schedule_config,
     )
     repo.save(run)
     return {"run_id": run.id}
@@ -370,6 +380,7 @@ EXPORTS = {
     "workbook.xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "package.zip": "application/zip",
     "qa_sheet.xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "bidding.xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 }
 
 
@@ -379,6 +390,7 @@ DOC_KEYS = {
     "workbook.xlsx": "workbook",
     "package.zip": "package",
     "qa_sheet.xlsx": "qa_sheet",
+    "bidding.xlsx": "bidding",
     "proposal.md": "markdown",
     "architecture.mmd": "architecture",
 }
@@ -398,6 +410,10 @@ async def _export(run: ScopingRun, name: str, lang: str | None, llm: LLMClient) 
         if run.gaps is None or not run.gaps.questions:
             raise HTTPException(409, "Run chưa có câu hỏi làm rõ")
         content = build_qa_sheet(run, kit)
+    elif name == "bidding.xlsx":  # Q&A sheet only until the WBS exists (BIDDING_SPEC 6.3)
+        if run.gaps is None:
+            raise HTTPException(409, "Run chưa có câu hỏi làm rõ (bước gaps), chưa xuất được")
+        content = build_bidding_xlsx(run)
     else:
         if run.proposal is None:
             raise HTTPException(409, "Run chưa có proposal, chưa xuất được hồ sơ")
@@ -441,6 +457,87 @@ async def export_run(
         fresh.deck_translations = run.deck_translations
         repo.save(fresh)
     return response
+
+
+@app.get("/api/runs/{run_id}/bidding.xlsx")
+async def export_bidding(
+    run_id: str, repo: RunRepo = Depends(get_repo), llm: LLMClient = Depends(get_llm_client)
+) -> Response:
+    return await _export(_load(repo, run_id), "bidding.xlsx", None, llm)
+
+
+@app.put("/api/runs/{run_id}/schedule-config")
+def update_schedule_config(
+    run_id: str, body: ScheduleConfig, repo: RunRepo = Depends(get_repo)
+) -> ScopingRun:
+    """Recompute the master schedule (code only, no LLM) with a new start date / headcount."""
+    run = _load(repo, run_id)
+    if run.wbs is None:
+        raise HTTPException(409, "Run chưa có WBS nên chưa lập được lịch")
+    try:
+        run.schedule = build_schedule(run.wbs, body)
+    except ScheduleError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    run.schedule_config = body
+    _requote(run)
+    repo.save(run)
+    return run
+
+
+def _requote(run: ScopingRun) -> None:
+    """Recompute the quotation with its current options after the WBS or timeline changed
+    (T&M / ODC months follow the timeline). An approved price stays locked."""
+    q = run.quotation
+    if q and not (run.pricing_approval and run.pricing_approval.approved):
+        run.quotation = compute_quotation(
+            run,
+            load_rate_card(),
+            currency=q.currency,
+            contingency_pct=q.contingency_pct,
+            contract_model=q.contract_model,
+            onsite_ratio=q.onsite_ratio,
+        )
+
+
+@app.patch("/api/runs/{run_id}/wbs")
+def edit_wbs_estimates(
+    run_id: str, body: WbsEditBody, repo: RunRepo = Depends(get_repo)
+) -> ScopingRun:
+    """Human edit of leaf man-days; parents, phase totals, schedule and quotation are
+    recomputed by code (no LLM)."""
+    run = _load(repo, run_id)
+    if run.wbs is None:
+        raise HTTPException(409, "Run chưa có WBS")
+    if run.status not in EDITABLE:
+        raise HTTPException(409, "Chỉ sửa được WBS khi hồ sơ đã phân tích xong và chưa duyệt")
+    if run.pricing_approval and run.pricing_approval.approved:
+        raise HTTPException(409, "Báo giá đã được duyệt giá; hủy duyệt giá trước khi sửa WBS")
+    parents = {i.id.rsplit(".", 1)[0] for i in run.wbs.items if "." in i.id}
+    known = {i.id for i in run.wbs.items}
+    unknown = sorted(set(body.estimates) - known)
+    if unknown:
+        raise HTTPException(422, f"Không có task {', '.join(unknown[:10])} trong WBS")
+    not_leaf = sorted(set(body.estimates) & parents)
+    if not_leaf:
+        raise HTTPException(
+            422,
+            f"{', '.join(not_leaf[:10])} là node cha: man-day node cha do code cộng từ task con",
+        )
+    data = run.wbs.model_dump(mode="json")
+    for item in data["items"]:
+        if item["id"] in body.estimates:
+            item["estimate_md"] = round(body.estimates[item["id"]], 2)
+    wbs = WbsResult.model_validate(data)  # re-rolls parent and phase totals
+    try:
+        schedule = build_schedule(wbs, run.schedule_config or default_config())
+    except ScheduleError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    run.wbs, run.schedule = wbs, schedule
+    run.schedule_config = schedule.config
+    run.wbs_edited = True
+    _requote(run)
+    repo.save(run)
+    return run
 
 
 @app.patch("/api/runs/{run_id}/meta")

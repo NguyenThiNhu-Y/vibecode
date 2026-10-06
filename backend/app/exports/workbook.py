@@ -19,9 +19,12 @@ from app.exports.common import (
     RISK_LABELS,
     requirement_texts,
 )
+from app.exports.plan import schedule_for, task_rows, week_of, week_starts
 from app.exports.templating import fill_workbook
 from app.schemas.run import ScopingRun
+from app.schemas.schedule import ScheduleResult
 from app.schemas.settings import SheetMapping
+from app.schemas.wbs import ordered
 from app.templates_store import ExportKit
 
 HEADER_FILL = PatternFill("solid", fgColor=ACCENT)
@@ -52,6 +55,14 @@ def _title(ws: Worksheet, text: str) -> None:
     ws["A1"].font = Font(bold=True, size=14, color=ACCENT)
 
 
+def _duration(schedule: ScheduleResult | None) -> str:
+    if not schedule:
+        return ""
+    start, end = schedule.phases[0].start, schedule.phases[-1].end
+    days = sum(p.working_days for p in schedule.phases)
+    return f"{start:%d/%m/%Y} → {end:%d/%m/%Y}: {days} ngày làm việc (~{-(-days // 5)} tuần)"
+
+
 def _overview(ws: Worksheet, run: ScopingRun) -> None:
     ws.title = "Tổng quan"
     _title(ws, run.proposal.title if run.proposal else "ScopeAI – Proposal sơ bộ")
@@ -70,12 +81,7 @@ def _overview(ws: Worksheet, run: ScopingRun) -> None:
             "Triển khai",
             DEPLOYMENT_LABELS[run.architecture.deployment.value] if run.architecture else "",
         ),
-        (
-            "Tổng thời gian dự kiến",
-            f"{run.schedule.total_days} ngày làm việc (~{-(-run.schedule.total_days // 5)} tuần)"
-            if run.schedule
-            else "",
-        ),
+        ("Tổng thời gian dự kiến", _duration(schedule_for(run))),
         ("Trạng thái review", run.status.value),
         ("Ghi chú", "Bản nháp do ScopeAI tạo; số liệu effort tính bằng code từ bảng chuẩn."),
     ]
@@ -139,77 +145,78 @@ def _effort(ws: Worksheet, run: ScopingRun) -> None:
 
 
 def _wbs(ws: Worksheet, run: ScopingRun) -> None:
+    """Whole WBS tree; the detailed, formula-driven version is the Bidding workbook."""
     _header(
         ws,
         1,
-        [
-            "ID",
-            "Giai đoạn",
-            "Đầu việc",
-            "Vai trò",
-            "Ngày công",
-            "Phụ thuộc",
-            "Bắt đầu (ngày)",
-            "Kết thúc (ngày)",
-            "Tuần bắt đầu",
-            "Tuần kết thúc",
-        ],
-        [7, 12, 46, 22, 11, 14, 14, 14, 13, 13],
-    )
+        ["ID", "Giai đoạn", "Cấp", "Đầu việc", "Loại", "Ưu tiên", "Ngày công", "Phụ thuộc",
+         "Bàn giao"],
+        [8, 12, 6, 50, 9, 9, 11, 14, 36],
+    )  # fmt: skip
     if not run.wbs:
         return
-    sched = {t.id: t for t in run.schedule.tasks} if run.schedule else {}
-    for i, task in enumerate(run.wbs.tasks, start=2):
-        s = sched.get(task.id)
+    items = ordered(run.wbs)
+    for i, item in enumerate(items, start=2):
         _row(
             ws,
             i,
             [
-                task.id,
-                PHASE_LABELS[task.phase.value],
-                task.name,
-                task.role,
-                task.person_days,
-                ", ".join(task.depends_on),
-                s.start_day if s else None,
-                s.end_day if s else None,
-                f"=INT(G{i}/5)+1" if s else None,
-                f"=INT((H{i}-1)/5)+1" if s else None,
+                item.id,
+                PHASE_LABELS[item.phase.value],
+                item.level,
+                ("    " * (item.level - 1)) + item.name,
+                item.type.value if item.type else "",
+                item.priority.value,
+                item.estimate_md,
+                ", ".join(item.depends_on),
+                item.deliverable or "",
             ],
         )
-    last = len(run.wbs.tasks) + 1
+        if item.level == 1:
+            ws.cell(row=i, column=4).font = Font(bold=True)
+    last = len(items) + 1
     r = last + 2
-    for label in PHASE_LABELS.values():
+    for label in PHASE_LABELS.values():  # level-1 rows only: parents already hold their sums
         ws.cell(row=r, column=4, value=f"Tổng {label}").font = Font(bold=True)
-        ws.cell(row=r, column=5, value=f'=SUMIF(B2:B{last},"{label}",E2:E{last})').font = Font(
-            bold=True
-        )
+        ws.cell(
+            row=r, column=7, value=f'=SUMIFS(G2:G{last},B2:B{last},"{label}",C2:C{last},1)'
+        ).font = Font(bold=True)
         r += 1
     ws.cell(row=r, column=4, value="Tổng cộng").font = Font(bold=True, color=ACCENT)
-    ws.cell(row=r, column=5, value=f"=SUM(E2:E{last})").font = Font(bold=True, color=ACCENT)
+    ws.cell(row=r, column=7, value=f"=SUMIFS(G2:G{last},C2:C{last},1)").font = Font(
+        bold=True, color=ACCENT
+    )
 
 
 def _timeline(ws: Worksheet, run: ScopingRun) -> None:
-    if not (run.wbs and run.schedule):
+    schedule = schedule_for(run)
+    if not (run.wbs and schedule):
         return
-    weeks = max(1, -(-run.schedule.total_days // 5))
-    _header(ws, 1, ["ID", "Đầu việc"] + [f"T{w}" for w in range(1, weeks + 1)])
-    ws.column_dimensions["A"].width = 7
-    ws.column_dimensions["B"].width = 42
+    weeks = week_starts(schedule)
+    _header(ws, 1, ["ID", "Đầu việc", "Bắt đầu", "Kết thúc"] + [w.strftime("%d/%m") for w in weeks])
+    for col, width in zip("ABCD", (7, 42, 11, 11), strict=True):
+        ws.column_dimensions[col].width = width
     fills = {
         "poc": PatternFill("solid", fgColor="F9A66C"),
         "mvp": PatternFill("solid", fgColor=ACCENT),
         "production": PatternFill("solid", fgColor="B5420E"),
     }
-    sched = {t.id: t for t in run.schedule.tasks}
-    for i, task in enumerate(run.wbs.tasks, start=2):
-        ws.cell(row=i, column=1, value=task.id)
-        ws.cell(row=i, column=2, value=task.name)
-        s = sched[task.id]
-        for w in range(s.start_day // 5, max(s.start_day // 5, (s.end_day - 1) // 5) + 1):
-            ws.cell(row=i, column=3 + w).fill = fills[task.phase.value]
-    for w in range(weeks):
-        ws.column_dimensions[get_column_letter(3 + w)].width = 4.5
+    rows = [t for t in task_rows(run) if t.week_from]
+    for i, task in enumerate(rows, start=2):
+        _row(ws, i, [task.id, task.name, task.start, task.end])
+        for col in (3, 4):
+            ws.cell(row=i, column=col).number_format = "dd/mm/yyyy"
+        for w in range(task.week_from - 1, task.week_to):  # type: ignore[operator]
+            ws.cell(row=i, column=5 + w).fill = fills[task.phase.value]
+    r = len(rows) + 3
+    for m in schedule.milestones:
+        ws.cell(row=r, column=1, value=m.id).font = Font(bold=True)
+        ws.cell(row=r, column=2, value=m.name).font = Font(bold=True)
+        ws.cell(row=r, column=3, value=m.date).number_format = "dd/mm/yyyy"
+        ws.cell(row=r, column=4 + week_of(schedule, m.date), value="◆")
+        r += 1
+    for w in range(len(weeks)):
+        ws.column_dimensions[get_column_letter(5 + w)].width = 6.5
 
 
 def _requirements(ws: Worksheet, run: ScopingRun) -> None:
@@ -394,16 +401,13 @@ def _put(ws: Worksheet, mapping: SheetMapping, row: int, values: dict[str, objec
 def _fill_template(wb: Workbook, run: ScopingRun, kit: ExportKit) -> None:
     """Company estimate template: WBS and price lines written where the column mapping says."""
     cfg = kit.config.workbook
-    if run.wbs:
+    if run.wbs:  # one row per level-2 task; "role" holds its work types
         mapping, ws = cfg["wbs"], _target(wb, cfg["wbs"])
-        sched = {t.id: t for t in run.schedule.tasks} if run.schedule else {}
-        for i, task in enumerate(run.wbs.tasks):
-            s = sched.get(task.id)
+        for i, task in enumerate(task_rows(run)):
             _put(ws, mapping, mapping.start_row + i, {
                 "id": task.id, "phase": PHASE_LABELS[task.phase.value], "task": task.name,
-                "role": task.role, "person_days": task.person_days,
-                "start_week": s.start_day // 5 + 1 if s else None,
-                "end_week": (s.end_day - 1) // 5 + 1 if s else None,
+                "role": ", ".join(task.types), "person_days": task.md,
+                "start_week": task.week_from, "end_week": task.week_to,
             })  # fmt: skip
     if run.quotation:
         mapping, ws = cfg["pricing"], _target(wb, cfg["pricing"])
@@ -445,7 +449,7 @@ def build_workbook(run: ScopingRun, kit: ExportKit | None = None) -> bytes:
         _quotation(_sheet(wb, "Báo giá"), run)
     if not template:
         _wbs(_sheet(wb, "WBS"), run)
-    if run.wbs and run.schedule:
+    if run.wbs:
         _timeline(_sheet(wb, "Timeline"), run)
     if run.requirements and not run.requirements.skipped:
         _requirements(_sheet(wb, "Đáp ứng yêu cầu"), run)

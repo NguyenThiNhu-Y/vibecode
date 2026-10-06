@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from app.agents.estimate import explain_estimates
 from app.agents.pricing import compute_quotation, load_rate_card
-from app.agents.schedule import compute_schedule
+from app.agents.schedule import ScheduleError, build_schedule, default_config
 from app.agents.step import Step, StepError
 from app.agents.steps import (
     FEASIBILITY,
@@ -64,14 +64,34 @@ def _digest(run: ScopingRun, mask: _Masker, documents: bool) -> dict[str, Any]:
 
 
 def _wbs_summary(run: ScopingRun) -> dict[str, Any] | None:
+    """Totals per phase x type only (BIDDING_SPEC 2.3: never the full tree, to save tokens)."""
     if run.wbs is None:
         return None
-    summary: dict[str, Any] = {}
-    for task in run.wbs.tasks:
-        phase = summary.setdefault(task.phase.value, {"tasks": 0, "person_days": 0})
-        phase["tasks"] += 1
-        phase["person_days"] += task.person_days
-    return summary
+    return {
+        t.phase.value: {
+            "tasks": sum(1 for i in run.wbs.items if i.phase == t.phase and i.level == 2),
+            "man_days": t.total_md,
+            "by_type": {k.value: v for k, v in t.by_type.items()},
+        }
+        for t in run.wbs.totals
+    }
+
+
+def _timeline(run: ScopingRun) -> dict[str, Any] | None:
+    if run.schedule is None:
+        return None
+    return {
+        "phases": [
+            {"phase": p.phase.value, "start": p.start.isoformat(), "end": p.end.isoformat(),
+             "working_days": p.working_days}
+            for p in run.schedule.phases
+        ],
+        "milestones": [
+            {"id": m.id, "name": m.name, "date": m.date.isoformat()}
+            for m in run.schedule.milestones
+        ],
+        "working_days": sum(p.working_days for p in run.schedule.phases),
+    }  # fmt: skip
 
 
 def _requirements_summary(run: ScopingRun) -> dict[str, Any] | None:
@@ -121,11 +141,14 @@ def _context(
             "computed_estimates": {phase.value: rng for phase, rng in computed.items()},
         }
     elif name == "wbs":
+        computed = run.effort_basis.computed if run.effort_basis else {}
         ctx = {
-            "intake": {"constraints": run.intake.constraints} if run.intake else None,
+            "intake": _dump(run.intake),
             "pattern": _dump(run.pattern),
             "feasibility": {"risks": _dump(run.feasibility)["risks"]} if run.feasibility else None,
             "architecture": _dump(run.architecture),
+            "computed_estimates": {phase.value: rng for phase, rng in computed.items()},
+            "answers": answers,
         }
     elif name == "requirements":
         ctx = {
@@ -144,11 +167,7 @@ def _context(
             "feasibility": _dump(run.feasibility),
             "architecture": _dump(run.architecture),
             "wbs_summary": _wbs_summary(run),
-            "timeline": (
-                {"total_days": run.schedule.total_days, "weeks": -(-run.schedule.total_days // 5)}
-                if run.schedule
-                else None
-            ),
+            "timeline": _timeline(run),
             "requirements_summary": _requirements_summary(run),
             "quotation_summary": (
                 {
@@ -262,8 +281,12 @@ async def run_pipeline(llm: LLMClient, run: ScopingRun, repo: RunRepo) -> AsyncI
                     run.effort_basis = basis
                     step = architecture_step(_computed(basis))
                 elif name == "wbs":
-                    assert run.architecture
-                    step = wbs_step(run.architecture.estimates)
+                    assert run.architecture and run.pattern
+                    step = wbs_step(
+                        run.pattern.pattern,
+                        _computed(run.effort_basis),
+                        [e.phase for e in run.architecture.estimates],
+                    )
                 elif name != "requirements":
                     step = _FIXED_STEPS[name]
 
@@ -273,8 +296,13 @@ async def run_pipeline(llm: LLMClient, run: ScopingRun, repo: RunRepo) -> AsyncI
                         result, latency_ms = await _run_requirements(llm, run, mask)
                     else:
                         result, latency_ms = await step.run(llm, _context(name, run, basis, mask))
+                    if name == "wbs":  # master schedule: code only (BIDDING_SPEC 4)
+                        run.schedule_config = run.schedule_config or default_config()
+                        schedule = build_schedule(result, run.schedule_config)
                 except StepError as exc:
                     message = exc.message
+                except ScheduleError as exc:
+                    message = str(exc)
                 except Exception as exc:  # network errors, provider not configured, ...
                     message = f"Lỗi hệ thống: {exc}"
                 else:
@@ -290,7 +318,7 @@ async def run_pipeline(llm: LLMClient, run: ScopingRun, repo: RunRepo) -> AsyncI
                 if name == "pattern" and run.answers:
                     _note_unresolved(run)
                 if name == "wbs":
-                    run.schedule = compute_schedule(result)
+                    run.schedule = schedule
                     run.quotation = compute_quotation(run, load_rate_card())
                 run.step_latency_ms[name] = latency_ms
                 repo.save(run)
@@ -334,5 +362,6 @@ def reset_from(run: ScopingRun, step: str) -> None:
     if STEP_NAMES.index(step) <= STEP_NAMES.index("wbs"):
         run.schedule = None
         run.quotation = None
+        run.wbs_edited = False
     run.translations = {}
     run.proposal_edited = False

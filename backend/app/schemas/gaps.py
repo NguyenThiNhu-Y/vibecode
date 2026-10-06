@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from app.schemas.common import QuestionTopic
+from app.schemas.common import Priority, QuestionTopic
 
 
 class ClarifyingQuestion(BaseModel):
@@ -9,6 +9,7 @@ class ClarifyingQuestion(BaseModel):
     question: str  # written in intake.language
     why_it_matters: str  # Vietnamese
     blocking: bool
+    priority: Priority = Priority.MID  # blocking=True is always high (post_validate)
 
 
 class GapResult(BaseModel):

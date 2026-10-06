@@ -17,6 +17,7 @@ from app.exports.common import (
     requirement_texts,
 )
 from app.exports.i18n import LABELS, format_money
+from app.exports.plan import schedule_for, task_rows
 from app.exports.templating import fill_docx, find_body_marker, move_after_marker
 from app.schemas.run import ScopingRun
 from app.templates_store import ExportKit
@@ -272,25 +273,37 @@ def build_docx(run: ScopingRun, kit: ExportKit | None = None) -> bytes:
         )
 
     if run.wbs:
-        _heading(doc, "C. WBS", 2)
-        sched = {t.id: t for t in run.schedule.tasks} if run.schedule else {}
+        _heading(doc, "C. WBS và lịch tổng thể", 2)
         _table(
             doc,
-            ["ID", "Giai đoạn", "Đầu việc", "Vai trò", "Ngày công", "Tuần"],
+            ["ID", "Giai đoạn", "Đầu việc", "Loại", "Ngày công", "Thời gian"],
             [
                 [
                     t.id,
                     PHASE_LABELS[t.phase.value],
                     t.name,
-                    t.role,
-                    str(t.person_days),
-                    f"T{sched[t.id].start_day // 5 + 1}–T{(sched[t.id].end_day - 1) // 5 + 1}"
-                    if t.id in sched
-                    else "",
+                    ", ".join(t.types),
+                    f"{t.md:g}",
+                    f"{t.start:%d/%m}–{t.end:%d/%m/%Y}" if t.start and t.end else "",
                 ]
-                for t in run.wbs.tasks
+                for t in task_rows(run)
             ],
         )
+        schedule = schedule_for(run)
+        if schedule:
+            _table(
+                doc,
+                ["Milestone", "Ngày", "Thanh toán (mặc định)"],
+                [
+                    [f"{m.id} – {m.name}", f"{m.date:%d/%m/%Y}",
+                     f"{m.payment_percent}%" if m.payment_percent else "—"]
+                    for m in schedule.milestones
+                ],
+            )  # fmt: skip
+        if run.wbs.out_of_scope:
+            _para(doc).add_run("Ngoài phạm vi WBS: ").bold = True
+            for item in run.wbs.out_of_scope:
+                _para(doc, "List Bullet").add_run(item)
 
     if run.requirements and not run.requirements.skipped:
         _heading(doc, "D. Bảng đáp ứng yêu cầu", 2)

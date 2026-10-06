@@ -1,9 +1,9 @@
 import re
 
-from app.agents.schedule import find_cycle
+from app.agents.schedule import find_cycle, lifted_dependencies
 from app.agents.step import Step
-from app.schemas.architecture import ArchitectureResult, PhaseEstimate
-from app.schemas.common import Confidence, Phase
+from app.schemas.architecture import ArchitectureResult
+from app.schemas.common import Confidence, Phase, Priority, SolutionPattern, TaskTag, WorkType
 from app.schemas.deal import ClientEmail
 from app.schemas.feasibility import FeasibilityResult
 from app.schemas.gaps import GapResult
@@ -11,7 +11,7 @@ from app.schemas.intake import IntakeResult
 from app.schemas.pattern import PatternResult
 from app.schemas.proposal import ProposalResult, TranslatedItems, TranslationResult
 from app.schemas.requirements import RequirementMatrix
-from app.schemas.wbs import WBSResult
+from app.schemas.wbs import PHASE_ORDER, WbsResult, children_map, leaves, parent_id
 
 ESTIMATE_TOLERANCE = 0.2
 
@@ -27,6 +27,9 @@ def validate_gaps(result: GapResult) -> GapResult:
     if len(set(ids)) != len(ids):
         for index, question in enumerate(result.questions, start=1):
             question.id = f"q{index}"
+    for question in result.questions:
+        if question.blocking:
+            question.priority = Priority.HIGH  # a question that blocks the analysis is never low
     result.can_proceed = not any(q.blocking for q in result.questions)
     return result
 
@@ -128,41 +131,109 @@ def architecture_step(computed: dict[Phase, tuple[int, int]]) -> Step[Architectu
     )
 
 
-PHASES = [Phase.POC, Phase.MVP, Phase.PRODUCTION]
+WBS_ID = re.compile(r"^[1-9]\d*(\.[1-9]\d*){0,2}$")
+AI_PATTERNS_EXEMPT = {SolutionPattern.NO_AI_RULE_BASED, SolutionPattern.NEEDS_CLARIFICATION}
 
 
-def make_wbs_validator(estimates: list[PhaseEstimate]):
-    """Task person-days per phase must add up to the architecture estimate range (code-checked)."""
+def _check_tree(result: WbsResult) -> None:
+    ids = [i.id for i in result.items]
+    duplicated = sorted({i for i in ids if ids.count(i) > 1})
+    if duplicated:
+        raise ValueError(f"id trong WBS bị trùng: {duplicated[:10]}")
+    by_id = {i.id: i for i in result.items}
+    kids = children_map(result)
+    for item in result.items:
+        if not WBS_ID.match(item.id):
+            raise ValueError(f"id '{item.id}' sai dạng; dùng 1, 1.2, 1.2.3")
+        if item.level != item.id.count(".") + 1:
+            raise ValueError(f"{item.id}: level phải là {item.id.count('.') + 1} theo id")
+        parent = parent_id(item.id)
+        if parent is not None and parent not in by_id:
+            raise ValueError(f"{item.id}: không có node cha {parent}")
+        if parent is not None and by_id[parent].phase != item.phase:
+            raise ValueError(f"{item.id}: phase phải giống node cha {parent}")
+        if item.level == 1 and item.id not in kids:
+            raise ValueError(f"{item.id}: nhóm cấp 1 phải có task con")
+        if item.id not in kids and (item.type is None or item.estimate_md is None):
+            raise ValueError(f"{item.id}: node lá phải có type và estimate_md")
+        if item.phase == Phase.PRODUCTION and item.level == 3:
+            raise ValueError(
+                f"{item.id}: giai đoạn production chỉ có task mức tổng, không sub-task"
+            )
 
-    def validate_wbs(result: WBSResult) -> WBSResult:
-        ids = [t.id for t in result.tasks]
-        if len(set(ids)) != len(ids):
-            raise ValueError("id của task trong WBS bị trùng")
-        phase_of = {t.id: PHASES.index(t.phase) for t in result.tasks}
-        for task in result.tasks:
-            unknown = [d for d in task.depends_on if d not in phase_of]
-            if unknown:
-                raise ValueError(f"{task.id}: depends_on tham chiếu task không tồn tại {unknown}")
-            later = [d for d in task.depends_on if phase_of[d] > phase_of[task.id]]
-            if later:
-                raise ValueError(f"{task.id}: không được phụ thuộc task ở giai đoạn sau {later}")
-        if cycle := find_cycle(result):
-            raise ValueError(f"WBS có phụ thuộc vòng: {' -> '.join(cycle)}")
-        for estimate in estimates:
-            total = sum(t.person_days for t in result.tasks if t.phase == estimate.phase)
-            low, high = estimate.min_person_days, estimate.max_person_days
-            if not low <= total <= high:
+
+def _check_dependencies(result: WbsResult) -> None:
+    order = {i.id: PHASE_ORDER.index(i.phase) for i in result.items}
+    for item in result.items:
+        unknown = [d for d in item.depends_on if d not in order]
+        if unknown:
+            raise ValueError(f"{item.id}: depends_on tham chiếu id không tồn tại {unknown}")
+        later = [d for d in item.depends_on if order[d] > order[item.id]]
+        if later:
+            raise ValueError(f"{item.id}: không được phụ thuộc task ở giai đoạn sau {later}")
+    raw = {i.id: i.depends_on for i in result.items}
+    if (cycle := find_cycle(raw)) or (cycle := find_cycle(lifted_dependencies(result))):
+        raise ValueError(f"WBS có phụ thuộc vòng: {' -> '.join(cycle)}")
+
+
+def make_wbs_validator(
+    pattern: SolutionPattern,
+    computed: dict[Phase, tuple[int, int]],
+    phases: list[Phase],
+):
+    """docs/BIDDING_SPEC.md 2.1. Parent estimates and phase totals were already recomputed by
+    code when the result was parsed (WbsResult.rollup)."""
+
+    def validate_wbs(result: WbsResult) -> WbsResult:
+        _check_tree(result)
+        _check_dependencies(result)
+        present = {i.phase for i in result.items}
+        missing = [p.value for p in phases if p not in present]
+        extra = [p.value for p in present if p not in phases]
+        if missing or extra:
+            raise ValueError(
+                f"WBS phải có đúng các giai đoạn của architecture; thiếu {missing}, thừa {extra}"
+            )
+        for phase in present:
+            types = {leaf.type for leaf in leaves(result) if leaf.phase == phase}
+            lacking = [t.value for t in (WorkType.PM, WorkType.QA) if t not in types]
+            if lacking:
+                raise ValueError(f"Giai đoạn {phase.value} thiếu task loại {lacking}")
+        if pattern not in AI_PATTERNS_EXEMPT:
+            tags = {tag for item in result.items for tag in item.tags}
+            lacking_tags = [
+                t.value for t in (TaskTag.DATA_PREP, TaskTag.EVALUATION) if t not in tags
+            ]
+            if lacking_tags:
+                raise ValueError(f"Giải pháp có AI phải có task gắn tag {lacking_tags}")
+        for total in result.totals:
+            if total.phase not in computed:
+                continue
+            low, high = computed[total.phase]
+            within = (
+                low * (1 - ESTIMATE_TOLERANCE) <= total.total_md <= high * (1 + ESTIMATE_TOLERANCE)
+            )
+            if not within and not (total.adjustment_note or "").strip():
                 raise ValueError(
-                    f"Tổng ngày công phase {estimate.phase.value} = {total}, phải nằm trong "
-                    f"[{low}, {high}] theo bước architecture"
+                    f"Tổng effort {total.phase.value} = {total.total_md:g} MD, ngoài khoảng "
+                    f"[{low * 0.8:g}, {high * 1.2:g}] của computed_estimates: phải ghi "
+                    f"adjustment_note cho giai đoạn này trong totals"
                 )
         return result
 
     return validate_wbs
 
 
-def wbs_step(estimates: list[PhaseEstimate]) -> Step[WBSResult]:
-    return Step("wbs", "08_wbs.md", WBSResult, post_validate=make_wbs_validator(estimates))
+def wbs_step(
+    pattern: SolutionPattern, computed: dict[Phase, tuple[int, int]], phases: list[Phase]
+) -> Step[WbsResult]:
+    return Step(
+        "wbs",
+        "08_wbs.md",
+        WbsResult,
+        kb_keys=["wbs_templates"],
+        post_validate=make_wbs_validator(pattern, computed, phases),
+    )
 
 
 def make_requirements_validator(expected_ids: list[str]):

@@ -9,7 +9,7 @@ import {
   RISK_LABELS,
   formatMoney,
 } from "../labels";
-import type { Coverage, Quotation, Schedule, StepResults } from "../types";
+import type { Coverage, Quotation, ScheduleResult, StepResults } from "../types";
 import { severityTone, ScoreBar } from "./FeasibilityCard";
 import { IconChevronRight, IconPause, IconSparkles } from "./icons";
 import { Badge, Callout, Panel } from "./ui";
@@ -42,7 +42,7 @@ export default function OverviewTab({
 }: {
   results: Partial<StepResults>;
   quotation: Quotation | null;
-  schedule: Schedule | null;
+  schedule: ScheduleResult | null;
   waiting: boolean;
   onOpen: (tab: TabKey) => void;
 }) {
@@ -153,7 +153,8 @@ export default function OverviewTab({
               </table>
               {wbs && schedule && (
                 <p className="mt-2 text-sm text-subtle">
-                  WBS {wbs.tasks.length} đầu việc · timeline khoảng {Math.ceil(schedule.total_days / 5)} tuần
+                  WBS {wbs.items.filter((i) => i.level === 2).length} task · {schedule.phases.reduce((s, p) => s + p.working_days, 0)} ngày làm việc, xong{" "}
+                  {schedule.phases[schedule.phases.length - 1].end.split("-").reverse().join("/")}
                 </p>
               )}
             </>

@@ -8,6 +8,8 @@ import {
   postAnswers,
   postReview,
   proposalUrl,
+  patchWbsEstimates,
+  putScheduleConfig,
   replayExportUrl,
   rerunRun,
   runCaseStudies,
@@ -56,7 +58,7 @@ import {
   type Quotation,
   type ReplayInfo,
   type RunStatus,
-  type Schedule,
+  type ScheduleResult,
   type ScopingRun,
   type SimilarRun,
   type Stats,
@@ -127,7 +129,7 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
   const [reviewerNote, setReviewerNote] = useState<string | null>(null);
   const [replay, setReplay] = useState<ReplayInfo | null>(null);
   const [effortBasis, setEffortBasis] = useState<EffortBasis | null>(null);
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleResult | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [quotation, setQuotation] = useState<Quotation | null>(null);
   const [deal, setDeal] = useState<Deal>({ project_name: null, client_name: null, due_date: null, deal_stage: "new" });
@@ -140,8 +142,8 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
   });
   const [stats, setStats] = useState<Stats | null>(null);
   const [meta, setMeta] = useState<
-    Pick<ScopingRun, "redactions" | "revision" | "feedback" | "feedback_step" | "proposal_edited" | "translations">
-  >({ redactions: {}, revision: 0, feedback: null, feedback_step: null, proposal_edited: false, translations: {} });
+    Pick<ScopingRun, "redactions" | "revision" | "feedback" | "feedback_step" | "proposal_edited" | "wbs_edited" | "translations">
+  >({ redactions: {}, revision: 0, feedback: null, feedback_step: null, proposal_edited: false, wbs_edited: false, translations: {} });
   const [reloadKey, setReloadKey] = useState(0);
   const closeStream = useRef<(() => void) | null>(null);
 
@@ -167,6 +169,7 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
       feedback: run.feedback ?? null,
       feedback_step: run.feedback_step ?? null,
       proposal_edited: run.proposal_edited ?? false,
+      wbs_edited: run.wbs_edited ?? false,
       translations: run.translations ?? {},
     });
   }, []);
@@ -291,6 +294,16 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
     applyMeta(await updateQuotation(key, body));
   };
 
+  const editWbs = async (estimates: Record<string, number>) => {
+    applyRun(await patchWbsEstimates(key, estimates));
+  };
+
+  const changeSchedule = async (config: Parameters<typeof putScheduleConfig>[1]) => {
+    const run = await putScheduleConfig(key, config);
+    setSchedule(run.schedule ?? null);
+    applyMeta(run); // the quotation follows the new timeline
+  };
+
   const submitAnswers = async (answers: Record<string, string>) => {
     const filled = Object.fromEntries(Object.entries(answers).filter(([, value]) => value.trim().length > 0));
     if (mode === "run") {
@@ -350,6 +363,16 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
   const canAnswer = mode === "run" || (replay?.segments.length ?? 0) > 1;
   const reviewable = status !== null && REVIEWABLE.includes(status);
   const language = results.intake?.language ?? "vi";
+  const wbsLock =
+    mode === "replay"
+      ? "Đây là bản Replay (phát lại demo) nên chỉ xem được, không sửa. Để sửa man-day, mở một hồ sơ trong mục Hồ sơ hoặc tạo hồ sơ mới."
+      : status === "approved"
+      ? "Hồ sơ đã duyệt kỹ thuật: bấm Yêu cầu sửa nếu cần chỉnh WBS."
+      : process.pricing_approval?.approved
+        ? "Giá đã được duyệt nên WBS đang khóa: hủy duyệt giá ở tab Quy trình & phê duyệt để sửa."
+        : status === "done" || status === "rejected"
+          ? null
+          : "Chỉ sửa được khi hồ sơ đã phân tích xong.";
   const zipUrl = results.proposal
     ? mode === "run"
       ? exportUrl(key, "package.zip", language)
@@ -598,7 +621,17 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
                 onChange={mode === "run" && status !== "running" ? changeQuotation : undefined}
               />
             )}
-            {results.wbs && <WBSCard data={results.wbs} schedule={schedule} architecture={results.architecture ?? null} />}
+            {results.wbs && (
+              <WBSCard
+                data={results.wbs}
+                schedule={schedule}
+                downloadHref={mode === "run" ? exportUrl(key, "bidding.xlsx") : replay?.has_final_run ? replayExportUrl(key, "bidding.xlsx") : undefined}
+                onScheduleChange={mode === "run" && status !== "running" ? changeSchedule : undefined}
+                edited={meta.wbs_edited}
+                onEstimatesSave={mode === "run" && wbsLock === null ? editWbs : undefined}
+                lockReason={wbsLock}
+              />
+            )}
             {runningStep === "wbs" && running}
           </>
         )}

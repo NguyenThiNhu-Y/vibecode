@@ -18,6 +18,7 @@ DOC_NAMES = {
     "proposal": "Proposal",
     "workbook": "Estimate",
     "qa_sheet": "QA",
+    "bidding": "Bidding",
     "package": "Package",
     "markdown": "Proposal",
 }

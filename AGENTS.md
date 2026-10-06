@@ -261,11 +261,16 @@ class DataProfile(BaseModel):  sheet: str | None; rows: int; columns: list[Colum
 class CodeProfile(BaseModel):  files: int; total_lines: int; languages: dict[str, int]; frameworks: list[str]; top_dirs: list[str]; has_tests: bool; has_docker: bool; notes: list[str]
 class Attachment(BaseModel):  id: str; filename: str; kind: AttachmentKind; size_bytes: int; text: str | None; pages: int | None; truncated: bool; requirements: list[RequirementItem]; data_profiles: list[DataProfile]; code_profile: CodeProfile | None
 
-# app/schemas/wbs.py  (bước 6)
-class WBSTask(BaseModel):  id: str; phase: Phase; name: str; role: str; person_days: int = Field(ge=1, le=200); depends_on: list[str] = []; deliverable: str | None = None
-class WBSResult(BaseModel):  tasks: list[WBSTask] = Field(min_length=1, max_length=60); notes: list[str] = []
-class ScheduledTask(BaseModel):  id: str; start_day: int; end_day: int
-class Schedule(BaseModel):  tasks: list[ScheduledTask]; phases: dict[Phase, list[int]]; total_days: int  # code tính
+# app/schemas/wbs.py  (bước 6 — đã thay bằng cây 3 cấp theo docs/BIDDING_SPEC.md 3.1)
+class WbsItem(BaseModel):  id: str  # "1", "1.2", "1.2.3"; phase: Phase; name: str; level: int = Field(ge=1, le=3); type: WorkType | None; priority: Priority = "mid"; estimate_md: float | None  # chỉ node lá, ≤ 10; depends_on: list[str] = []; deliverable: str | None; tags: list[TaskTag] = []; note: str | None
+class PhaseTotal(BaseModel):  phase: Phase; total_md: float; by_type: dict[WorkType, float]; adjustment_note: str | None  # code tính, giữ note của LLM
+class WbsResult(BaseModel):  items: list[WbsItem] = Field(min_length=1, max_length=150); totals: list[PhaseTotal] = []; assumptions: list[str] = []; out_of_scope: list[str] = []  # node cha + totals do code cộng; WBS phẳng cũ (`tasks`) tự chuyển khi đọc
+# app/schemas/schedule.py  (code tính, docs/BIDDING_SPEC.md 4)
+class ScheduleConfig(BaseModel):  start_date: date; headcount: dict[WorkType, int]; buffer_ratio: float = 0.15; holidays: list[date] = []
+class PhaseSchedule(BaseModel):  phase: Phase; start: date; end: date; working_days: int
+class TaskSchedule(BaseModel):  wbs_id: str  # node cấp 2; start: date; end: date
+class Milestone(BaseModel):  id: str  # M1..M4; name: str; date: date; phase: Phase; payment_percent: int | None
+class ScheduleResult(BaseModel):  config: ScheduleConfig; phases: list[PhaseSchedule]; tasks: list[TaskSchedule]; milestones: list[Milestone]; mermaid_gantt: str
 
 # app/schemas/requirements.py  (bước 7)
 Coverage = Literal["full", "partial", "not_supported", "needs_clarification"]
@@ -275,11 +280,11 @@ class RequirementMatrix(BaseModel):  items: list[RequirementAssessment]; skipped
 # app/schemas/quotation.py  (báo giá, code tính từ WBS × rate_card.yaml)
 Currency = Literal["VND", "JPY", "USD"]
 ContractModel = Literal["fixed_price", "time_material", "odc"]
-class QuoteLine(BaseModel):  phase: Phase; role_key: str; role_label: str; person_days: int; day_rate: float; amount: float; kind: Literal["wbs", "overhead"] = "wbs"
+class QuoteLine(BaseModel):  phase: Phase; role_key: str; role_label: str; person_days: float; day_rate: float; amount: float; kind: Literal["wbs", "overhead"] = "wbs"
 class OdcMember(BaseModel):  role_label: str; fte: float; monthly_cost: float
-class PhaseCost(BaseModel):  phase: Phase; person_days: int; amount: float; min_amount: float; max_amount: float
+class PhaseCost(BaseModel):  phase: Phase; person_days: float; amount: float; min_amount: float; max_amount: float
 class Milestone(BaseModel):  name: str; percent: float; amount: float
-class Quotation(BaseModel):  currency: Currency; contract_model: ContractModel = "fixed_price"; onsite_ratio: float = 0; wbs_person_days: int = 0; overhead_person_days: int = 0; odc_team: list[OdcMember] = []; odc_monthly_cost: float | None = None; months: int | None = None; lines: list[QuoteLine]; phases: list[PhaseCost]; subtotal: float; contingency_pct: float; contingency: float; total: float; total_min: float; total_max: float; monthly_run_cost: float | None; milestones: list[Milestone]; assumptions: list[str]
+class Quotation(BaseModel):  currency: Currency; contract_model: ContractModel = "fixed_price"; onsite_ratio: float = 0; wbs_person_days: float = 0; overhead_person_days: float = 0; odc_team: list[OdcMember] = []; odc_monthly_cost: float | None = None; months: int | None = None; lines: list[QuoteLine]; phases: list[PhaseCost]; subtotal: float; contingency_pct: float; contingency: float; total: float; total_min: float; total_max: float; monthly_run_cost: float | None; milestones: list[Milestone]; assumptions: list[str]
 
 # app/schemas/deal.py
 class DealStage(str, Enum):  NEW="new"; CLARIFYING="clarifying"; REVIEWING="reviewing"; READY="ready"; SENT="sent"; WON="won"; LOST="lost"; NO_BID="no_bid"
@@ -294,7 +299,8 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
     wbs: WBSResult | None = None
     requirements: RequirementMatrix | None = None
     attachments: list[Attachment] = []
-    schedule: Schedule | None = None      # code tính từ wbs
+    schedule: ScheduleResult | None = None  # code tính từ wbs (BIDDING_SPEC 4)
+    schedule_config: ScheduleConfig | None = None  # ngày bắt đầu, headcount; mặc định khi lập lịch lần đầu
     quotation: Quotation | None = None    # code tính sau bước wbs
     client_email: ClientEmail | None = None
     deck_translations: dict[str, dict[str, str]] = {}  # ngôn ngữ -> chuỗi gốc -> bản dịch (slide)
@@ -321,6 +327,7 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
     revision: int = 0                     # số lần chạy lại theo góp ý
     redactions: dict[str, int] = {}       # loại PII -> số lượng đã che
     proposal_edited: bool = False         # proposal đã được người sửa tay
+    wbs_edited: bool = False              # man-day node lá WBS đã được người sửa tay
     translations: dict[str, str] = {}     # ngôn ngữ -> proposal đã dịch
 ```
 
@@ -360,6 +367,10 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
 | `POST /runs/{id}/client-email` | `{sender_name?, regenerate?}` | `200 {subject, body}` (cache trong `client_email`) | `409` chưa có câu hỏi; `502` LLM lỗi |
 | `POST /runs/{id}/answers/import` | multipart `file` (Q&A sheet đã điền) | `200 ScopingRun` (như `/answers`) | `409` không chờ làm rõ; `422` file sai/không có câu trả lời |
 | `GET /runs/{id}/export/qa_sheet.xlsx` | — | file Q&A theo ngôn ngữ khách | `409` chưa có câu hỏi |
+| `GET /runs/{id}/bidding.xlsx` (= `/export/bidding.xlsx`) | — | Excel 4 sheet Q&A, WBS, Summary, Master Schedule; chỉ sheet Q&A khi chưa có WBS | `409` chưa có `gaps` |
+| `PUT /runs/{id}/schedule-config` | `ScheduleConfig` | `200 ScopingRun` (tính lại `schedule` bằng code, không gọi LLM; báo giá chưa duyệt được tính lại) | `409` chưa có WBS; `422` headcount 0 cho loại có task |
+| `POST /runs` (bidding) | thêm `schedule_config` tùy chọn | như cũ | `422` |
+| `PATCH /runs/{id}/wbs` | `{estimates: {leaf_id: man_day}}` (0–10, chỉ node lá) | `200 ScopingRun` (`wbs_edited = true`; code cộng lại node cha, totals, tính lại `schedule` và báo giá; không gọi LLM) | `409` chưa có WBS / hồ sơ chưa xong hoặc đã duyệt / giá đã duyệt; `422` id không có, node cha, ngoài 0–10 |
 | `GET /runs/{id}/export/{slides.pptx\|package.zip}?lang=vi\|en\|ja` | — | slide theo ngôn ngữ (nội dung dịch bằng LLM, cache `deck_translations`) | `422` ngôn ngữ sai; `502` dịch lỗi |
 | `GET /runs/{id}/similar` | — | `200 list[RunSummary + score]` (tối đa 3) | `404` |
 | `GET /stats` | — | `200 {runs, finished, stages, win_rate, hours_saved, manual_hours_per_proposal, review_hours_per_proposal}` | — |
@@ -420,7 +431,7 @@ Mỗi bước là một instance `Step(name, prompt_file, output_model, kb_keys,
 | `pattern` | `intake`, `gaps`, `answers` | `solution_patterns` | `pattern` không nằm trong `rejected`; nếu `confidence = high` thì `rejected` có ≥ 2 mục |
 | `feasibility` | `intake`, `pattern`, `answers` | `risk_checklist` | `risks` sắp xếp severity giảm dần |
 | `architecture` | `intake`, `pattern`, `feasibility`, `computed_estimates` | `reference_projects` | Mỗi phase: `min ≤ max`; lệch quá ±20% so với `computed_estimates` mà thiếu `adjustment_note` → lỗi |
-| `wbs` | `pattern`, `architecture`, `feasibility.risks` | — | id duy nhất; `depends_on` tồn tại, không phụ thuộc giai đoạn sau, không vòng; tổng ngày công mỗi phase nằm trong `[min, max]` của `architecture.estimates`. Sau đó code tính `schedule` |
+| `wbs` | `intake`, `pattern`, `feasibility.risks`, `architecture`, `computed_estimates`, `answers` | `wbs_templates` | Theo docs/BIDDING_SPEC.md 2.1: id phân cấp, có cha, cùng phase; node lá có type + estimate ≤ 10; `depends_on` tồn tại, không phụ thuộc giai đoạn sau, không vòng (kể cả sau khi nâng lên task cấp 2); mỗi giai đoạn có PM và QA; pattern AI có tag `data_prep` + `evaluation`; production không có cấp 3; đúng các giai đoạn của architecture; tổng ngoài `computed_estimates` ±20% thì phải có `adjustment_note`. Sau đó code tính `schedule` (`build_schedule`) |
 | `requirements` | `pattern`, `architecture.components`, lô ≤ 40 requirement | — | Mỗi `req_id` của lô xuất hiện đúng một lần. Không có file requirement → `skipped = true`, không gọi LLM |
 | `proposal` | toàn bộ kết quả trước đó + `wbs_summary`, `timeline`, `requirements_summary` | — | `markdown` chứa các heading `Giả định` và `Rủi ro` |
 
@@ -456,7 +467,7 @@ Mỗi bước là một instance `Step(name, prompt_file, output_model, kb_keys,
 - **Q&A sheet (`exports/qa_sheet.py`):** xuất câu hỏi theo ngôn ngữ khách (cột ID + cột trả lời tô vàng); nhập lại file đã điền → gộp vào `answers` như `/answers`.
 - **Slide đa ngôn ngữ:** nhãn cố định trong `exports/i18n.py`; nội dung agent viết được dịch bằng step `translate_items` (`prompts/11_translate_items.md`, kiểm tra đúng số phần tử), cache theo run.
 - **Hồ sơ tương tự (`app/similar.py`):** điểm = pattern trùng (0,4) + Jaccard mục tiêu (0,25) + ngành (0,15) + ràng buộc (0,1) + ngôn ngữ (0,1); ngưỡng 0,25.
-- **Báo giá chuẩn công ty:** overhead theo % ngày công WBS từng giai đoạn (PM luôn có; BrSE khi khách tiếng Nhật) thành dòng `kind="overhead"`; đơn giá = offshore × (1 − onsite%) + onsite × onsite%. Ba mô hình: `fixed_price` (dự phòng + mốc thanh toán), `time_material` (không dự phòng, thanh toán theo tháng), `odc` (FTE theo vai trò làm tròn 0,5, chi phí/tháng × số tháng của timeline).
+- **Báo giá chuẩn công ty:** man-day theo node lá WBS × Type (AI→ai_engineer, BE→backend, …); overhead theo % man-day WBS từng giai đoạn (PM; BrSE khi khách tiếng Nhật) thành dòng `kind="overhead"`, **bỏ qua vai trò WBS đã có task trong giai đoạn đó** (PM là task bắt buộc của WBS nên không cộng hai lần); đơn giá = offshore × (1 − onsite%) + onsite × onsite%. Ba mô hình: `fixed_price` (dự phòng + mốc thanh toán), `time_material` (không dự phòng, thanh toán theo tháng), `odc` (FTE theo vai trò làm tròn 0,5, chi phí/tháng × số tháng của timeline).
 - **Phê duyệt 2 cấp (`app/deal.py`):** `approved` (kỹ thuật) chỉ chuyển deal sang `ready` khi có `pricing_approval.approved` (nếu run có báo giá). Sửa báo giá hoặc `rerun` xóa duyệt giá; giá đã duyệt thì khóa sửa.
 - **Bid/No-bid (`app/bid.py`):** tiêu chí trong `knowledge_base/bid_criteria.yaml`; tiêu chí `auto` được code gợi ý từ kết quả phân tích, người xác nhận ghi đè. Điểm = % trọng số đạt; < 60% trọng số đã đánh giá → `need_info`, ≥ 70 → `bid`, ≥ 50 → `consider`, còn lại `no_bid`. Quyết định `no_bid` đặt deal `no_bid`.
 - **Phiên bản & tên file:** `versions` đánh số 1.0/1.1/2.0, lưu snapshot proposal; `sent=true` đặt deal `sent`. Tên file xuất theo `company.yaml → file_naming` (`{company}_{client}_{project}_{doc}_v{version}_{date}`), header `Content-Disposition` có `filename*` UTF-8 (RFC 5987).
@@ -675,3 +686,5 @@ kèm case nó nhắm sửa và rủi ro làm hỏng case đang đúng. Chưa s�
 ```
 
 Giữ nguyên tắc: một phiên chat cho một task. Khi phiên quá dài hoặc AI bắt đầu quên quy tắc, mở phiên mới và bắt đầu lại bằng prompt "Mở đầu phiên".
+
+Phần mở rộng bidding: xem docs/BIDDING_SPEC.md (task B01–B10, làm sau T10). Trạng thái và các điểm khác spec: mục 9 của file đó.

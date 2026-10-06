@@ -1,0 +1,46 @@
+# BẢN NHÁP do AI tạo (docs/BIDDING_SPEC.md 3.2) — chủ dự án cần review và chỉnh theo kinh nghiệm thực tế.
+# Khung task chuẩn cho bước WBS. type: AI | BE | FE | QA | BA | PM | INFRA | DESIGN | DATA
+# share = tỉ lệ gợi ý trên tổng effort giai đoạn (gợi ý cho LLM, code không ép).
+# tags: data_prep | evaluation | prompt_tuning | integration | security | documentation
+mandatory:                       # mọi pattern đều phải có (code kiểm tra PM và QA ở mọi giai đoạn)
+  - { name: "Kick-off và quản lý dự án", type: PM, share: 0.10 }
+  - { name: "Phân tích yêu cầu", type: BA, share: 0.08 }
+  - { name: "Test và nghiệm thu", type: QA, share: 0.15 }
+  - { name: "Tài liệu và bàn giao", type: BA, tags: [documentation] }
+by_pattern:
+  rag:
+    - { name: "Thu thập và làm sạch tài liệu", type: DATA, tags: [data_prep] }
+    - { name: "Pipeline ingest và chunking", type: AI }
+    - { name: "Retrieval và prompt", type: AI, tags: [prompt_tuning] }
+    - { name: "Bộ đánh giá độ chính xác", type: AI, tags: [evaluation] }
+    - { name: "API hỏi đáp", type: BE }
+    - { name: "Giao diện chat", type: FE }
+    - { name: "Phân quyền tài liệu và bảo mật", type: BE, tags: [security] }
+  agent:
+    - { name: "Chuẩn bị dữ liệu mẫu và kịch bản nghiệp vụ", type: DATA, tags: [data_prep] }
+    - { name: "Thiết kế luồng agent và tool", type: AI }
+    - { name: "Tích hợp hệ thống ngoài (API ERP/email/lịch)", type: BE, tags: [integration] }
+    - { name: "Prompt và chính sách hành động", type: AI, tags: [prompt_tuning] }
+    - { name: "Bước người duyệt và hoàn tác", type: BE, tags: [security] }
+    - { name: "Bộ đánh giá kịch bản end-to-end", type: AI, tags: [evaluation] }
+    - { name: "Giao diện theo dõi và duyệt", type: FE }
+  classic_ml:
+    - { name: "Thu thập, làm sạch và gán nhãn dữ liệu", type: DATA, tags: [data_prep] }
+    - { name: "Phân tích khám phá và feature engineering", type: AI }
+    - { name: "Huấn luyện và chọn mô hình", type: AI }
+    - { name: "Đánh giá mô hình trên tập kiểm tra", type: AI, tags: [evaluation] }
+    - { name: "API dự đoán và lịch chạy batch", type: BE }
+    - { name: "Dashboard kết quả", type: FE }
+    - { name: "Giám sát drift và huấn luyện lại", type: INFRA }
+  fine_tune:
+    - { name: "Chuẩn bị và ẩn danh dữ liệu huấn luyện", type: DATA, tags: [data_prep, security] }
+    - { name: "Chọn model nền và kiểm tra license", type: AI }
+    - { name: "Fine-tune và tối ưu tham số", type: AI }
+    - { name: "Bộ đánh giá chất lượng đầu ra", type: AI, tags: [evaluation] }
+    - { name: "Hạ tầng GPU và serving", type: INFRA }
+    - { name: "API sinh nội dung", type: BE }
+  no_ai_rule_based:
+    - { name: "Chuẩn hóa quy tắc nghiệp vụ", type: BA }
+    - { name: "Script/ETL xử lý dữ liệu", type: BE }
+    - { name: "Kiểm thử với dữ liệu thật của khách", type: QA }
+    - { name: "Lập lịch chạy và giám sát", type: INFRA }

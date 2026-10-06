@@ -5,7 +5,7 @@ filled by app/exports/translation.py (identity for Vietnamese)."""
 
 import io
 from collections.abc import Callable
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from pptx import Presentation
 from pptx.dml.color import RGBColor
@@ -27,8 +27,10 @@ from app.exports.common import (
     requirement_texts,
 )
 from app.exports.i18n import LABELS, format_money
+from app.exports.plan import schedule_for, task_rows, total_md, week_starts
 from app.exports.templating import fit_logo, mix, open_pptx_template, tidy_placeholders
 from app.schemas.run import ScopingRun
+from app.schemas.wbs import leaves, task_of
 from app.templates_store import ExportKit
 
 W, H = Inches(13.333), Inches(7.5)
@@ -68,7 +70,7 @@ def deck_texts(run: ScopingRun) -> list[str]:
             texts += e.team + e.deliverables
         texts += run.architecture.out_of_scope
     if run.wbs:
-        texts += [t.name for t in run.wbs.tasks] + [t.role for t in run.wbs.tasks]
+        texts += [i.name for i in run.wbs.items]
     if run.requirements:
         texts += [i.note for i in run.requirements.items]
     if run.quotation:
@@ -722,16 +724,16 @@ class Deck:
         wbs, L, t = self.run.wbs, self.L, self.t
         if not wbs:
             return
-        total = sum(task.person_days for task in wbs.tasks)
-        s = self.slide(L["wbs"], L["wbs_sub"].format(n=len(wbs.tasks), d=total))
-        tasks = wbs.tasks[:13]
+        rows_all = task_rows(self.run)
+        s = self.slide(L["wbs"], L["wbs_sub"].format(n=len(rows_all), d=f"{total_md(self.run):g}"))
+        tasks = rows_all[:11]  # 12 rows x 0.4 in ends at 6.25 in, above the "more" line
         rows = [
             [
                 k.id,
                 PHASE_LABELS[k.phase.value],
                 _cut(t(k.name), 70),
-                _cut(t(k.role), 30),
-                str(k.person_days),
+                _cut(", ".join(L["type_labels"].get(x, x) for x in k.types[:2]), 30),
+                f"{k.md:g}",
             ]
             for k in tasks
         ]
@@ -745,65 +747,58 @@ class Deck:
             [0.8, 1.5, 5.6, 2.6, 1.3],
             size=11,
         )
-        if len(wbs.tasks) > len(tasks):
+        if len(rows_all) > len(tasks):
             self.text(
                 s,
                 Inches(0.75),
                 Inches(6.55),
                 Inches(11),
                 Inches(0.3),
-                L["more"].format(n=len(wbs.tasks) - len(tasks)),
+                L["more"].format(n=len(rows_all) - len(tasks)),
                 size=11,
                 color=GRAY,
             )
 
     def timeline_slide(self) -> None:
-        wbs, sched, L = self.run.wbs, self.run.schedule, self.L
-        if not (wbs and sched and sched.total_days):
+        """Master schedule as editable shapes: one bar per level-2 task, diamonds for milestones."""
+        schedule, L = schedule_for(self.run), self.L
+        tasks = [k for k in task_rows(self.run) if k.start and k.end][:14]
+        if not (schedule and tasks):
             return
-        weeks = max(1, -(-sched.total_days // 5))
-        s = self.slide(L["timeline"], L["timeline_sub"].format(w=weeks, d=sched.total_days))
-        tasks = wbs.tasks[:16]
-        by_id = {task.id: task for task in sched.tasks}
+        weeks = week_starts(schedule)
+        first, span = weeks[0], len(weeks) * 7
+        end = max(p.end for p in schedule.phases)
+        days = sum(p.working_days for p in schedule.phases)
+        sub = L["timeline_sub"].format(start=f"{first:%d/%m/%Y}", end=f"{end:%d/%m/%Y}", d=days)
+        s = self.slide(L["timeline"], sub)
         label_w, left, right = Inches(3.4), Inches(0.75), Inches(12.6)
         area = right - (left + label_w)
-        top, row_h = Inches(1.75), min(Inches(0.31), int(Inches(4.9) / max(1, len(tasks))))
-        step = max(1, -(-weeks // 20))
-        for wk in range(0, weeks, step):
-            x = int(left + label_w + area * wk / weeks)
-            self.text(
-                s,
-                x,
-                Inches(1.35),
-                Inches(0.7),
-                Inches(0.3),
-                L["week"].format(n=wk + 1),
-                size=9,
-                color=GRAY,
-            )
+        rows = len(tasks) + 1  # + milestone row
+        top, row_h = Inches(1.75), min(Inches(0.3), int(Inches(4.4) / rows))
+
+        def x_of(d: date) -> int:
+            return int(left + label_w + area * (d - first).days / span)
+
+        step = max(1, -(-len(weeks) // 12))
+        for k in range(0, len(weeks), step):
+            self.text(s, x_of(weeks[k]), Inches(1.35), Inches(0.8), Inches(0.3),
+                      f"{weeks[k]:%d/%m}", size=9, color=GRAY)  # fmt: skip
         for i, task in enumerate(tasks):
             y = int(top + row_h * i)
-            self.text(
-                s,
-                left,
-                y - Inches(0.04),
-                label_w - Inches(0.1),
-                row_h,
-                _cut(f"{task.id} {self.t(task.name)}", 42),
-                size=10,
-            )
-            st = by_id[task.id]
-            x = int(left + label_w + area * st.start_day / (weeks * 5))
-            w = max(Inches(0.08), int(area * (st.end_day - st.start_day) / (weeks * 5)))
-            self.rounded(
-                s,
-                x,
-                y + Inches(0.04),
-                w,
-                row_h - Inches(0.08),
-                self.phase_colors[task.phase.value],
-                0.3,
-            )
+            self.text(s, left, y - Inches(0.04), label_w - Inches(0.1), row_h,
+                      _cut(f"{task.id} {self.t(task.name)}", 42), size=10)  # fmt: skip
+            x = x_of(task.start)  # type: ignore[arg-type]
+            w = max(Inches(0.08), x_of(task.end + timedelta(days=1)) - x)  # type: ignore[operator]
+            self.rounded(s, x, y + Inches(0.04), w, row_h - Inches(0.08),
+                         self.phase_colors[task.phase.value], 0.3)  # fmt: skip
+        y = int(top + row_h * len(tasks)) + Inches(0.05)
+        for m in schedule.milestones:
+            x = x_of(m.date) + int(area / span / 2)
+            self.rect(s, x - Inches(0.09), y, Inches(0.18), Inches(0.18), self.strong,
+                      shape=MSO_SHAPE.DIAMOND)  # fmt: skip
+            label = m.id + (f" · {m.payment_percent}%" if m.payment_percent else "")
+            self.text(s, x - Inches(0.4), y + Inches(0.18), Inches(0.9), Inches(0.28), label,
+                      size=8, color=GRAY)  # fmt: skip
         for i, (phase, color) in enumerate(self.phase_colors.items()):
             x = Inches(0.75 + i * 1.8)
             self.rect(s, x, Inches(6.67), Inches(0.3), Inches(0.16), color)
@@ -1003,30 +998,33 @@ class Deck:
                           size=12, space=6)  # fmt: skip
 
     def team_slide(self) -> None:
-        """Project team derived from this run: WBS roles with their main tasks and person-days,
-        plus the company overhead roles (PM, BrSE) priced in the quotation. Company profile and
-        staff credentials belong in the content library, not here."""
+        """Project team derived from this run: one row per WBS work type with its main tasks and
+        man-days, plus overhead roles the quotation adds (e.g. BrSE). Company profile and staff
+        credentials belong in the content library, not here."""
         wbs, q, L, t = self.run.wbs, self.run.quotation, self.L, self.t
         if not wbs:
             return
-        by_role: dict[str, list] = {}
-        for task in wbs.tasks:
-            by_role.setdefault(task.role, []).append(task)
-        ranked = sorted(by_role.items(), key=lambda kv: -sum(k.person_days for k in kv[1]))
+        names = {i.id: i.name for i in wbs.items}
+        by_type: dict[str, dict[str, float]] = {}
+        for leaf in leaves(wbs):
+            if leaf.type is not None:
+                tasks = by_type.setdefault(leaf.type.value, {})
+                tasks[task_of(leaf.id)] = tasks.get(task_of(leaf.id), 0) + (leaf.estimate_md or 0)
+        ranked = sorted(by_type.items(), key=lambda kv: -sum(kv[1].values()))
         rows = []
-        for role, tasks in ranked[:6]:
-            main = sorted(tasks, key=lambda k: -k.person_days)[:3]
+        for kind, tasks in ranked:
+            main = sorted(tasks, key=lambda k: -tasks[k])[:2]
             rows.append([
-                _cut(t(role), 40),
-                _cut("; ".join(t(k.name) for k in main), 110),
-                str(sum(k.person_days for k in tasks)),
+                L["type_labels"].get(kind, kind),
+                _cut("; ".join(t(names[k]) for k in main), 85),
+                f"{sum(tasks.values()):g}",
             ])  # fmt: skip
         overhead: dict[str, list] = {}
         for line in q.lines if q else []:
             if line.kind == "overhead":
                 overhead.setdefault(line.role_key, [line.role_label, 0])[1] += line.person_days
         for key, (label, days) in overhead.items():
-            rows.append([label, L["team_overhead"].get(key, ""), str(days)])
+            rows.append([label, L["team_overhead"].get(key, ""), f"{days:g}"])
         self.table(
             self.slide(L["team"], L["team_sub"]),
             Inches(0.75),

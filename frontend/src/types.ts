@@ -41,6 +41,7 @@ export interface ClarifyingQuestion {
   question: string;
   why_it_matters: string;
   blocking: boolean;
+  priority: Priority;
 }
 
 export interface GapResult {
@@ -181,31 +182,73 @@ export interface Attachment {
   code_profile: CodeProfile | null;
 }
 
-export interface WBSTask {
-  id: string;
+// Bidding extension (docs/BIDDING_SPEC.md 3.1)
+export type WorkType = "AI" | "BE" | "FE" | "QA" | "BA" | "PM" | "INFRA" | "DESIGN" | "DATA";
+export type Priority = "low" | "mid" | "high";
+export type TaskTag = "data_prep" | "evaluation" | "prompt_tuning" | "integration" | "security" | "documentation";
+
+export interface WbsItem {
+  id: string; // "1", "1.2", "1.2.3"
   phase: Phase;
   name: string;
-  role: string;
-  person_days: number;
+  level: 1 | 2 | 3;
+  type: WorkType | null; // leaves only
+  priority: Priority;
+  estimate_md: number | null; // parents: sum of children, computed by code
   depends_on: string[];
   deliverable: string | null;
+  tags: TaskTag[];
+  note: string | null;
 }
 
-export interface WBSResult {
-  tasks: WBSTask[];
-  notes: string[];
+export interface PhaseTotal {
+  phase: Phase;
+  total_md: number;
+  by_type: Partial<Record<WorkType, number>>;
+  adjustment_note: string | null;
 }
 
-export interface ScheduledTask {
-  id: string;
-  start_day: number;
-  end_day: number;
+export interface WbsResult {
+  items: WbsItem[];
+  totals: PhaseTotal[];
+  assumptions: string[];
+  out_of_scope: string[];
 }
 
-export interface Schedule {
-  tasks: ScheduledTask[];
-  phases: Partial<Record<Phase, [number, number]>>;
-  total_days: number;
+export interface ScheduleConfig {
+  start_date: string; // YYYY-MM-DD
+  headcount: Partial<Record<WorkType, number>>;
+  buffer_ratio: number;
+  holidays: string[];
+}
+
+export interface PhaseSchedule {
+  phase: Phase;
+  start: string;
+  end: string;
+  working_days: number;
+}
+
+export interface TaskSchedule {
+  wbs_id: string;
+  start: string;
+  end: string;
+}
+
+export interface ScheduleMilestone {
+  id: string; // M1..M4
+  name: string;
+  date: string;
+  phase: Phase;
+  payment_percent: number | null;
+}
+
+export interface ScheduleResult {
+  config: ScheduleConfig;
+  phases: PhaseSchedule[];
+  tasks: TaskSchedule[];
+  milestones: ScheduleMilestone[];
+  mermaid_gantt: string;
 }
 
 export type Coverage = "full" | "partial" | "not_supported" | "needs_clarification";
@@ -364,7 +407,7 @@ export interface ScopingRun {
   pattern: PatternResult | null;
   feasibility: FeasibilityResult | null;
   architecture: ArchitectureResult | null;
-  wbs: WBSResult | null;
+  wbs: WbsResult | null;
   requirements: RequirementMatrix | null;
   proposal: ProposalResult | null;
   error: string | null;
@@ -379,7 +422,9 @@ export interface ScopingRun {
   proposal_edited: boolean;
   translations: Partial<Record<Language, string>>;
   attachments: Attachment[];
-  schedule: Schedule | null;
+  schedule: ScheduleResult | null;
+  schedule_config: ScheduleConfig | null;
+  wbs_edited: boolean; // leaf man-days edited by a human
   quotation: Quotation | null;
   client_email: { subject: string; body: string } | null;
   project_name: string | null;
@@ -556,7 +601,7 @@ export interface StepResults {
   pattern: PatternResult;
   feasibility: FeasibilityResult;
   architecture: ArchitectureResult;
-  wbs: WBSResult;
+  wbs: WbsResult;
   requirements: RequirementMatrix;
   proposal: ProposalResult;
 }
@@ -568,7 +613,7 @@ export type StepDoneEvent = {
     result: StepResults[K];
     latency_ms: number;
     effort_basis?: EffortBasis | null; // only on the architecture step
-    schedule?: Schedule | null; // only on the wbs step
+    schedule?: ScheduleResult | null; // only on the wbs step
     quotation?: Quotation | null; // only on the wbs step
   };
 }[StepName];
