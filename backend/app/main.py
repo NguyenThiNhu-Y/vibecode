@@ -18,7 +18,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.agents.pipeline import Event, reset_from, run_pipeline
 from app.agents.pricing import compute_quotation, load_rate_card
-from app.agents.schedule import ScheduleError, build_schedule, default_config
+from app.agents.schedule import ScheduleError, build_schedule, config_for, suggest_headcount
 from app.agents.step import StepError
 from app.agents.steps import CLIENT_EMAIL, TRANSLATE
 from app.bid import evaluate_bid, load_bid_criteria
@@ -89,6 +89,8 @@ from app.templates_store import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 REPLAY_DIR = BACKEND_DIR / "replays"
+# Demo customer packs (email + attachments) for one-click demos: samples/<dir>/pack.json
+DEMO_PACK_DIR = BACKEND_DIR.parent / "samples"
 EVAL_REPORT_DIR = BACKEND_DIR / "eval" / "reports"
 FINISHED = {RunStatus.DONE, RunStatus.APPROVED, RunStatus.REJECTED}
 RERUNNABLE = {RunStatus.DONE, RunStatus.REJECTED, RunStatus.FAILED}
@@ -466,6 +468,18 @@ async def export_bidding(
     return await _export(_load(repo, run_id), "bidding.xlsx", None, llm)
 
 
+@app.get("/api/runs/{run_id}/schedule-suggestion")
+def schedule_suggestion(run_id: str, repo: RunRepo = Depends(get_repo)) -> ScheduleConfig:
+    """The run's schedule config with a team sized from its WBS (code only); not saved."""
+    run = _load(repo, run_id)
+    if run.wbs is None:
+        raise HTTPException(409, "Run chưa có WBS nên chưa gợi ý được số người")
+    start = run.intake.project_start if run.intake else None
+    config = config_for(run.schedule_config, start, run.wbs).model_copy(deep=True)
+    config.headcount = suggest_headcount(run.wbs, config)
+    return config
+
+
 @app.put("/api/runs/{run_id}/schedule-config")
 def update_schedule_config(
     run_id: str, body: ScheduleConfig, repo: RunRepo = Depends(get_repo)
@@ -529,7 +543,10 @@ def edit_wbs_estimates(
             item["estimate_md"] = round(body.estimates[item["id"]], 2)
     wbs = WbsResult.model_validate(data)  # re-rolls parent and phase totals
     try:
-        schedule = build_schedule(wbs, run.schedule_config or default_config())
+        schedule = build_schedule(
+            wbs,
+            config_for(run.schedule_config, run.intake.project_start if run.intake else None, wbs),
+        )
     except ScheduleError as exc:
         raise HTTPException(422, str(exc)) from exc
     run.wbs, run.schedule = wbs, schedule
@@ -1063,6 +1080,52 @@ def _load_replay(name: str) -> dict[str, Any]:
     if not name.replace("_", "").replace("-", "").isalnum() or not path.exists():
         raise HTTPException(404, "Không tìm thấy bản replay")
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _demo_packs() -> dict[str, tuple[Path, dict[str, Any]]]:
+    packs: dict[str, tuple[Path, dict[str, Any]]] = {}
+    for meta_file in sorted(DEMO_PACK_DIR.glob("*/pack.json")):
+        try:
+            meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            logger.warning("invalid demo pack %s", meta_file)
+            continue
+        packs[str(meta.get("id") or meta_file.parent.name)] = (meta_file.parent, meta)
+    return packs
+
+
+@app.get("/api/demo-packs")
+def list_demo_packs() -> list[dict[str, Any]]:
+    """Simulated customer packs: request email, deal info and attachment names."""
+    out = []
+    for pack_id, (folder, meta) in _demo_packs().items():
+        request = folder / str(meta.get("request_file", ""))
+        out.append(
+            {
+                **{k: v for k, v in meta.items() if k != "request_file"},
+                "id": pack_id,
+                "request_text": request.read_text(encoding="utf-8") if request.is_file() else "",
+            }
+        )
+    return out
+
+
+@app.get("/api/demo-packs/{pack_id}/files/{name}")
+def demo_pack_file(pack_id: str, name: str) -> Response:
+    pack = _demo_packs().get(pack_id)
+    if pack is None:
+        raise HTTPException(404, "Không có bộ hồ sơ mẫu này")
+    folder, meta = pack
+    if name not in {f.get("name") for f in meta.get("files", [])}:  # only files the pack lists
+        raise HTTPException(404, "Không có file này trong bộ hồ sơ mẫu")
+    path = folder / name
+    if not path.is_file():
+        raise HTTPException(404, "File mẫu không còn trên server")
+    return Response(
+        path.read_bytes(),
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": content_disposition(name)},
+    )
 
 
 @app.get("/api/replays")

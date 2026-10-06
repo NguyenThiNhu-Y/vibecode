@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import {
   CONFIDENCE_LABELS,
+  CONSTRAINT_LABELS,
   COVERAGE_LABELS,
   COVERAGE_TONE,
   GO_LABELS,
@@ -32,6 +33,43 @@ function Tile({ title, tab, onOpen, children }: { title: string; tab: TabKey; on
 }
 
 const Pending = ({ children = "Đang chờ agent…" }: { children?: ReactNode }) => <p className="text-subtle">{children}</p>;
+
+const TOKEN = /^[a-z0-9_]+$/;
+const MAX_CONSTRAINTS = 5;
+
+/** Standard tokens as labelled chips, free-text constraints as a short wrapped list. */
+function Constraints({ values, onMore }: { values: string[]; onMore: () => void }) {
+  const tokens = values.filter((v) => TOKEN.test(v));
+  const notes = values.filter((v) => !TOKEN.test(v));
+  const shown = notes.slice(0, MAX_CONSTRAINTS);
+  return (
+    <>
+      {tokens.length > 0 && (
+        <p className="mt-3 flex flex-wrap gap-1">
+          {tokens.map((t) => (
+            <Badge key={t} tone="accent">
+              {CONSTRAINT_LABELS[t] ?? t}
+            </Badge>
+          ))}
+        </p>
+      )}
+      {shown.length > 0 && (
+        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-muted">
+          {shown.map((c) => (
+            <li key={c} className="break-words">
+              {c}
+            </li>
+          ))}
+        </ul>
+      )}
+      {notes.length > shown.length && (
+        <button type="button" onClick={onMore} className="mt-1 text-sm text-accent-strong hover:underline">
+          +{notes.length - shown.length} ràng buộc khác
+        </button>
+      )}
+    </>
+  );
+}
 
 export default function OverviewTab({
   results,
@@ -73,13 +111,7 @@ export default function OverviewTab({
           {intake ? (
             <>
               <p className="text-fg">{intake.business_goal}</p>
-              {intake.constraints.length > 0 && (
-                <p className="mt-2 flex flex-wrap gap-1">
-                  {intake.constraints.map((c) => (
-                    <Badge key={c}>{c}</Badge>
-                  ))}
-                </p>
-              )}
+              <Constraints values={intake.constraints} onMore={() => onOpen("input")} />
             </>
           ) : (
             <Pending />
@@ -93,7 +125,17 @@ export default function OverviewTab({
                 <span className="font-semibold text-accent-strong">{PATTERN_LABELS[pattern.pattern]}</span>
                 <Badge>Tự tin: {CONFIDENCE_LABELS[pattern.confidence].replace("Độ tự tin ", "")}</Badge>
               </p>
-              <p className="mt-1 line-clamp-3 text-muted">{pattern.rationale}</p>
+              <p className="mt-1 text-muted">{pattern.rationale}</p>
+              {pattern.rejected.length > 0 && (
+                <p className="mt-3 flex flex-wrap items-center gap-1 text-sm text-subtle">
+                  Đã loại:
+                  {pattern.rejected.map((r) => (
+                    <Badge key={r.pattern} className="line-through decoration-subtle/60">
+                      {PATTERN_LABELS[r.pattern].split(" (")[0].split(" –")[0]}
+                    </Badge>
+                  ))}
+                </p>
+              )}
             </>
           ) : (
             <Pending />

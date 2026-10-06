@@ -13,6 +13,7 @@ from typing import Any
 
 from app.agents.pipeline import run_pipeline
 from app.config import get_settings
+from app.llm.cache import response_cache
 from eval.common import EVAL_DIR, CountingLLM, NullRepo, case_paths, load_case, make_llm, new_run
 from eval.metrics import render_markdown, score_case, summarize
 
@@ -25,7 +26,11 @@ async def eval_case(path: Path) -> dict[str, Any]:
     run = new_run(case)
     async for _ in run_pipeline(llm, run, NullRepo()):
         pass
-    result = score_case(case, run, dict(llm.calls))
+    calls = dict(llm.calls)
+    cache = response_cache(llm)
+    for hit in cache.hits if cache else []:  # served from llm_cache: count the original attempts
+        calls[hit.tag] = calls.get(hit.tag, 0) + hit.attempts
+    result = score_case(case, run, calls)
     result["outputs"] = run.model_dump(mode="json", exclude={"request_text"})
     return result
 

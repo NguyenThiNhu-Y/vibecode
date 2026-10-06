@@ -33,6 +33,7 @@ export interface IntakeResult {
   timeline: string | null;
   language: Language;
   industry: string | null;
+  project_start?: string | null; // planned project / PoC start, if the customer says
 }
 
 export interface ClarifyingQuestion {
@@ -503,6 +504,8 @@ export interface EstimationTemplate {
   unit: string;
   base: Record<string, Record<Phase, [number, number]>>;
   multipliers: Record<string, number>;
+  many_requirements_min?: number;
+  max_factor?: number;
 }
 
 export interface CompanyProfile {

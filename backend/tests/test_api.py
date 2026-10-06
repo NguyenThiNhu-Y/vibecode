@@ -782,3 +782,55 @@ def test_edit_wbs_estimates_recomputes_by_code(client: TestClient) -> None:
     body = {"from_step": "wbs", "feedback": "Tách nhỏ task tích hợp hơn"}
     client.post(f"/api/runs/{run_id}/pricing-approval", json={"approved": False, "note": "sửa"})
     assert client.post(f"/api/runs/{run_id}/rerun", json=body).json()["wbs_edited"] is False
+
+
+def test_demo_pack_endpoints(client: TestClient) -> None:
+    packs = client.get("/api/demo-packs").json()
+    pack = next(p for p in packs if p["id"] == "tokai_minato")
+    assert "提案依頼" in pack["request_text"] and pack["due_date"] == "2026-10-30"
+    assert [f["kind"] for f in pack["files"]] == [
+        "document",
+        "requirements",
+        "data_sample",
+        "document",
+    ]
+    name = pack["files"][1]["name"]
+    got = client.get(f"/api/demo-packs/tokai_minato/files/{name}")
+    assert got.status_code == 200 and got.content[:2] == b"PK"  # xlsx
+    assert client.get("/api/demo-packs/tokai_minato/files/pack.json").status_code == 404
+    assert (
+        client.get("/api/demo-packs/tokai_minato/files/..%2F..%2Fbackend%2F.env").status_code == 404
+    )
+    assert client.get("/api/demo-packs/nope/files/x.csv").status_code == 404
+
+    run_id = create(client, pack["request_text"])
+    base = "/api/demo-packs/tokai_minato/files"
+    files = [
+        ("files", (f["name"], client.get(f"{base}/{f['name']}").content)) for f in pack["files"]
+    ]
+    data = {"kinds": [f["kind"] for f in pack["files"]]}
+    up = client.post(f"/api/runs/{run_id}/attachments", files=files, data=data)
+    assert up.status_code == 200
+    reqs = [r for a in up.json()["attachments"] for r in a["requirements"]]
+    assert len(reqs) == 41 and reqs[0]["id"] == "FR-QA-001"
+    read_sse(client, f"/api/runs/{run_id}/stream")
+    run = client.get(f"/api/runs/{run_id}").json()
+    assert run["status"] == "done" and len(run["requirements"]["items"]) == 41
+    assert run["intake"]["language"] in ("ja", "vi")  # mock answers in vi; a real LLM detects ja
+    for name in ("slides.pptx", "proposal.docx", "workbook.xlsx", "bidding.xlsx", "package.zip"):
+        assert client.get(f"/api/runs/{run_id}/export/{name}").status_code == 200, name
+
+
+def test_schedule_suggestion_endpoint(client: TestClient) -> None:
+    run_id = create(client)
+    assert client.get(f"/api/runs/{run_id}/schedule-suggestion").status_code == 409  # no WBS
+    read_sse(client, f"/api/runs/{run_id}/stream")
+    run = client.get(f"/api/runs/{run_id}").json()
+    suggestion = client.get(f"/api/runs/{run_id}/schedule-suggestion").json()
+    assert suggestion["start_date"] == run["schedule_config"]["start_date"]
+    assert suggestion["headcount"]["PM"] == 1 and all(
+        v >= 1 for v in suggestion["headcount"].values()
+    )
+    assert (
+        client.get(f"/api/runs/{run_id}").json()["schedule_config"] == run["schedule_config"]
+    )  # not saved

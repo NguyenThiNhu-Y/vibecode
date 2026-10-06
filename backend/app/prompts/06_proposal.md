@@ -6,7 +6,7 @@ Tổng hợp toàn bộ kết quả các bước trước (`intake`, `gaps`, `an
 
 # QUY TRÌNH SUY LUẬN
 1. Viết `title` ngắn gọn nêu giải pháp.
-2. Viết `markdown` với các mục theo thứ tự:
+2. Viết `markdown` với các mục theo thứ tự (tên mục viết bằng ngôn ngữ của khách, xem quy tắc heading):
    - `# <title>`
    - `## Bối cảnh` — mục tiêu và hiện trạng của khách
    - `## Giải pháp đề xuất` — pattern, lý do; nếu pattern là `no_ai_rule_based` thì nói rõ "không cần AI" và vì sao
@@ -23,8 +23,12 @@ Tổng hợp toàn bộ kết quả các bước trước (`intake`, `gaps`, `an
 
 # QUY TẮC
 - KHÔNG thêm thông tin mới ngoài kết quả các bước trước (không bịa số liệu, tên khách, công nghệ không được nêu).
-- Viết nội dung bằng ngôn ngữ của khách (`intake.language`). Hai heading `## Giả định` và `## Rủi ro` LUÔN giữ nguyên chữ tiếng Việt; với tiếng Anh/Nhật có thể thêm bản dịch trong ngoặc, ví dụ `## Giả định (Assumptions)`, `## Rủi ro (リスク)`.
-- Effort lấy đúng từ `architecture.estimates`, ghi dạng "min–max ngày công". Số tiền lấy đúng từ `quotation_summary`, không tự tính hay làm tròn khác.
+- Viết toàn bộ proposal, kể cả mọi heading, bằng ngôn ngữ của khách (`intake.language`); không trộn tiếng Việt vào bản tiếng Anh/Nhật. Tên các mục theo ngôn ngữ:
+  - `vi`: Bối cảnh · Giải pháp đề xuất · Kiến trúc · Effort dự kiến · Kế hoạch triển khai · Chi phí dự kiến · Đáp ứng yêu cầu · Giả định · Rủi ro · Câu hỏi còn mở · Bước tiếp theo
+  - `en`: Background · Proposed solution · Architecture · Estimated effort · Delivery plan · Estimated cost · Requirement coverage · Assumptions · Risks · Open questions · Next steps
+  - `ja`: 背景 · ご提案ソリューション · システム構成 · 想定工数 · 実施計画 · 概算費用 · 要件対応状況 · 前提条件 · リスク · 確認事項 · 今後の進め方
+- Mục giả định và mục rủi ro BẮT BUỘC có, với đúng tên trên (`## Giả định` / `## Assumptions` / `## 前提条件` và `## Rủi ro` / `## Risks` / `## リスク`).
+- Effort lấy đúng từ `architecture.estimates`, ghi dạng "min–max" kèm đơn vị theo ngôn ngữ khách (ngày công / person-days / 人日). Số tiền lấy đúng từ `quotation_summary`, không tự tính hay làm tròn khác.
 - Ngắn gọn, tối đa khoảng 600 từ.
 - Nếu context có `reviewer_feedback` (góp ý của AI dev sau khi review), PHẢI làm theo góp ý đó khi không mâu thuẫn với dữ liệu; nếu mâu thuẫn, ghi rõ lý do trong output.
 - Nếu `case_studies` không rỗng, có thể nhắc tối đa 2 dự án trong `## Giải pháp đề xuất` như kinh nghiệm liên quan; chỉ dùng đúng tên và kết quả có trong `case_studies`, không thêm số liệu. Nếu rỗng thì không nhắc tới kinh nghiệm.

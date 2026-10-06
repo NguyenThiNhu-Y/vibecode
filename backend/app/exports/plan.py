@@ -4,7 +4,7 @@ up from its leaves, its work types and its dates / week numbers from the project
 from dataclasses import dataclass
 from datetime import date, timedelta
 
-from app.agents.schedule import ScheduleError, build_schedule, default_config
+from app.agents.schedule import ScheduleError, build_schedule, config_for
 from app.schemas.common import Phase
 from app.schemas.run import ScopingRun
 from app.schemas.schedule import ScheduleResult
@@ -30,7 +30,8 @@ def schedule_for(run: ScopingRun) -> ScheduleResult | None:
     if run.schedule or not run.wbs:
         return run.schedule
     try:
-        return build_schedule(run.wbs, run.schedule_config or default_config())
+        start = run.intake.project_start if run.intake else None
+        return build_schedule(run.wbs, config_for(run.schedule_config, start, run.wbs))
     except ScheduleError:
         return None
 

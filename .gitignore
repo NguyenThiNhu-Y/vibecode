@@ -18,3 +18,5 @@ backend/knowledge_base/templates/custom/
 # Logo và template mang nhận diện công ty thật: repo đang public, không commit
 templates-fpt/
 assets/fpt-logo.png
+# Cache response LLM (chứa prompt và dữ liệu khách đã che PII)
+backend/llm_cache/

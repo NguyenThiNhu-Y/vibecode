@@ -100,7 +100,7 @@ def generate_wbs(user: str) -> str:
                 items.append({**base, **leaf, "estimate_md": d})
                 continue
             items.append(base)
-            for k, part in enumerate(_split(d, max(2, -(-d // 5))), start=1):  # >= 2 sub-tasks
+            for k, part in enumerate(_split(d, max(2, -(-d // 9))), start=1):  # >= 2 sub-tasks
                 items.append({**leaf, "id": f"{tid}.{k}", "phase": phase, "level": 3,
                               "name": f"{name} – phần {k}", "estimate_md": part})  # fmt: skip
         previous_qa = qa_task  # next phase starts after this phase's acceptance

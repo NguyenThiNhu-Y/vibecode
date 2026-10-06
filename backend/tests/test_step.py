@@ -3,6 +3,7 @@ import json
 import pytest
 
 from app.agents.step import Step, StepError, extract_json
+from app.llm.cache import CachedLLM, ResponseCache
 from app.llm.mock import MockLLM
 from app.schemas.pattern import PatternResult
 from tests.conftest import fixture_text
@@ -94,3 +95,75 @@ async def test_system_prompt_contains_schema_and_knowledge() -> None:
     assert "Chỉ trả về MỘT object JSON hợp lệ theo JSON Schema sau" in system
     assert json.dumps(PatternResult.model_json_schema(), ensure_ascii=False) in system
     assert "Tiếng Việt có dấu" in llm.users[0]
+
+
+# ---------- response cache ----------
+class CountingLLM:
+    """Real-provider stand-in: replies in order, counts calls."""
+
+    def __init__(self, replies: list[str]):
+        self.replies, self.calls = list(replies), 0
+
+    async def complete(self, system: str, user: str, *, tag: str | None = None) -> str:
+        self.calls += 1
+        return self.replies.pop(0)
+
+
+def cached(inner, tmp_path, model: str = "m1") -> CachedLLM:
+    return CachedLLM(inner, ResponseCache(tmp_path, {"provider": "openai", "model": model}))
+
+
+async def test_cache_reuses_validated_output(tmp_path) -> None:
+    step = Step("pattern", "03_pattern.md", PatternResult)
+    first = CountingLLM([GOOD])
+    result, _ = await step.run(cached(first, tmp_path), {"x": 1})
+    files = list((tmp_path / "pattern").glob("*.json"))
+    assert first.calls == 1 and len(files) == 1
+    entry = json.loads(files[0].read_text(encoding="utf-8"))
+    assert entry["step"] == "pattern" and entry["context"] == {"x": 1}
+    assert entry["output"]["pattern"] == result.pattern.value and entry["attempts"] == 1
+
+    second = CountingLLM([])  # would fail if called
+    llm = cached(second, tmp_path)
+    again, _ = await step.run(llm, {"x": 1})
+    assert again == result and second.calls == 0
+    assert [h.tag for h in llm.cache.hits] == ["pattern"]
+
+
+async def test_cache_misses_on_other_context_or_model(tmp_path) -> None:
+    step = Step("pattern", "03_pattern.md", PatternResult)
+    await step.run(cached(CountingLLM([GOOD]), tmp_path), {"x": 1})
+    other_input = CountingLLM([GOOD])
+    await step.run(cached(other_input, tmp_path), {"x": 2})
+    other_model = CountingLLM([GOOD])
+    await step.run(cached(other_model, tmp_path, model="m2"), {"x": 1})
+    assert other_input.calls == 1 and other_model.calls == 1
+
+
+async def test_cache_never_stores_invalid_and_keeps_retry_fix(tmp_path) -> None:
+    step = Step("pattern", "03_pattern.md", PatternResult, max_retries=1)
+    with pytest.raises(StepError):
+        await step.run(cached(CountingLLM(["sai", "vẫn sai"]), tmp_path), {"x": 1})
+    assert not list(tmp_path.rglob("*.json"))
+
+    await step.run(cached(CountingLLM(['{"pattern": "magic"}', GOOD]), tmp_path), {"x": 1})
+    replay = CountingLLM([])
+    llm = cached(replay, tmp_path)
+    await step.run(llm, {"x": 1})  # stored under the first message, so no call at all
+    assert replay.calls == 0 and llm.cache.hits[0].attempts == 2
+
+
+async def test_cache_entry_failing_new_rules_is_ignored(tmp_path) -> None:
+    await Step("pattern", "03_pattern.md", PatternResult).run(
+        cached(CountingLLM([GOOD]), tmp_path), {"x": 1}
+    )
+
+    def stricter(result: PatternResult) -> PatternResult:
+        if result.confidence.value == "high":
+            raise ValueError("không cho phép high")
+        return result
+
+    fresh = CountingLLM([GOOD.replace('"high"', '"medium"')])
+    step = Step("pattern", "03_pattern.md", PatternResult, post_validate=stricter)
+    result, _ = await step.run(cached(fresh, tmp_path), {"x": 1})
+    assert fresh.calls == 1 and result.confidence.value == "medium"

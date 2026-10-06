@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { createRun, extractDocument, listReplays, uploadAttachments } from "../api";
+import { createRun, demoPackFiles, extractDocument, listDemoPacks, listReplays, uploadAttachments, type DemoPack } from "../api";
 import { IconArrowRight, IconCheck, IconPaperclip, IconPlay, IconTrash, IconUpload } from "../components/icons";
 import { ErrorBox, PageHeader, Panel, Spinner, buttonClass } from "../components/ui";
 import { ATTACHMENT_KIND_LABELS, STEP_LABELS } from "../labels";
@@ -47,12 +47,34 @@ export default function NewRequest() {
   const [fileNote, setFileNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [replays, setReplays] = useState<string[]>([]);
+  const [packs, setPacks] = useState<DemoPack[]>([]);
+  const [loadingPack, setLoadingPack] = useState<string | null>(null);
 
   useEffect(() => {
     listReplays()
       .then(setReplays)
       .catch(() => setReplays([]));
+    listDemoPacks()
+      .then(setPacks)
+      .catch(() => setPacks([]));
   }, []);
+
+  const loadPack = async (pack: DemoPack) => {
+    setLoadingPack(pack.id);
+    setError(null);
+    setFileNote(null);
+    try {
+      const files = await demoPackFiles(pack);
+      setText(pack.request_text);
+      setDeal({ project_name: pack.project_name, client_name: pack.client_name, due_date: pack.due_date });
+      setPending(files.map((file, i) => ({ file, kind: pack.files[i].kind })));
+      setFileNote(`Đã nạp email và ${files.length} file đính kèm của bộ hồ sơ mẫu.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không nạp được bộ hồ sơ mẫu.");
+    } finally {
+      setLoadingPack(null);
+    }
+  };
 
   const length = text.trim().length;
   const tooShort = length < MIN_CHARS && pending.length === 0;
@@ -259,6 +281,27 @@ export default function NewRequest() {
         </div>
 
         <aside className="space-y-4">
+          {packs.length > 0 && (
+            <Panel title="Bộ hồ sơ RFP mẫu" subtitle="Email + tài liệu đính kèm như khách gửi thật (giả lập)." bodyClassName="p-0">
+              <ul className="divide-y divide-line">
+                {packs.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      disabled={loadingPack !== null}
+                      onClick={() => loadPack(p)}
+                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-left hover:bg-surface-2 ${text === p.request_text ? "bg-accent-soft" : ""}`}
+                    >
+                      <span className="rounded bg-surface-2 px-1.5 font-mono text-xs text-muted">{p.lang}</span>
+                      <span className="min-w-0 flex-1 text-fg">{p.label}</span>
+                      {loadingPack === p.id ? <Spinner /> : <span className="text-sm text-subtle">{p.outcome}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+
           <Panel title="Dùng mẫu" subtitle="Dữ liệu giả lập để thử nhanh." bodyClassName="p-0">
             <ul className="divide-y divide-line">
               {SAMPLES.map((s) => (

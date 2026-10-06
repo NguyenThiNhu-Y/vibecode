@@ -12,5 +12,5 @@ expected:
   acceptable_patterns: [agent]
   question_topics: [infra, integration, data]
   can_proceed: true
-  mvp_person_days: [54, 126]
+  mvp_person_days: [178, 416]
   must_not_mention: []

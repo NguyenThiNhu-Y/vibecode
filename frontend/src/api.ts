@@ -99,6 +99,9 @@ export interface QuotationOptions {
 export const patchWbsEstimates = (id: string, estimates: Record<string, number>) =>
   request<ScopingRun>(`/runs/${id}/wbs`, { method: "PATCH", body: JSON.stringify({ estimates }) });
 
+/** Team sized from the WBS so each phase fits ~3 / 6 / 2 months (code only, not saved). */
+export const getScheduleSuggestion = (id: string) => request<ScheduleConfig>(`/runs/${id}/schedule-suggestion`);
+
 /** Recompute the master schedule by code (no LLM) with a new start date / headcount. */
 export const putScheduleConfig = (id: string, config: ScheduleConfig) =>
   request<ScopingRun>(`/runs/${id}/schedule-config`, { method: "PUT", body: JSON.stringify(config) });
@@ -317,6 +320,31 @@ export async function downloadUrl(url: string): Promise<string | undefined> {
 }
 
 export const listReplays = () => request<string[]>("/replays");
+
+/** Simulated customer pack (samples/<dir>/pack.json): email, deal info and attachments. */
+export interface DemoPack {
+  id: string;
+  label: string;
+  lang: string;
+  outcome: string;
+  project_name: string;
+  client_name: string;
+  due_date: string;
+  request_text: string;
+  files: { name: string; kind: AttachmentKind }[];
+}
+
+export const listDemoPacks = () => request<DemoPack[]>("/demo-packs");
+
+export async function demoPackFiles(pack: DemoPack): Promise<File[]> {
+  return Promise.all(
+    pack.files.map(async (f) => {
+      const resp = await fetch(`${API_BASE}/demo-packs/${pack.id}/files/${encodeURIComponent(f.name)}`);
+      if (!resp.ok) throw new Error(`Không tải được file mẫu ${f.name}`);
+      return new File([await resp.blob()], f.name);
+    }),
+  );
+}
 
 export const getReplay = (name: string) => request<ReplayInfo>(`/replays/${name}`);
 

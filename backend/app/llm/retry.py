@@ -12,7 +12,9 @@ TRANSIENT_STATUS = {408, 409, 425, 429, 500, 502, 503, 504}
 
 
 def is_transient(exc: BaseException) -> bool:
-    if isinstance(exc, httpx.TransportError):  # includes timeouts and connection errors
+    from app.llm.openai_compat import LLMResponseError
+
+    if isinstance(exc, httpx.TransportError | LLMResponseError):  # timeouts, empty answers
         return True
     return isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code in TRANSIENT_STATUS
 

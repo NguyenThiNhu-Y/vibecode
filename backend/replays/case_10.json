@@ -1,6 +1,6 @@
 {
   "name": "case_10",
-  "recorded_at": "2026-10-05T16:16:03.653527+00:00",
+  "recorded_at": "2026-10-06T15:47:59.853520+00:00",
   "llm_provider": "mock",
   "request_text": "Chào anh/chị, hàng tháng bộ phận kế toán của chúng tôi nhận khoảng 40 file Excel\nhóa đơn từ các chi nhánh, cùng một template. Chúng tôi muốn dùng AI để tự động\ntính tổng tiền theo chi nhánh và xuất báo cáo. Hiện mất 3 ngày mỗi tháng.\n",
   "segments": [
@@ -38,11 +38,12 @@
               "budget": null,
               "timeline": null,
               "language": "vi",
-              "industry": "Bán lẻ (giả lập)"
+              "industry": "Bán lẻ (giả lập)",
+              "project_start": null
             },
-            "latency_ms": 802
+            "latency_ms": 801
           },
-          "delay_ms": 803
+          "delay_ms": 802
         },
         {
           "event": "step_started",
@@ -82,7 +83,7 @@
             },
             "latency_ms": 802
           },
-          "delay_ms": 817
+          "delay_ms": 816
         },
         {
           "event": "step_started",
@@ -121,9 +122,9 @@
                 "Template Excel giữ nguyên giữa các chi nhánh"
               ]
             },
-            "latency_ms": 801
+            "latency_ms": 803
           },
-          "delay_ms": 804
+          "delay_ms": 806
         },
         {
           "event": "step_started",
@@ -156,9 +157,9 @@
               ],
               "go_recommendation": "go"
             },
-            "latency_ms": 802
+            "latency_ms": 801
           },
-          "delay_ms": 804
+          "delay_ms": 805
         },
         {
           "event": "step_started",
@@ -227,8 +228,8 @@
                 },
                 {
                   "phase": "production",
-                  "min_person_days": 20,
-                  "max_person_days": 40,
+                  "min_person_days": 10,
+                  "max_person_days": 20,
                   "team": [
                     "Backend developer",
                     "QA"
@@ -243,7 +244,7 @@
               "out_of_scope": [],
               "mermaid": "flowchart LR\n  X[40 file Excel chi nhánh] --> R[Excel reader]\n  R --> A[Aggregator]\n  A --> E[Report exporter]\n  E --> K[Bộ phận kế toán]"
             },
-            "latency_ms": 802,
+            "latency_ms": 803,
             "effort_basis": {
               "pattern": "no_ai_rule_based",
               "base": {
@@ -256,8 +257,8 @@
                   20
                 ],
                 "production": [
-                  20,
-                  40
+                  10,
+                  20
                 ]
               },
               "multipliers": [],
@@ -272,8 +273,8 @@
                   20
                 ],
                 "production": [
-                  20,
-                  40
+                  10,
+                  20
                 ]
               }
             }
@@ -561,7 +562,7 @@
                   "level": 1,
                   "type": null,
                   "priority": "mid",
-                  "estimate_md": 30.0,
+                  "estimate_md": 15.0,
                   "depends_on": [],
                   "deliverable": null,
                   "tags": [],
@@ -574,7 +575,7 @@
                   "level": 2,
                   "type": "PM",
                   "priority": "mid",
-                  "estimate_md": 5.0,
+                  "estimate_md": 3.0,
                   "depends_on": [
                     "2.8"
                   ],
@@ -589,7 +590,7 @@
                   "level": 2,
                   "type": "INFRA",
                   "priority": "mid",
-                  "estimate_md": 5.0,
+                  "estimate_md": 3.0,
                   "depends_on": [],
                   "deliverable": "Kết quả: hardening & bảo mật",
                   "tags": [
@@ -604,7 +605,7 @@
                   "level": 2,
                   "type": "BE",
                   "priority": "mid",
-                  "estimate_md": 5.0,
+                  "estimate_md": 3.0,
                   "depends_on": [
                     "3.2"
                   ],
@@ -619,7 +620,7 @@
                   "level": 2,
                   "type": "INFRA",
                   "priority": "mid",
-                  "estimate_md": 5.0,
+                  "estimate_md": 2.0,
                   "depends_on": [
                     "3.2"
                   ],
@@ -634,7 +635,7 @@
                   "level": 2,
                   "type": "QA",
                   "priority": "high",
-                  "estimate_md": 5.0,
+                  "estimate_md": 2.0,
                   "depends_on": [
                     "3.3"
                   ],
@@ -649,7 +650,7 @@
                   "level": 2,
                   "type": "BA",
                   "priority": "mid",
-                  "estimate_md": 5.0,
+                  "estimate_md": 2.0,
                   "depends_on": [],
                   "deliverable": "Kết quả: đào tạo & bàn giao",
                   "tags": [
@@ -686,13 +687,13 @@
                 },
                 {
                   "phase": "production",
-                  "total_md": 30.0,
+                  "total_md": 15.0,
                   "by_type": {
-                    "PM": 5.0,
-                    "INFRA": 10.0,
-                    "BE": 5.0,
-                    "QA": 5.0,
-                    "BA": 5.0
+                    "PM": 3.0,
+                    "INFRA": 5.0,
+                    "BE": 3.0,
+                    "QA": 2.0,
+                    "BA": 2.0
                   },
                   "adjustment_note": null
                 }
@@ -702,10 +703,10 @@
               ],
               "out_of_scope": []
             },
-            "latency_ms": 804,
+            "latency_ms": 803,
             "schedule": {
               "config": {
-                "start_date": "2026-10-19",
+                "start_date": "2026-10-26",
                 "headcount": {
                   "AI": 2,
                   "BE": 1,
@@ -723,171 +724,171 @@
               "phases": [
                 {
                   "phase": "poc",
-                  "start": "2026-10-19",
-                  "end": "2026-10-22",
+                  "start": "2026-10-26",
+                  "end": "2026-10-29",
                   "working_days": 4
                 },
                 {
                   "phase": "mvp",
-                  "start": "2026-10-23",
-                  "end": "2026-10-30",
+                  "start": "2026-10-30",
+                  "end": "2026-11-06",
                   "working_days": 6
                 },
                 {
                   "phase": "production",
-                  "start": "2026-11-02",
-                  "end": "2026-11-25",
-                  "working_days": 18
+                  "start": "2026-11-09",
+                  "end": "2026-11-20",
+                  "working_days": 10
                 }
               ],
               "tasks": [
                 {
                   "wbs_id": "1.1",
-                  "start": "2026-10-19",
-                  "end": "2026-10-19"
+                  "start": "2026-10-26",
+                  "end": "2026-10-26"
                 },
                 {
                   "wbs_id": "1.2",
-                  "start": "2026-10-19",
-                  "end": "2026-10-19"
+                  "start": "2026-10-26",
+                  "end": "2026-10-26"
                 },
                 {
                   "wbs_id": "1.3",
-                  "start": "2026-10-20",
-                  "end": "2026-10-20"
-                },
-                {
-                  "wbs_id": "1.4",
-                  "start": "2026-10-20",
-                  "end": "2026-10-20"
-                },
-                {
-                  "wbs_id": "1.5",
-                  "start": "2026-10-20",
-                  "end": "2026-10-20"
-                },
-                {
-                  "wbs_id": "1.6",
-                  "start": "2026-10-21",
-                  "end": "2026-10-21"
-                },
-                {
-                  "wbs_id": "2.1",
-                  "start": "2026-10-23",
-                  "end": "2026-10-26"
-                },
-                {
-                  "wbs_id": "2.2",
-                  "start": "2026-10-23",
-                  "end": "2026-10-26"
-                },
-                {
-                  "wbs_id": "2.3",
-                  "start": "2026-10-27",
-                  "end": "2026-10-28"
-                },
-                {
-                  "wbs_id": "2.4",
-                  "start": "2026-10-27",
-                  "end": "2026-10-28"
-                },
-                {
-                  "wbs_id": "2.5",
-                  "start": "2026-10-27",
-                  "end": "2026-10-28"
-                },
-                {
-                  "wbs_id": "2.6",
-                  "start": "2026-10-27",
-                  "end": "2026-10-28"
-                },
-                {
-                  "wbs_id": "2.7",
                   "start": "2026-10-27",
                   "end": "2026-10-27"
                 },
                 {
+                  "wbs_id": "1.4",
+                  "start": "2026-10-27",
+                  "end": "2026-10-27"
+                },
+                {
+                  "wbs_id": "1.5",
+                  "start": "2026-10-27",
+                  "end": "2026-10-27"
+                },
+                {
+                  "wbs_id": "1.6",
+                  "start": "2026-10-28",
+                  "end": "2026-10-28"
+                },
+                {
+                  "wbs_id": "2.1",
+                  "start": "2026-10-30",
+                  "end": "2026-11-02"
+                },
+                {
+                  "wbs_id": "2.2",
+                  "start": "2026-10-30",
+                  "end": "2026-11-02"
+                },
+                {
+                  "wbs_id": "2.3",
+                  "start": "2026-11-03",
+                  "end": "2026-11-04"
+                },
+                {
+                  "wbs_id": "2.4",
+                  "start": "2026-11-03",
+                  "end": "2026-11-04"
+                },
+                {
+                  "wbs_id": "2.5",
+                  "start": "2026-11-03",
+                  "end": "2026-11-04"
+                },
+                {
+                  "wbs_id": "2.6",
+                  "start": "2026-11-03",
+                  "end": "2026-11-04"
+                },
+                {
+                  "wbs_id": "2.7",
+                  "start": "2026-11-03",
+                  "end": "2026-11-03"
+                },
+                {
                   "wbs_id": "2.8",
-                  "start": "2026-10-29",
-                  "end": "2026-10-29"
+                  "start": "2026-11-05",
+                  "end": "2026-11-05"
                 },
                 {
                   "wbs_id": "2.9",
-                  "start": "2026-10-23",
-                  "end": "2026-10-23"
+                  "start": "2026-10-30",
+                  "end": "2026-10-30"
                 },
                 {
                   "wbs_id": "3.1",
-                  "start": "2026-11-02",
-                  "end": "2026-11-06"
+                  "start": "2026-11-09",
+                  "end": "2026-11-11"
                 },
                 {
                   "wbs_id": "3.2",
-                  "start": "2026-11-02",
-                  "end": "2026-11-06"
+                  "start": "2026-11-09",
+                  "end": "2026-11-11"
                 },
                 {
                   "wbs_id": "3.3",
-                  "start": "2026-11-09",
-                  "end": "2026-11-13"
+                  "start": "2026-11-12",
+                  "end": "2026-11-16"
                 },
                 {
                   "wbs_id": "3.4",
-                  "start": "2026-11-09",
+                  "start": "2026-11-12",
                   "end": "2026-11-13"
                 },
                 {
                   "wbs_id": "3.5",
-                  "start": "2026-11-16",
-                  "end": "2026-11-20"
+                  "start": "2026-11-17",
+                  "end": "2026-11-18"
                 },
                 {
                   "wbs_id": "3.6",
-                  "start": "2026-11-02",
-                  "end": "2026-11-06"
+                  "start": "2026-11-09",
+                  "end": "2026-11-10"
                 }
               ],
               "milestones": [
                 {
                   "id": "M1",
                   "name": "Kick-off",
-                  "date": "2026-10-19",
+                  "date": "2026-10-26",
                   "phase": "poc",
                   "payment_percent": 30
                 },
                 {
                   "id": "M2",
                   "name": "Nghiệm thu PoC",
-                  "date": "2026-10-22",
+                  "date": "2026-10-29",
                   "phase": "poc",
                   "payment_percent": null
                 },
                 {
                   "id": "M3",
                   "name": "Nghiệm thu MVP",
-                  "date": "2026-10-30",
+                  "date": "2026-11-06",
                   "phase": "mvp",
                   "payment_percent": 40
                 },
                 {
                   "id": "M4",
                   "name": "Go-live",
-                  "date": "2026-11-25",
+                  "date": "2026-11-20",
                   "phase": "production",
                   "payment_percent": 30
                 }
               ],
-              "mermaid_gantt": "gantt\n    title Master schedule\n    dateFormat YYYY-MM-DD\n    axisFormat %d/%m\n    excludes weekends\n    section PoC\n    1.1 Kick-off và quản lý PoC :t1_1, 2026-10-19, 2026-10-20\n    1.2 Khảo sát dữ liệu & yêu cầu :t1_2, 2026-10-19, 2026-10-20\n    1.3 Chuẩn bị dữ liệu mẫu :t1_3, 2026-10-20, 2026-10-21\n    1.4 Dựng prototype Report exporter :t1_4, 2026-10-20, 2026-10-21\n    1.5 Đánh giá kết quả PoC :t1_5, 2026-10-20, 2026-10-21\n    1.6 Test và nghiệm thu PoC :t1_6, 2026-10-21, 2026-10-22\n    Kick-off :milestone, m1, 2026-10-19, 0d\n    Nghiệm thu PoC :milestone, m2, 2026-10-22, 0d\n    section MVP\n    2.1 Quản lý dự án MVP :t2_1, 2026-10-23, 2026-10-27\n    2.2 Phân tích & thiết kế chi tiết :t2_2, 2026-10-23, 2026-10-27\n    2.3 Chuẩn bị & làm sạch dữ liệu :t2_3, 2026-10-27, 2026-10-29\n    2.4 Xây dựng Report exporter :t2_4, 2026-10-27, 2026-10-29\n    2.5 Xây dựng Excel reader :t2_5, 2026-10-27, 2026-10-29\n    2.6 Giao diện người dùng :t2_6, 2026-10-27, 2026-10-29\n    2.7 Bộ đánh giá chất lượng :t2_7, 2026-10-27, 2026-10-28\n    2.8 Test và nghiệm thu MVP :t2_8, 2026-10-29, 2026-10-30\n    2.9 Tài liệu và bàn giao :t2_9, 2026-10-23, 2026-10-24\n    Nghiệm thu MVP :milestone, m3, 2026-10-30, 0d\n    section Production\n    3.1 Quản lý triển khai :t3_1, 2026-11-02, 2026-11-07\n    3.2 Hardening & bảo mật :t3_2, 2026-11-02, 2026-11-07\n    3.3 Mở rộng Aggregator :t3_3, 2026-11-09, 2026-11-14\n    3.4 Giám sát & vận hành :t3_4, 2026-11-09, 2026-11-14\n    3.5 UAT và nghiệm thu :t3_5, 2026-11-16, 2026-11-21\n    3.6 Đào tạo & bàn giao :t3_6, 2026-11-02, 2026-11-07\n    Go-live :milestone, m4, 2026-11-25, 0d"
+              "mermaid_gantt": "gantt\n    title Master schedule\n    dateFormat YYYY-MM-DD\n    axisFormat %d/%m\n    excludes weekends\n    section PoC\n    1.1 Kick-off và quản lý PoC :t1_1, 2026-10-26, 2026-10-27\n    1.2 Khảo sát dữ liệu & yêu cầu :t1_2, 2026-10-26, 2026-10-27\n    1.3 Chuẩn bị dữ liệu mẫu :t1_3, 2026-10-27, 2026-10-28\n    1.4 Dựng prototype Report exporter :t1_4, 2026-10-27, 2026-10-28\n    1.5 Đánh giá kết quả PoC :t1_5, 2026-10-27, 2026-10-28\n    1.6 Test và nghiệm thu PoC :t1_6, 2026-10-28, 2026-10-29\n    Kick-off :milestone, m1, 2026-10-26, 0d\n    Nghiệm thu PoC :milestone, m2, 2026-10-29, 0d\n    section MVP\n    2.1 Quản lý dự án MVP :t2_1, 2026-10-30, 2026-11-03\n    2.2 Phân tích & thiết kế chi tiết :t2_2, 2026-10-30, 2026-11-03\n    2.3 Chuẩn bị & làm sạch dữ liệu :t2_3, 2026-11-03, 2026-11-05\n    2.4 Xây dựng Report exporter :t2_4, 2026-11-03, 2026-11-05\n    2.5 Xây dựng Excel reader :t2_5, 2026-11-03, 2026-11-05\n    2.6 Giao diện người dùng :t2_6, 2026-11-03, 2026-11-05\n    2.7 Bộ đánh giá chất lượng :t2_7, 2026-11-03, 2026-11-04\n    2.8 Test và nghiệm thu MVP :t2_8, 2026-11-05, 2026-11-06\n    2.9 Tài liệu và bàn giao :t2_9, 2026-10-30, 2026-10-31\n    Nghiệm thu MVP :milestone, m3, 2026-11-06, 0d\n    section Production\n    3.1 Quản lý triển khai :t3_1, 2026-11-09, 2026-11-12\n    3.2 Hardening & bảo mật :t3_2, 2026-11-09, 2026-11-12\n    3.3 Mở rộng Aggregator :t3_3, 2026-11-12, 2026-11-17\n    3.4 Giám sát & vận hành :t3_4, 2026-11-12, 2026-11-14\n    3.5 UAT và nghiệm thu :t3_5, 2026-11-17, 2026-11-19\n    3.6 Đào tạo & bàn giao :t3_6, 2026-11-09, 2026-11-11\n    Go-live :milestone, m4, 2026-11-20, 0d"
             },
             "quotation": {
               "currency": "VND",
               "contract_model": "fixed_price",
               "onsite_ratio": 0.0,
-              "wbs_person_days": 51.0,
+              "wbs_person_days": 36.0,
               "overhead_person_days": 0.0,
               "odc_team": [],
               "odc_monthly_cost": null,
-              "months": 2,
+              "months": 1,
               "lines": [
                 {
                   "phase": "poc",
@@ -992,45 +993,45 @@
                   "phase": "production",
                   "role_key": "pm",
                   "role_label": "Project manager",
-                  "person_days": 5.0,
+                  "person_days": 3.0,
                   "day_rate": 3500000.0,
-                  "amount": 17500000.0,
+                  "amount": 10500000.0,
                   "kind": "wbs"
                 },
                 {
                   "phase": "production",
                   "role_key": "devops",
                   "role_label": "DevOps",
-                  "person_days": 10.0,
+                  "person_days": 5.0,
                   "day_rate": 3200000.0,
-                  "amount": 32000000.0,
+                  "amount": 16000000.0,
                   "kind": "wbs"
                 },
                 {
                   "phase": "production",
                   "role_key": "backend",
                   "role_label": "Backend developer",
-                  "person_days": 5.0,
+                  "person_days": 3.0,
                   "day_rate": 3000000.0,
-                  "amount": 15000000.0,
+                  "amount": 9000000.0,
                   "kind": "wbs"
                 },
                 {
                   "phase": "production",
                   "role_key": "qa",
                   "role_label": "QA / Tester",
-                  "person_days": 5.0,
+                  "person_days": 2.0,
                   "day_rate": 2200000.0,
-                  "amount": 11000000.0,
+                  "amount": 4400000.0,
                   "kind": "wbs"
                 },
                 {
                   "phase": "production",
                   "role_key": "ba",
                   "role_label": "Business analyst",
-                  "person_days": 5.0,
+                  "person_days": 2.0,
                   "day_rate": 2800000.0,
-                  "amount": 14000000.0,
+                  "amount": 5600000.0,
                   "kind": "wbs"
                 }
               ],
@@ -1051,40 +1052,40 @@
                 },
                 {
                   "phase": "production",
-                  "person_days": 30.0,
-                  "amount": 89500000.0,
-                  "min_amount": 59667000.0,
-                  "max_amount": 119333000.0
+                  "person_days": 15.0,
+                  "amount": 45500000.0,
+                  "min_amount": 30333000.0,
+                  "max_amount": 60667000.0
                 }
               ],
-              "subtotal": 152100000.0,
+              "subtotal": 108100000.0,
               "contingency_pct": 10.0,
-              "contingency": 15210000.0,
-              "total": 167310000.0,
-              "total_min": 108277000.0,
-              "total_max": 213289000.0,
-              "monthly_run_cost": 1500000.0,
+              "contingency": 10810000.0,
+              "total": 118910000.0,
+              "total_min": 76010000.0,
+              "total_max": 148756000.0,
+              "monthly_run_cost": 3000000.0,
               "milestones": [
                 {
                   "name": "Ký hợp đồng / kick-off",
                   "percent": 30.0,
-                  "amount": 50193000.0
+                  "amount": 35673000.0
                 },
                 {
                   "name": "Nghiệm thu MVP",
                   "percent": 40.0,
-                  "amount": 66924000.0
+                  "amount": 47564000.0
                 },
                 {
                   "name": "Go-live production",
                   "percent": 30.0,
-                  "amount": 50193000.0
+                  "amount": 35673000.0
                 }
               ],
               "assumptions": [
                 "Mô hình hợp đồng: Trọn gói (Fixed price).",
                 "Đơn giá theo vai trò là số giả lập trong bảng đơn giá, cần thay bằng đơn giá thật.",
-                "Ngày công = WBS 51 (PM đã nằm trong WBS).",
+                "Ngày công = WBS 36 (PM đã nằm trong WBS).",
                 "Tỉ lệ làm onsite 0% (đơn giá onsite cao hơn offshore).",
                 "Dự phòng rủi ro 10% (cơ bản 10%, +5% cho mỗi rủi ro mức 4–5).",
                 "Chưa bao gồm thuế VAT, chi phí bản quyền phần mềm và phần cứng mua mới.",
@@ -1129,9 +1130,9 @@
               "markdown": "# Đề xuất sơ bộ: Tự động tổng hợp hóa đơn chi nhánh\n\n## Kết luận chính\n**Bài toán này không cần AI.** Dữ liệu có cấu trúc và phép tính xác định, một script tổng hợp là đủ.\n\n## Giải pháp đề xuất\nScript đọc 40 file Excel theo template, kiểm tra cấu trúc, tính tổng theo chi nhánh và xuất báo cáo tháng.\n\n## Effort dự kiến\n| Giai đoạn | Ngày công |\n|---|---|\n| PoC | 3–5 |\n| MVP | 10–20 |\n| Production | 20–40 |\n\n## Giả định\n- Template Excel giữ nguyên giữa các chi nhánh.\n\n## Rủi ro\n- Chi nhánh sửa template (mức 3): kiểm tra cấu trúc file trước khi tổng hợp.\n\n## Câu hỏi còn mở\n- Định dạng báo cáo đầu ra mong muốn?\n",
               "language": "vi"
             },
-            "latency_ms": 802
+            "latency_ms": 804
           },
-          "delay_ms": 812
+          "delay_ms": 814
         },
         {
           "event": "status",
@@ -1146,7 +1147,7 @@
   "attachments": [],
   "final_run": {
     "id": "case_10",
-    "created_at": "2026-10-05T16:15:57.969481Z",
+    "created_at": "2026-10-06T15:47:54.166371Z",
     "request_text": "Chào anh/chị, hàng tháng bộ phận kế toán của chúng tôi nhận khoảng 40 file Excel\nhóa đơn từ các chi nhánh, cùng một template. Chúng tôi muốn dùng AI để tự động\ntính tổng tiền theo chi nhánh và xuất báo cáo. Hiện mất 3 ngày mỗi tháng.\n",
     "status": "done",
     "answers": {},
@@ -1163,7 +1164,8 @@
       "budget": null,
       "timeline": null,
       "language": "vi",
-      "industry": "Bán lẻ (giả lập)"
+      "industry": "Bán lẻ (giả lập)",
+      "project_start": null
     },
     "gaps": {
       "missing_info": [
@@ -1292,8 +1294,8 @@
         },
         {
           "phase": "production",
-          "min_person_days": 20,
-          "max_person_days": 40,
+          "min_person_days": 10,
+          "max_person_days": 20,
           "team": [
             "Backend developer",
             "QA"
@@ -1578,7 +1580,7 @@
           "level": 1,
           "type": null,
           "priority": "mid",
-          "estimate_md": 30.0,
+          "estimate_md": 15.0,
           "depends_on": [],
           "deliverable": null,
           "tags": [],
@@ -1591,7 +1593,7 @@
           "level": 2,
           "type": "PM",
           "priority": "mid",
-          "estimate_md": 5.0,
+          "estimate_md": 3.0,
           "depends_on": [
             "2.8"
           ],
@@ -1606,7 +1608,7 @@
           "level": 2,
           "type": "INFRA",
           "priority": "mid",
-          "estimate_md": 5.0,
+          "estimate_md": 3.0,
           "depends_on": [],
           "deliverable": "Kết quả: hardening & bảo mật",
           "tags": [
@@ -1621,7 +1623,7 @@
           "level": 2,
           "type": "BE",
           "priority": "mid",
-          "estimate_md": 5.0,
+          "estimate_md": 3.0,
           "depends_on": [
             "3.2"
           ],
@@ -1636,7 +1638,7 @@
           "level": 2,
           "type": "INFRA",
           "priority": "mid",
-          "estimate_md": 5.0,
+          "estimate_md": 2.0,
           "depends_on": [
             "3.2"
           ],
@@ -1651,7 +1653,7 @@
           "level": 2,
           "type": "QA",
           "priority": "high",
-          "estimate_md": 5.0,
+          "estimate_md": 2.0,
           "depends_on": [
             "3.3"
           ],
@@ -1666,7 +1668,7 @@
           "level": 2,
           "type": "BA",
           "priority": "mid",
-          "estimate_md": 5.0,
+          "estimate_md": 2.0,
           "depends_on": [],
           "deliverable": "Kết quả: đào tạo & bàn giao",
           "tags": [
@@ -1703,13 +1705,13 @@
         },
         {
           "phase": "production",
-          "total_md": 30.0,
+          "total_md": 15.0,
           "by_type": {
-            "PM": 5.0,
-            "INFRA": 10.0,
-            "BE": 5.0,
-            "QA": 5.0,
-            "BA": 5.0
+            "PM": 3.0,
+            "INFRA": 5.0,
+            "BE": 3.0,
+            "QA": 2.0,
+            "BA": 2.0
           },
           "adjustment_note": null
         }
@@ -1731,14 +1733,14 @@
     "error": null,
     "reviewer_note": null,
     "step_latency_ms": {
-      "intake": 802,
+      "intake": 801,
       "gaps": 802,
-      "pattern": 801,
-      "feasibility": 802,
-      "architecture": 802,
-      "wbs": 804,
+      "pattern": 803,
+      "feasibility": 801,
+      "architecture": 803,
+      "wbs": 803,
       "requirements": 0,
-      "proposal": 802
+      "proposal": 804
     },
     "effort_basis": {
       "pattern": "no_ai_rule_based",
@@ -1752,8 +1754,8 @@
           20
         ],
         "production": [
-          20,
-          40
+          10,
+          20
         ]
       },
       "multipliers": [],
@@ -1768,8 +1770,8 @@
           20
         ],
         "production": [
-          20,
-          40
+          10,
+          20
         ]
       }
     },
@@ -1783,7 +1785,7 @@
     "attachments": [],
     "schedule": {
       "config": {
-        "start_date": "2026-10-19",
+        "start_date": "2026-10-26",
         "headcount": {
           "AI": 2,
           "BE": 1,
@@ -1801,164 +1803,164 @@
       "phases": [
         {
           "phase": "poc",
-          "start": "2026-10-19",
-          "end": "2026-10-22",
+          "start": "2026-10-26",
+          "end": "2026-10-29",
           "working_days": 4
         },
         {
           "phase": "mvp",
-          "start": "2026-10-23",
-          "end": "2026-10-30",
+          "start": "2026-10-30",
+          "end": "2026-11-06",
           "working_days": 6
         },
         {
           "phase": "production",
-          "start": "2026-11-02",
-          "end": "2026-11-25",
-          "working_days": 18
+          "start": "2026-11-09",
+          "end": "2026-11-20",
+          "working_days": 10
         }
       ],
       "tasks": [
         {
           "wbs_id": "1.1",
-          "start": "2026-10-19",
-          "end": "2026-10-19"
+          "start": "2026-10-26",
+          "end": "2026-10-26"
         },
         {
           "wbs_id": "1.2",
-          "start": "2026-10-19",
-          "end": "2026-10-19"
+          "start": "2026-10-26",
+          "end": "2026-10-26"
         },
         {
           "wbs_id": "1.3",
-          "start": "2026-10-20",
-          "end": "2026-10-20"
-        },
-        {
-          "wbs_id": "1.4",
-          "start": "2026-10-20",
-          "end": "2026-10-20"
-        },
-        {
-          "wbs_id": "1.5",
-          "start": "2026-10-20",
-          "end": "2026-10-20"
-        },
-        {
-          "wbs_id": "1.6",
-          "start": "2026-10-21",
-          "end": "2026-10-21"
-        },
-        {
-          "wbs_id": "2.1",
-          "start": "2026-10-23",
-          "end": "2026-10-26"
-        },
-        {
-          "wbs_id": "2.2",
-          "start": "2026-10-23",
-          "end": "2026-10-26"
-        },
-        {
-          "wbs_id": "2.3",
-          "start": "2026-10-27",
-          "end": "2026-10-28"
-        },
-        {
-          "wbs_id": "2.4",
-          "start": "2026-10-27",
-          "end": "2026-10-28"
-        },
-        {
-          "wbs_id": "2.5",
-          "start": "2026-10-27",
-          "end": "2026-10-28"
-        },
-        {
-          "wbs_id": "2.6",
-          "start": "2026-10-27",
-          "end": "2026-10-28"
-        },
-        {
-          "wbs_id": "2.7",
           "start": "2026-10-27",
           "end": "2026-10-27"
         },
         {
+          "wbs_id": "1.4",
+          "start": "2026-10-27",
+          "end": "2026-10-27"
+        },
+        {
+          "wbs_id": "1.5",
+          "start": "2026-10-27",
+          "end": "2026-10-27"
+        },
+        {
+          "wbs_id": "1.6",
+          "start": "2026-10-28",
+          "end": "2026-10-28"
+        },
+        {
+          "wbs_id": "2.1",
+          "start": "2026-10-30",
+          "end": "2026-11-02"
+        },
+        {
+          "wbs_id": "2.2",
+          "start": "2026-10-30",
+          "end": "2026-11-02"
+        },
+        {
+          "wbs_id": "2.3",
+          "start": "2026-11-03",
+          "end": "2026-11-04"
+        },
+        {
+          "wbs_id": "2.4",
+          "start": "2026-11-03",
+          "end": "2026-11-04"
+        },
+        {
+          "wbs_id": "2.5",
+          "start": "2026-11-03",
+          "end": "2026-11-04"
+        },
+        {
+          "wbs_id": "2.6",
+          "start": "2026-11-03",
+          "end": "2026-11-04"
+        },
+        {
+          "wbs_id": "2.7",
+          "start": "2026-11-03",
+          "end": "2026-11-03"
+        },
+        {
           "wbs_id": "2.8",
-          "start": "2026-10-29",
-          "end": "2026-10-29"
+          "start": "2026-11-05",
+          "end": "2026-11-05"
         },
         {
           "wbs_id": "2.9",
-          "start": "2026-10-23",
-          "end": "2026-10-23"
+          "start": "2026-10-30",
+          "end": "2026-10-30"
         },
         {
           "wbs_id": "3.1",
-          "start": "2026-11-02",
-          "end": "2026-11-06"
+          "start": "2026-11-09",
+          "end": "2026-11-11"
         },
         {
           "wbs_id": "3.2",
-          "start": "2026-11-02",
-          "end": "2026-11-06"
+          "start": "2026-11-09",
+          "end": "2026-11-11"
         },
         {
           "wbs_id": "3.3",
-          "start": "2026-11-09",
-          "end": "2026-11-13"
+          "start": "2026-11-12",
+          "end": "2026-11-16"
         },
         {
           "wbs_id": "3.4",
-          "start": "2026-11-09",
+          "start": "2026-11-12",
           "end": "2026-11-13"
         },
         {
           "wbs_id": "3.5",
-          "start": "2026-11-16",
-          "end": "2026-11-20"
+          "start": "2026-11-17",
+          "end": "2026-11-18"
         },
         {
           "wbs_id": "3.6",
-          "start": "2026-11-02",
-          "end": "2026-11-06"
+          "start": "2026-11-09",
+          "end": "2026-11-10"
         }
       ],
       "milestones": [
         {
           "id": "M1",
           "name": "Kick-off",
-          "date": "2026-10-19",
+          "date": "2026-10-26",
           "phase": "poc",
           "payment_percent": 30
         },
         {
           "id": "M2",
           "name": "Nghiệm thu PoC",
-          "date": "2026-10-22",
+          "date": "2026-10-29",
           "phase": "poc",
           "payment_percent": null
         },
         {
           "id": "M3",
           "name": "Nghiệm thu MVP",
-          "date": "2026-10-30",
+          "date": "2026-11-06",
           "phase": "mvp",
           "payment_percent": 40
         },
         {
           "id": "M4",
           "name": "Go-live",
-          "date": "2026-11-25",
+          "date": "2026-11-20",
           "phase": "production",
           "payment_percent": 30
         }
       ],
-      "mermaid_gantt": "gantt\n    title Master schedule\n    dateFormat YYYY-MM-DD\n    axisFormat %d/%m\n    excludes weekends\n    section PoC\n    1.1 Kick-off và quản lý PoC :t1_1, 2026-10-19, 2026-10-20\n    1.2 Khảo sát dữ liệu & yêu cầu :t1_2, 2026-10-19, 2026-10-20\n    1.3 Chuẩn bị dữ liệu mẫu :t1_3, 2026-10-20, 2026-10-21\n    1.4 Dựng prototype Report exporter :t1_4, 2026-10-20, 2026-10-21\n    1.5 Đánh giá kết quả PoC :t1_5, 2026-10-20, 2026-10-21\n    1.6 Test và nghiệm thu PoC :t1_6, 2026-10-21, 2026-10-22\n    Kick-off :milestone, m1, 2026-10-19, 0d\n    Nghiệm thu PoC :milestone, m2, 2026-10-22, 0d\n    section MVP\n    2.1 Quản lý dự án MVP :t2_1, 2026-10-23, 2026-10-27\n    2.2 Phân tích & thiết kế chi tiết :t2_2, 2026-10-23, 2026-10-27\n    2.3 Chuẩn bị & làm sạch dữ liệu :t2_3, 2026-10-27, 2026-10-29\n    2.4 Xây dựng Report exporter :t2_4, 2026-10-27, 2026-10-29\n    2.5 Xây dựng Excel reader :t2_5, 2026-10-27, 2026-10-29\n    2.6 Giao diện người dùng :t2_6, 2026-10-27, 2026-10-29\n    2.7 Bộ đánh giá chất lượng :t2_7, 2026-10-27, 2026-10-28\n    2.8 Test và nghiệm thu MVP :t2_8, 2026-10-29, 2026-10-30\n    2.9 Tài liệu và bàn giao :t2_9, 2026-10-23, 2026-10-24\n    Nghiệm thu MVP :milestone, m3, 2026-10-30, 0d\n    section Production\n    3.1 Quản lý triển khai :t3_1, 2026-11-02, 2026-11-07\n    3.2 Hardening & bảo mật :t3_2, 2026-11-02, 2026-11-07\n    3.3 Mở rộng Aggregator :t3_3, 2026-11-09, 2026-11-14\n    3.4 Giám sát & vận hành :t3_4, 2026-11-09, 2026-11-14\n    3.5 UAT và nghiệm thu :t3_5, 2026-11-16, 2026-11-21\n    3.6 Đào tạo & bàn giao :t3_6, 2026-11-02, 2026-11-07\n    Go-live :milestone, m4, 2026-11-25, 0d"
+      "mermaid_gantt": "gantt\n    title Master schedule\n    dateFormat YYYY-MM-DD\n    axisFormat %d/%m\n    excludes weekends\n    section PoC\n    1.1 Kick-off và quản lý PoC :t1_1, 2026-10-26, 2026-10-27\n    1.2 Khảo sát dữ liệu & yêu cầu :t1_2, 2026-10-26, 2026-10-27\n    1.3 Chuẩn bị dữ liệu mẫu :t1_3, 2026-10-27, 2026-10-28\n    1.4 Dựng prototype Report exporter :t1_4, 2026-10-27, 2026-10-28\n    1.5 Đánh giá kết quả PoC :t1_5, 2026-10-27, 2026-10-28\n    1.6 Test và nghiệm thu PoC :t1_6, 2026-10-28, 2026-10-29\n    Kick-off :milestone, m1, 2026-10-26, 0d\n    Nghiệm thu PoC :milestone, m2, 2026-10-29, 0d\n    section MVP\n    2.1 Quản lý dự án MVP :t2_1, 2026-10-30, 2026-11-03\n    2.2 Phân tích & thiết kế chi tiết :t2_2, 2026-10-30, 2026-11-03\n    2.3 Chuẩn bị & làm sạch dữ liệu :t2_3, 2026-11-03, 2026-11-05\n    2.4 Xây dựng Report exporter :t2_4, 2026-11-03, 2026-11-05\n    2.5 Xây dựng Excel reader :t2_5, 2026-11-03, 2026-11-05\n    2.6 Giao diện người dùng :t2_6, 2026-11-03, 2026-11-05\n    2.7 Bộ đánh giá chất lượng :t2_7, 2026-11-03, 2026-11-04\n    2.8 Test và nghiệm thu MVP :t2_8, 2026-11-05, 2026-11-06\n    2.9 Tài liệu và bàn giao :t2_9, 2026-10-30, 2026-10-31\n    Nghiệm thu MVP :milestone, m3, 2026-11-06, 0d\n    section Production\n    3.1 Quản lý triển khai :t3_1, 2026-11-09, 2026-11-12\n    3.2 Hardening & bảo mật :t3_2, 2026-11-09, 2026-11-12\n    3.3 Mở rộng Aggregator :t3_3, 2026-11-12, 2026-11-17\n    3.4 Giám sát & vận hành :t3_4, 2026-11-12, 2026-11-14\n    3.5 UAT và nghiệm thu :t3_5, 2026-11-17, 2026-11-19\n    3.6 Đào tạo & bàn giao :t3_6, 2026-11-09, 2026-11-11\n    Go-live :milestone, m4, 2026-11-20, 0d"
     },
     "schedule_config": {
-      "start_date": "2026-10-19",
+      "start_date": "2026-10-26",
       "headcount": {
         "AI": 2,
         "BE": 1,
@@ -1977,11 +1979,11 @@
       "currency": "VND",
       "contract_model": "fixed_price",
       "onsite_ratio": 0.0,
-      "wbs_person_days": 51.0,
+      "wbs_person_days": 36.0,
       "overhead_person_days": 0.0,
       "odc_team": [],
       "odc_monthly_cost": null,
-      "months": 2,
+      "months": 1,
       "lines": [
         {
           "phase": "poc",
@@ -2086,45 +2088,45 @@
           "phase": "production",
           "role_key": "pm",
           "role_label": "Project manager",
-          "person_days": 5.0,
+          "person_days": 3.0,
           "day_rate": 3500000.0,
-          "amount": 17500000.0,
+          "amount": 10500000.0,
           "kind": "wbs"
         },
         {
           "phase": "production",
           "role_key": "devops",
           "role_label": "DevOps",
-          "person_days": 10.0,
+          "person_days": 5.0,
           "day_rate": 3200000.0,
-          "amount": 32000000.0,
+          "amount": 16000000.0,
           "kind": "wbs"
         },
         {
           "phase": "production",
           "role_key": "backend",
           "role_label": "Backend developer",
-          "person_days": 5.0,
+          "person_days": 3.0,
           "day_rate": 3000000.0,
-          "amount": 15000000.0,
+          "amount": 9000000.0,
           "kind": "wbs"
         },
         {
           "phase": "production",
           "role_key": "qa",
           "role_label": "QA / Tester",
-          "person_days": 5.0,
+          "person_days": 2.0,
           "day_rate": 2200000.0,
-          "amount": 11000000.0,
+          "amount": 4400000.0,
           "kind": "wbs"
         },
         {
           "phase": "production",
           "role_key": "ba",
           "role_label": "Business analyst",
-          "person_days": 5.0,
+          "person_days": 2.0,
           "day_rate": 2800000.0,
-          "amount": 14000000.0,
+          "amount": 5600000.0,
           "kind": "wbs"
         }
       ],
@@ -2145,40 +2147,40 @@
         },
         {
           "phase": "production",
-          "person_days": 30.0,
-          "amount": 89500000.0,
-          "min_amount": 59667000.0,
-          "max_amount": 119333000.0
+          "person_days": 15.0,
+          "amount": 45500000.0,
+          "min_amount": 30333000.0,
+          "max_amount": 60667000.0
         }
       ],
-      "subtotal": 152100000.0,
+      "subtotal": 108100000.0,
       "contingency_pct": 10.0,
-      "contingency": 15210000.0,
-      "total": 167310000.0,
-      "total_min": 108277000.0,
-      "total_max": 213289000.0,
-      "monthly_run_cost": 1500000.0,
+      "contingency": 10810000.0,
+      "total": 118910000.0,
+      "total_min": 76010000.0,
+      "total_max": 148756000.0,
+      "monthly_run_cost": 3000000.0,
       "milestones": [
         {
           "name": "Ký hợp đồng / kick-off",
           "percent": 30.0,
-          "amount": 50193000.0
+          "amount": 35673000.0
         },
         {
           "name": "Nghiệm thu MVP",
           "percent": 40.0,
-          "amount": 66924000.0
+          "amount": 47564000.0
         },
         {
           "name": "Go-live production",
           "percent": 30.0,
-          "amount": 50193000.0
+          "amount": 35673000.0
         }
       ],
       "assumptions": [
         "Mô hình hợp đồng: Trọn gói (Fixed price).",
         "Đơn giá theo vai trò là số giả lập trong bảng đơn giá, cần thay bằng đơn giá thật.",
-        "Ngày công = WBS 51 (PM đã nằm trong WBS).",
+        "Ngày công = WBS 36 (PM đã nằm trong WBS).",
         "Tỉ lệ làm onsite 0% (đơn giá onsite cao hơn offshore).",
         "Dự phòng rủi ro 10% (cơ bản 10%, +5% cho mỗi rủi ro mức 4–5).",
         "Chưa bao gồm thuế VAT, chi phí bản quyền phần mềm và phần cứng mua mới.",

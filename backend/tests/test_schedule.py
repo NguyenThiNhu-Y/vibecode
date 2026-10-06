@@ -12,6 +12,7 @@ from app.agents.schedule import (
     default_config,
     working_days_between,
 )
+from app.schemas.common import Phase, WorkType
 from app.schemas.schedule import ScheduleConfig
 from app.schemas.wbs import WbsResult
 
@@ -119,3 +120,40 @@ def test_calendar_helpers_and_default_start() -> None:
     start = default_config(date(2026, 10, 5)).start_date
     assert start == date(2026, 10, 19) and start.weekday() == 0
     assert default_config(date(2026, 10, 6)).start_date == date(2026, 10, 26)
+
+
+def _long_poc() -> WbsResult:
+    """PoC of 20 parallel BE tasks x 10 MD and 3 PM tasks: 200 BE man-days, 1 BE person = 200
+    days, far over the ~60-day PoC target."""
+    tasks = [leaf(f"1.{n}", "poc", 10, "BE") for n in range(1, 21)]
+    tasks += [leaf(f"1.{n}", "poc", 10, "PM") for n in range(21, 24)]
+    return wbs(*tasks)
+
+
+def test_suggested_team_fits_the_phase_target() -> None:
+    from app.agents.schedule import TARGET_PHASE_DAYS, suggest_headcount
+
+    plan, base = _long_poc(), config(buffer=0.15)
+    team = suggest_headcount(plan, base)
+    assert team[WorkType.BE] > 1 and team[WorkType.PM] == 1  # one PM, whatever the effort
+    phase = build_schedule(plan, base.model_copy(update={"headcount": team})).phases[0]
+    assert phase.working_days <= TARGET_PHASE_DAYS[Phase.POC]
+    assert suggest_headcount(plan, base) == team  # deterministic
+
+
+def test_small_project_keeps_the_default_team() -> None:
+    from app.agents.schedule import suggest_headcount
+
+    small = wbs(leaf("1.1", "poc", 5, "BE"), leaf("1.2", "poc", 2, "PM"))
+    assert suggest_headcount(small, config()) == {k: v for k, v in config().headcount.items()}
+
+
+def test_no_person_added_for_a_marginal_gain() -> None:
+    """A single 10-MD dependency chain cannot be shortened below its length by more people of
+    another type, so nobody is added for it."""
+    from app.agents.schedule import suggest_headcount
+
+    chain = wbs(
+        *[leaf(f"1.{n}", "poc", 10, "PM", (f"1.{n - 1}",) if n > 1 else ()) for n in range(1, 9)]
+    )
+    assert suggest_headcount(chain, config())[WorkType.PM] == 1  # PM capped at 1; no other help

@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from app.agents.estimate import explain_estimates
 from app.agents.pricing import compute_quotation, load_rate_card
-from app.agents.schedule import ScheduleError, build_schedule, default_config
+from app.agents.schedule import ScheduleError, build_schedule, config_for
 from app.agents.step import Step, StepError
 from app.agents.steps import (
     FEASIBILITY,
@@ -277,7 +277,12 @@ async def run_pipeline(llm: LLMClient, run: ScopingRun, repo: RunRepo) -> AsyncI
                 step: Step | None = None
                 if name == "architecture":
                     assert run.pattern and run.intake and run.feasibility
-                    basis = explain_estimates(run.pattern, run.intake, run.feasibility)
+                    basis = explain_estimates(
+                        run.pattern,
+                        run.intake,
+                        run.feasibility,
+                        requirement_count=len(all_requirements(run.attachments)),
+                    )
                     run.effort_basis = basis
                     step = architecture_step(_computed(basis))
                 elif name == "wbs":
@@ -297,7 +302,8 @@ async def run_pipeline(llm: LLMClient, run: ScopingRun, repo: RunRepo) -> AsyncI
                     else:
                         result, latency_ms = await step.run(llm, _context(name, run, basis, mask))
                     if name == "wbs":  # master schedule: code only (BIDDING_SPEC 4)
-                        run.schedule_config = run.schedule_config or default_config()
+                        start = run.intake.project_start if run.intake else None
+                        run.schedule_config = config_for(run.schedule_config, start, result)
                         schedule = build_schedule(result, run.schedule_config)
                 except StepError as exc:
                     message = exc.message

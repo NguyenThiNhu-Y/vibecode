@@ -8,7 +8,16 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from app.schemas.common import Phase
 
 ESTIMATE_PATTERNS = {"rag", "agent", "classic_ml", "fine_tune", "no_ai_rule_based"}
-MULTIPLIER_KEYS = {"on_prem", "japanese_language", "low_data_readiness", "strict_compliance"}
+MULTIPLIER_KEYS = {
+    "on_prem",
+    "japanese_language",
+    "low_data_readiness",
+    "strict_compliance",
+    "multilingual",
+    "ocr_required",
+    "large_data_volume",
+    "many_requirements",
+}
 
 
 class RoleRate(BaseModel):
@@ -92,6 +101,8 @@ class EstimationTemplate(BaseModel):
     unit: str = "person_days"
     base: dict[str, dict[Phase, list[int]]]
     multipliers: dict[str, float]
+    many_requirements_min: int = Field(default=30, ge=1)  # rows in the customer's requirement file
+    max_factor: float = Field(default=3.0, ge=1)  # cap on the stacked multipliers
 
     @model_validator(mode="after")
     def consistent(self) -> "EstimationTemplate":

@@ -11,5 +11,5 @@ expected:
   acceptable_patterns: [agent]
   question_topics: [integration, accuracy]
   can_proceed: true
-  mvp_person_days: [36, 84]
+  mvp_person_days: [119, 278]
   must_not_mention: ["fine-tune"]

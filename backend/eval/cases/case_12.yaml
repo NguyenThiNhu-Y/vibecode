@@ -11,5 +11,5 @@ expected:
   acceptable_patterns: [fine_tune]
   question_topics: [data, compliance, accuracy]
   can_proceed: true
-  mvp_person_days: [70, 170]
+  mvp_person_days: [210, 510]
   must_not_mention: []

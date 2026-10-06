@@ -89,3 +89,52 @@ def test_explain_estimates_lists_applied_multipliers(template: Path) -> None:
 
 def test_explain_estimates_none_for_needs_clarification(template: Path) -> None:
     assert explain_estimates(*models(pattern="needs_clarification"), template_path=template) is None
+
+
+FULL = """
+unit: person_days
+base:
+  rag: { poc: [40, 60], mvp: [120, 180], production: [60, 100] }
+multipliers:
+  on_prem: 1.3
+  japanese_language: 1.15
+  low_data_readiness: 1.4
+  strict_compliance: 1.2
+  multilingual: 1.15
+  ocr_required: 1.15
+  large_data_volume: 1.2
+  many_requirements: 1.2
+many_requirements_min: 30
+max_factor: 3.0
+"""
+
+
+def test_scale_factors_and_requirement_count(tmp_path: Path) -> None:
+    path = tmp_path / "estimation_template.yaml"
+    path.write_text(FULL, encoding="utf-8")
+    tags = ("strict_compliance", "multilingual", "ocr_required", "large_data_volume")
+    p, i, f = models(language="ja", constraints=tags)
+    basis = explain_estimates(p, i, f, path, requirement_count=41)
+    keys = [m.key for m in basis.multipliers]
+    assert set(keys) == {*tags, "japanese_language", "many_requirements"}
+    assert basis.factor == round(1.15 * 1.2 * 1.15 * 1.15 * 1.2 * 1.2, 4)
+    few = explain_estimates(p, i, f, path, requirement_count=29)
+    assert "many_requirements" not in [m.key for m in few.multipliers]
+
+
+def test_stacked_factor_is_capped(tmp_path: Path) -> None:
+    path = tmp_path / "estimation_template.yaml"
+    path.write_text(FULL, encoding="utf-8")
+    everything = ("on_prem", "strict_compliance", "multilingual", "ocr_required",
+                  "large_data_volume")  # fmt: skip
+    p, i, f = models(language="ja", constraints=everything, readiness=1)
+    basis = explain_estimates(p, i, f, path, requirement_count=100)
+    assert basis.factor == 3.0 and basis.computed[Phase.MVP] == [360, 540]
+
+
+def test_real_template_validates_in_settings() -> None:
+    from app.knowledge.loader import load_yaml
+    from app.schemas.settings import EstimationTemplate
+
+    template = EstimationTemplate.model_validate(load_yaml("estimation_template.yaml"))
+    assert template.max_factor == 3.0 and "many_requirements" in template.multipliers

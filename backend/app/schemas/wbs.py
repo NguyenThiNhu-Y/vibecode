@@ -36,7 +36,7 @@ class PhaseTotal(BaseModel):
 
 
 class WbsResult(BaseModel):
-    items: list[WbsItem] = Field(min_length=1, max_length=150)
+    items: list[WbsItem] = Field(min_length=1, max_length=200)
     totals: list[PhaseTotal] = []  # the LLM may leave it empty; code overwrites
     assumptions: list[str] = []
     out_of_scope: list[str] = []

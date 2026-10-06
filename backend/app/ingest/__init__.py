@@ -35,7 +35,7 @@ def build_attachment(
                 raise DocumentError("Bảng tính hãy chọn loại Requirement hoặc Data mẫu.")
             sheets = read_tables(filename, data)
             if kind in (None, "requirements"):
-                requirements = parse_requirements(sheets)
+                requirements = parse_requirements(sheets, strict=kind is None)
                 if requirements:
                     return Attachment(**base, kind="requirements", requirements=requirements)
                 if kind == "requirements":

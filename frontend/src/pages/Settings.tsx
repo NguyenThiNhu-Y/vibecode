@@ -31,6 +31,10 @@ const MULTIPLIER_LABELS: Record<string, string> = {
   japanese_language: "Khách hàng tiếng Nhật",
   low_data_readiness: "Dữ liệu chưa sẵn sàng (≤ 2/5)",
   strict_compliance: "Tuân thủ nghiêm ngặt",
+  multilingual: "Xử lý / trả lời nhiều ngôn ngữ",
+  ocr_required: "Tài liệu scan cần OCR",
+  large_data_volume: "Khối lượng dữ liệu lớn",
+  many_requirements: "Nhiều requirement (từ ngưỡng trong file)",
 };
 function RatesTab({ initial }: { initial: RateCard }) {
   const [card, setCard] = useState<RateCard>(initial);

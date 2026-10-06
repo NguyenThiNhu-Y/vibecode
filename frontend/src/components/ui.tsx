@@ -1,9 +1,62 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { STATUS_LABELS } from "../labels";
 import { STEPS, type RunStatus, type StepName } from "../types";
 import { IconAlert, IconCheck, IconCopy, STEP_ICONS } from "./icons";
 
 export const eyebrow = "text-xs font-semibold tracking-wide text-subtle uppercase";
+
+/** Instant hover / focus tooltip placed next to its target (portal + fixed position, so scroll
+ * containers and long lists never hide it). `onlyIfTruncated`: shown only when the target's own
+ * text is cut off by CSS (`truncate`). */
+export function HoverTip({
+  content,
+  children,
+  className = "",
+  style,
+  onlyIfTruncated = false,
+}: {
+  content: ReactNode;
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+  onlyIfTruncated?: boolean;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ x: number; y: number; above: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!pos) return;
+    const hide = () => setPos(null);
+    window.addEventListener("scroll", hide, true);
+    return () => window.removeEventListener("scroll", hide, true);
+  }, [pos]);
+
+  const open = () => {
+    const el = ref.current;
+    if (!el || (onlyIfTruncated && el.scrollWidth <= el.clientWidth)) return;
+    const r = el.getBoundingClientRect();
+    const above = r.bottom + 140 > window.innerHeight;
+    setPos({ x: Math.max(8, Math.min(r.left, window.innerWidth - 344)), y: above ? r.top - 6 : r.bottom + 6, above });
+  };
+
+  return (
+    <span ref={ref} className={className} style={style} onMouseEnter={open} onMouseLeave={() => setPos(null)} onFocus={open} onBlur={() => setPos(null)}>
+      {children}
+      {pos &&
+        createPortal(
+          <div
+            role="tooltip"
+            style={{ left: pos.x, top: pos.y, transform: pos.above ? "translateY(-100%)" : undefined }}
+            className="pointer-events-none fixed z-50 w-max max-w-[336px] rounded-md border border-line bg-surface px-3 py-2 text-sm whitespace-normal text-fg shadow-lg"
+          >
+            {content}
+          </div>,
+          document.body,
+        )}
+    </span>
+  );
+}
 
 export type Tone = "neutral" | "accent" | "success" | "warning" | "danger" | "info" | "violet";
 
@@ -139,6 +192,7 @@ export const buttonClass = {
   primary: `${base} bg-accent text-on-accent hover:brightness-105`,
   secondary: `${base} border border-line bg-surface text-fg hover:bg-surface-2`,
   ghost: `${base} text-muted hover:bg-surface-2 hover:text-fg`,
+  soft: `${base} border border-accent/30 bg-accent-soft text-accent-strong hover:border-accent/60 hover:brightness-[0.98]`,
   danger: `${base} border border-line bg-surface text-danger hover:bg-danger-soft`,
   success: `${base} bg-success text-white hover:brightness-110 dark:text-[#0b1f17]`,
 };

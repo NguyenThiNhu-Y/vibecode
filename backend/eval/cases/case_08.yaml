@@ -12,5 +12,5 @@ expected:
   acceptable_patterns: [classic_ml]
   question_topics: [data, accuracy, integration]
   can_proceed: true
-  mvp_person_days: [32, 72]
+  mvp_person_days: [96, 216]
   must_not_mention: ["fine-tune", "vector database"]

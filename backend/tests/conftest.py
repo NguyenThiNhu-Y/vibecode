@@ -1,4 +1,9 @@
 import json
+import os
+
+# Tests never call a real LLM, whatever backend/.env says (env vars win over the .env file).
+os.environ["LLM_PROVIDER"] = "mock"
+os.environ["LLM_CACHE"] = "false"
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any

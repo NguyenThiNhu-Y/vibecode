@@ -12,5 +12,5 @@ expected:
   acceptable_patterns: [rag]
   question_topics: [data, accuracy, integration]
   can_proceed: true
-  mvp_person_days: [24, 60]
+  mvp_person_days: [90, 225]
   must_not_mention: ["fine-tune"]

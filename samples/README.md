@@ -10,3 +10,5 @@ Dùng cùng yêu cầu: *"Ngân hàng (giả lập) cần trợ lý hỏi đáp 
 | `portal_noi_bo.zip` | Source code | Portal Flask + React nhỏ |
 
 Toàn bộ tên, email, số điện thoại là giả lập.
+
+**Bộ hồ sơ gần với dự án thật hơn** (RFP tiếng Nhật đầy đủ, 41 requirement, lịch sử sự cố, trích manual): xem [rfp_tokai_minato/](rfp_tokai_minato/README.md). Trên trang Tạo hồ sơ có nút nạp một lần.

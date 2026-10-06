@@ -105,7 +105,11 @@ scopeai/
 ### 3.3 Biến môi trường (`backend/.env.example`)
 
 ```bash
-LLM_PROVIDER=mock            # mock | vibeflow | openai
+LLM_PROVIDER=mock            # mock | vibeflow | openai | openrouter
+OPENROUTER_API_KEY=          # LLM_PROVIDER=openrouter (base URL mặc định https://openrouter.ai/api/v1)
+LLM_JSON_MODE=false          # gửi response_format=json_object
+LLM_CACHE=true               # cache output đã validate ở LLM_CACHE_DIR (không áp dụng cho mock)
+LLM_CACHE_DIR=llm_cache      # tương đối với backend/
 LLM_BASE_URL=<TODO: endpoint VibeFlow hoặc OpenAI-compatible>
 LLM_API_KEY=<TODO>
 MODEL_NAME=<TODO>
@@ -164,6 +168,7 @@ class IntakeResult(BaseModel):
     timeline: str | None = None
     language: Literal["vi", "en", "ja"]
     industry: str | None = None
+    project_start: date | None = None  # mở rộng: ngày khách dự kiến bắt đầu dự án/PoC (lịch mặc định bắt đầu từ đây)
 
 # Bước 2
 class ClarifyingQuestion(BaseModel):
@@ -264,7 +269,7 @@ class Attachment(BaseModel):  id: str; filename: str; kind: AttachmentKind; size
 # app/schemas/wbs.py  (bước 6 — đã thay bằng cây 3 cấp theo docs/BIDDING_SPEC.md 3.1)
 class WbsItem(BaseModel):  id: str  # "1", "1.2", "1.2.3"; phase: Phase; name: str; level: int = Field(ge=1, le=3); type: WorkType | None; priority: Priority = "mid"; estimate_md: float | None  # chỉ node lá, ≤ 10; depends_on: list[str] = []; deliverable: str | None; tags: list[TaskTag] = []; note: str | None
 class PhaseTotal(BaseModel):  phase: Phase; total_md: float; by_type: dict[WorkType, float]; adjustment_note: str | None  # code tính, giữ note của LLM
-class WbsResult(BaseModel):  items: list[WbsItem] = Field(min_length=1, max_length=150); totals: list[PhaseTotal] = []; assumptions: list[str] = []; out_of_scope: list[str] = []  # node cha + totals do code cộng; WBS phẳng cũ (`tasks`) tự chuyển khi đọc
+class WbsResult(BaseModel):  items: list[WbsItem] = Field(min_length=1, max_length=200); totals: list[PhaseTotal] = []; assumptions: list[str] = []; out_of_scope: list[str] = []  # node cha + totals do code cộng; WBS phẳng cũ (`tasks`) tự chuyển khi đọc
 # app/schemas/schedule.py  (code tính, docs/BIDDING_SPEC.md 4)
 class ScheduleConfig(BaseModel):  start_date: date; headcount: dict[WorkType, int]; buffer_ratio: float = 0.15; holidays: list[date] = []
 class PhaseSchedule(BaseModel):  phase: Phase; start: date; end: date; working_days: int
@@ -368,6 +373,7 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
 | `POST /runs/{id}/answers/import` | multipart `file` (Q&A sheet đã điền) | `200 ScopingRun` (như `/answers`) | `409` không chờ làm rõ; `422` file sai/không có câu trả lời |
 | `GET /runs/{id}/export/qa_sheet.xlsx` | — | file Q&A theo ngôn ngữ khách | `409` chưa có câu hỏi |
 | `GET /runs/{id}/bidding.xlsx` (= `/export/bidding.xlsx`) | — | Excel 4 sheet Q&A, WBS, Summary, Master Schedule; chỉ sheet Q&A khi chưa có WBS | `409` chưa có `gaps` |
+| `GET /runs/{id}/schedule-suggestion` | — | `200 ScheduleConfig` (config hiện tại với số người gợi ý theo WBS; không lưu) | `409` chưa có WBS |
 | `PUT /runs/{id}/schedule-config` | `ScheduleConfig` | `200 ScopingRun` (tính lại `schedule` bằng code, không gọi LLM; báo giá chưa duyệt được tính lại) | `409` chưa có WBS; `422` headcount 0 cho loại có task |
 | `POST /runs` (bidding) | thêm `schedule_config` tùy chọn | như cũ | `422` |
 | `PATCH /runs/{id}/wbs` | `{estimates: {leaf_id: man_day}}` (0–10, chỉ node lá) | `200 ScopingRun` (`wbs_edited = true`; code cộng lại node cha, totals, tính lại `schedule` và báo giá; không gọi LLM) | `409` chưa có WBS / hồ sơ chưa xong hoặc đã duyệt / giá đã duyệt; `422` id không có, node cha, ngoài 0–10 |
@@ -382,6 +388,8 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
 | `GET /eval/reports` | — | `200 list[{name, provider, label, created_at, summary}]` | — |
 | `GET /eval/reports/{name}` | — | `200 {..., cases}` (bỏ `outputs`) | `404` |
 | `GET /replays` | — | `200 list[str]` (tên các bản replay) | — |
+| `GET /demo-packs` | — | `200 list[{id, label, lang, outcome, project_name, client_name, due_date, request_text, files[{name, kind}]}]` từ `samples/*/pack.json` | — |
+| `GET /demo-packs/{id}/files/{name}` | — | file đính kèm của bộ hồ sơ mẫu (chỉ file có trong `pack.json`) | `404` |
 | `GET /replays/{name}` | — | `200 {name, llm_provider, recorded_at, request_text, segments: [{answers}]}` | `404` |
 | `GET /replays/{name}/stream?segment=0&speed=1` | — | SSE (mục 4.3), phát lại với độ trễ đã ghi | `404` |
 
@@ -421,6 +429,7 @@ Mỗi bước là một instance `Step(name, prompt_file, output_model, kb_keys,
 5. **Validate** bằng `output_model.model_validate`, sau đó chạy `post_validate` riêng của bước (nếu có).
 6. Lỗi ở bước 4–5 → retry, user message thêm dòng `Lần trước output không hợp lệ: <lỗi, tối đa 500 ký tự>. Hãy trả lại JSON đúng schema.` Hết retry → raise `StepError(step, message)`.
 7. Ghi log mỗi lần gọi: step, attempt, latency, độ dài output (không log toàn văn yêu cầu khách).
+8. **Cache (`app/llm/cache.py`):** nếu LLM client có `ResponseCache` (`CachedLLM`, bật bằng `LLM_CACHE` cho provider thật), trước khi gọi tra khóa sha256(provider, base_url, model, temperature, json_mode, reasoning_effort, step, system prompt, user message lần đầu; không gồm max_tokens/timeout); trúng và output vẫn qua validate thì trả luôn. Sau khi một lần gọi qua validate (kể cả ở lần retry), lưu `llm_cache/<step>/<key>.json` dưới khóa của message lần đầu. Không bao giờ lưu output không hợp lệ.
 
 ### 5.2 Từng bước
 
@@ -433,7 +442,7 @@ Mỗi bước là một instance `Step(name, prompt_file, output_model, kb_keys,
 | `architecture` | `intake`, `pattern`, `feasibility`, `computed_estimates` | `reference_projects` | Mỗi phase: `min ≤ max`; lệch quá ±20% so với `computed_estimates` mà thiếu `adjustment_note` → lỗi |
 | `wbs` | `intake`, `pattern`, `feasibility.risks`, `architecture`, `computed_estimates`, `answers` | `wbs_templates` | Theo docs/BIDDING_SPEC.md 2.1: id phân cấp, có cha, cùng phase; node lá có type + estimate ≤ 10; `depends_on` tồn tại, không phụ thuộc giai đoạn sau, không vòng (kể cả sau khi nâng lên task cấp 2); mỗi giai đoạn có PM và QA; pattern AI có tag `data_prep` + `evaluation`; production không có cấp 3; đúng các giai đoạn của architecture; tổng ngoài `computed_estimates` ±20% thì phải có `adjustment_note`. Sau đó code tính `schedule` (`build_schedule`) |
 | `requirements` | `pattern`, `architecture.components`, lô ≤ 40 requirement | — | Mỗi `req_id` của lô xuất hiện đúng một lần. Không có file requirement → `skipped = true`, không gọi LLM |
-| `proposal` | toàn bộ kết quả trước đó + `wbs_summary`, `timeline`, `requirements_summary` | — | `markdown` chứa các heading `Giả định` và `Rủi ro` |
+| `proposal` | toàn bộ kết quả trước đó + `wbs_summary`, `timeline`, `requirements_summary` | — | `markdown` chứa heading giả định và rủi ro theo ngôn ngữ khách (`Giả định`/`Assumptions`/`前提条件`, `Rủi ro`/`Risks`/`リスク`); toàn bộ heading viết bằng ngôn ngữ khách |
 
 ### 5.3 Điều khiển luồng (`agents/pipeline.py`)
 
@@ -481,7 +490,7 @@ Mỗi bước là một instance `Step(name, prompt_file, output_model, kb_keys,
 
 - Đọc `knowledge_base/estimation_template.yaml` (`base[pattern][phase] = [min, max]`, `multipliers`).
 - `pattern = needs_clarification` hoặc không có trong `base` → trả `{}`.
-- Hệ số nhân dồn: `"on_prem"` trong `intake.constraints` → `on_prem`; `intake.language == "ja"` → `japanese_language`; `feasibility.data_readiness <= 2` → `low_data_readiness`; `"strict_compliance"` trong constraints → `strict_compliance`.
+- Hệ số nhân dồn: token `on_prem`, `strict_compliance`, `multilingual`, `ocr_required`, `large_data_volume` trong `intake.constraints` → hệ số cùng tên; `intake.language == "ja"` → `japanese_language`; `feasibility.data_readiness <= 2` → `low_data_readiness`; số requirement trong file khách ≥ `many_requirements_min` → `many_requirements`. Tích hệ số bị chặn ở `max_factor`. Ngày bắt đầu lịch mặc định = `intake.project_start` (nếu cách hôm nay ≥ 14 ngày), làm tròn tới thứ Hai. Số người mặc định = `suggest_headcount(wbs)` (`agents/schedule.py`): bắt đầu từ đội mặc định, lần lượt thêm 1 người cho loại công việc rút ngắn lịch nhiều nhất cho tới khi mọi giai đoạn ≤ `TARGET_PHASE_DAYS` (PoC 60, MVP 120, production 40 ngày làm việc, đã gồm buffer), dừng khi lợi ích < `MIN_GAIN_DAYS` (3 ngày) hoặc chạm `MAX_HEADCOUNT` (PM tối đa 1).
 - Kết quả = `round(min × m)`, `round(max × m)`. Hàm thuần, không gọi LLM.
 
 ### 5.5 Knowledge loader

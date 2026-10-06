@@ -10,6 +10,7 @@ from pydantic import BaseModel, ValidationError
 
 from app.knowledge.loader import kb_text
 from app.llm.base import LLMClient
+from app.llm.cache import response_cache
 
 logger = logging.getLogger("scopeai.step")
 
@@ -58,12 +59,29 @@ class Step(Generic[M]):
         schema = json.dumps(self.output_model.model_json_schema(), ensure_ascii=False)
         return f"{template.replace('{{knowledge}}', knowledge)}\n\n{SCHEMA_INSTRUCTION}\n{schema}"
 
+    def parse(self, raw: str) -> M:
+        result = self.output_model.model_validate(extract_json(raw))
+        return self.post_validate(result) if self.post_validate is not None else result
+
     async def run(self, llm: LLMClient, context: dict[str, Any]) -> tuple[M, int]:
-        """Call the LLM until the output validates. Returns (result, total latency in ms)."""
+        """Call the LLM until the output validates. Returns (result, total latency in ms).
+
+        With a response cache (real providers, LLM_CACHE=true) a validated output stored for
+        the same model + prompt + context is reused without calling the LLM."""
         system = self.build_system()
         user = json.dumps(context, ensure_ascii=False, default=str)
-        last_error: str | None = None
         started = time.perf_counter()
+        cache = response_cache(llm)
+        if cache is not None and (hit := cache.get(self.name, system, user)) is not None:
+            try:
+                result = self.parse(hit.response)
+            except (ValueError, ValidationError):  # validation rules changed since it was stored
+                logger.info("step=%s cached output no longer valid, calling the LLM", self.name)
+            else:
+                cache.hits.append(hit)
+                logger.info("step=%s served from cache", self.name)
+                return result, int((time.perf_counter() - started) * 1000)
+        last_error: str | None = None
         for attempt in range(1, self.max_retries + 2):
             message = user
             if last_error is not None:
@@ -81,12 +99,13 @@ class Step(Generic[M]):
                 len(raw),
             )
             try:
-                result = self.output_model.model_validate(extract_json(raw))
-                if self.post_validate is not None:
-                    result = self.post_validate(result)
+                result = self.parse(raw)
             except (ValueError, ValidationError) as exc:
                 last_error = str(exc)[:500]
                 logger.warning("step=%s attempt=%d invalid: %s", self.name, attempt, last_error)
                 continue
-            return result, int((time.perf_counter() - started) * 1000)
+            latency_ms = int((time.perf_counter() - started) * 1000)
+            if cache is not None:  # keyed by the first message, so a retry's fix is reused too
+                cache.put(self.name, system, user, raw, latency_ms, attempt)
+            return result, latency_ms
         raise StepError(self.name, f"thất bại sau {self.max_retries + 1} lần thử: {last_error}")

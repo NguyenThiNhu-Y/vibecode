@@ -28,6 +28,20 @@ export const STEP_LABELS: Record<StepName, string> = {
   proposal: "Proposal",
 };
 
+// Standard constraint tokens tagged by the intake step (prompts/01_intake.md)
+export const CONSTRAINT_LABELS: Record<string, string> = {
+  on_prem: "On-premise",
+  cloud_allowed: "Cho phép cloud",
+  strict_compliance: "Tuân thủ chặt",
+  multilingual: "Đa ngôn ngữ",
+  ocr_required: "Cần OCR",
+  large_data_volume: "Dữ liệu lớn",
+  japanese_ui: "Giao diện tiếng Nhật",
+  market_vn: "Thị trường VN",
+  market_jp: "Thị trường Nhật",
+  market_eu: "Thị trường EU",
+};
+
 export const PATTERN_LABELS: Record<SolutionPattern, string> = {
   no_ai_rule_based: "Không cần AI (quy tắc / script)",
   classic_ml: "Machine learning truyền thống",

@@ -1,0 +1,28 @@
+{
+  "id": "tokai_minato",
+  "label": "RFP trợ lý AI bảo trì nhà máy (Nhật)",
+  "lang": "JA",
+  "outcome": "RFP đầy đủ · 4 file",
+  "project_name": "Trợ lý AI tri thức bảo trì thiết bị",
+  "client_name": "Tokai Minato Tech (giả lập)",
+  "due_date": "2026-10-30",
+  "request_file": "email_yeu_cau_khach.txt",
+  "files": [
+    {
+      "name": "RFP_設備保全ナレッジAI_v1.0.docx",
+      "kind": "document"
+    },
+    {
+      "name": "別紙1_要件一覧_v1.0.xlsx",
+      "kind": "requirements"
+    },
+    {
+      "name": "別紙2_故障履歴サンプル_2025-2026.csv",
+      "kind": "data_sample"
+    },
+    {
+      "name": "別紙3_MC-850H_取扱説明書_保守編_抜粋.pdf",
+      "kind": "document"
+    }
+  ]
+}

@@ -14,7 +14,14 @@ MULTIPLIER_LABELS = {
     "japanese_language": "Khách hàng tiếng Nhật",
     "low_data_readiness": "Dữ liệu chưa sẵn sàng (≤ 2/5)",
     "strict_compliance": "Yêu cầu tuân thủ nghiêm ngặt",
+    "multilingual": "Xử lý / trả lời nhiều ngôn ngữ",
+    "ocr_required": "Tài liệu scan cần OCR",
+    "large_data_volume": "Khối lượng dữ liệu lớn",
+    "many_requirements": "Nhiều requirement",
 }
+# intake constraint token -> multiplier key (the LLM tags, code decides the numbers)
+CONSTRAINT_FACTORS = ("on_prem", "strict_compliance", "multilingual", "ocr_required",
+                      "large_data_volume")  # fmt: skip
 
 
 def _normalize(token: str) -> str:
@@ -26,8 +33,11 @@ def explain_estimates(
     intake: IntakeResult,
     feasibility: FeasibilityResult,
     template_path: Path | None = None,
+    requirement_count: int = 0,
 ) -> EffortBasis | None:
-    """Return base, applied multipliers and computed ranges. Pure, no LLM."""
+    """Return base, applied multipliers and computed ranges. Pure, no LLM.
+
+    `requirement_count` = rows of the customer's requirement file (counted by code)."""
     path = template_path or KB_DIR / TEMPLATE_FILE
     template = load_yaml(path.name, path.parent)
     if pattern.pattern == SolutionPattern.NEEDS_CLARIFICATION:
@@ -38,23 +48,21 @@ def explain_estimates(
 
     factors = template.get("multipliers") or {}
     constraints = {_normalize(c) for c in intake.constraints}
-    applied = [
-        key
-        for key, active in (
-            ("on_prem", "on_prem" in constraints),
-            ("japanese_language", intake.language == "ja"),
-            ("low_data_readiness", feasibility.data_readiness <= 2),
-            ("strict_compliance", "strict_compliance" in constraints),
-        )
-        if active
+    checks = [(key, key in constraints) for key in CONSTRAINT_FACTORS]
+    checks += [
+        ("japanese_language", intake.language == "ja"),
+        ("low_data_readiness", feasibility.data_readiness <= 2),
+        ("many_requirements", requirement_count >= int(template.get("many_requirements_min", 30))),
     ]
+    applied = [key for key, active in checks if active and key in factors]
     multipliers = [
-        Multiplier(key=key, label=MULTIPLIER_LABELS[key], factor=float(factors.get(key, 1.0)))
+        Multiplier(key=key, label=MULTIPLIER_LABELS.get(key, key), factor=float(factors[key]))
         for key in applied
     ]
     factor = 1.0
     for m in multipliers:
         factor *= m.factor
+    factor = min(factor, float(template.get("max_factor", factor)))  # stacked factors stay sane
 
     return EffortBasis(
         pattern=pattern.pattern,
@@ -72,9 +80,10 @@ def compute_estimates(
     intake: IntakeResult,
     feasibility: FeasibilityResult,
     template_path: Path | None = None,
+    requirement_count: int = 0,
 ) -> dict[Phase, tuple[int, int]]:
     """Baseline effort per phase = base[pattern][phase] x stacked multipliers. Pure, no LLM."""
-    basis = explain_estimates(pattern, intake, feasibility, template_path)
+    basis = explain_estimates(pattern, intake, feasibility, template_path, requirement_count)
     if basis is None:
         return {}
     return {phase: (low, high) for phase, (low, high) in basis.computed.items()}

@@ -1,13 +1,25 @@
-# BẢN NHÁP — số liệu giữ chỗ, cần senior xác nhận. Đơn vị: ngày công.
+# Effort chuẩn theo pattern × giai đoạn (đơn vị: ngày công, man-day).
+# SỐ LIỆU THAM KHẢO THỊ TRƯỜNG, GIẢ LẬP CHO BÀI THI: không phải số liệu của công ty hay khách hàng nào.
+# Mốc 1.0 = dự án quy mô vừa do team offshore làm: 1 site, khoảng 5.000 trang tài liệu hoặc
+# ~10 nguồn dữ liệu, dưới 30 requirement, 1 ngôn ngữ, đã gồm PM / QA trong WBS.
+#   poc        : chứng minh khả thi trên phạm vi hẹp (1 nhóm thiết bị / 1 phòng ban), có đo chất lượng
+#   mvp        : phát triển chính thức (本開発): đủ chức năng, tích hợp, bảo mật, nghiệm thu
+#   production : mở rộng ra toàn bộ người dùng, hardening, vận hành thử, bàn giao (chưa gồm bảo trì năm)
 unit: person_days
 base:
-  rag:              { poc: [10, 15], mvp: [30, 50], production: [60, 100] }
-  agent:            { poc: [15, 25], mvp: [45, 70], production: [90, 150] }
-  classic_ml:       { poc: [15, 20], mvp: [40, 60], production: [70, 110] }
-  fine_tune:        { poc: [20, 30], mvp: [50, 80], production: [90, 140] }
-  no_ai_rule_based: { poc: [3, 5],   mvp: [10, 20], production: [20, 40] }
-multipliers:
-  on_prem: 1.3
-  japanese_language: 1.15
-  low_data_readiness: 1.4
-  strict_compliance: 1.2
+  rag:              { poc: [40, 60], mvp: [120, 180], production: [60, 100] }
+  agent:            { poc: [50, 80], mvp: [150, 230], production: [80, 130] }
+  classic_ml:       { poc: [45, 70], mvp: [120, 180], production: [70, 110] }
+  fine_tune:        { poc: [60, 90], mvp: [150, 240], production: [80, 140] }
+  no_ai_rule_based: { poc: [3, 5],   mvp: [10, 20],   production: [10, 20] }
+multipliers:                 # nhân dồn; tích bị chặn ở max_factor
+  on_prem: 1.3               # hạ tầng tại chỗ, không dùng dịch vụ managed
+  japanese_language: 1.15    # tài liệu, giao tiếp, review bằng tiếng Nhật (BrSE tính riêng ở báo giá)
+  low_data_readiness: 1.4    # dữ liệu sẵn sàng ≤ 2/5
+  strict_compliance: 1.2     # data residency, cấm dùng dữ liệu để huấn luyện, log kiểm toán, ngành bị quản lý
+  multilingual: 1.15         # hệ thống phải xử lý / trả lời từ 2 ngôn ngữ trở lên
+  ocr_required: 1.15         # có tài liệu scan / ảnh cần nhận dạng ký tự
+  large_data_volume: 1.2     # trên 10.000 trang tài liệu hoặc trên 100.000 bản ghi
+  many_requirements: 1.2     # file requirement của khách có từ many_requirements_min dòng (code đếm)
+many_requirements_min: 30
+max_factor: 3.0

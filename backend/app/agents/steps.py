@@ -77,11 +77,18 @@ def make_architecture_validator(computed: dict[Phase, tuple[int, int]]):
     return validate_architecture
 
 
+# Required proposal sections, accepted in any of the customer languages (vi / en / ja).
+PROPOSAL_SECTIONS = {
+    "Giả định / Assumptions / 前提条件": ("Giả định", "Assumptions", "前提"),
+    "Rủi ro / Risks / リスク": ("Rủi ro", "Risks", "リスク"),
+}
+
+
 def validate_proposal(result: ProposalResult) -> ProposalResult:
-    for heading in ("Giả định", "Rủi ro"):
-        pattern = r"^#{1,6}[^\n]*" + re.escape(heading)
-        if not re.search(pattern, result.markdown, flags=re.MULTILINE):
-            raise ValueError(f"markdown thiếu heading '{heading}'")
+    for label, names in PROPOSAL_SECTIONS.items():
+        pattern = r"^#{1,6}[^\n]*(" + "|".join(re.escape(n) for n in names) + ")"
+        if not re.search(pattern, result.markdown, flags=re.MULTILINE | re.IGNORECASE):
+            raise ValueError(f"markdown thiếu heading '{label}'")
     return result
 
 

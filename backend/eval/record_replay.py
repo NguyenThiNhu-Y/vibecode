@@ -18,6 +18,7 @@ from app.agents.pipeline import run_pipeline
 from app.config import BACKEND_DIR, get_settings
 from app.ingest import build_attachment
 from app.llm.base import LLMClient, get_llm
+from app.llm.cache import response_cache
 from app.schemas.run import RunStatus, ScopingRun
 from eval.common import NullRepo, case_paths, load_case, new_run
 
@@ -25,17 +26,30 @@ REPLAY_DIR = BACKEND_DIR / "replays"
 
 
 async def record_segment(llm: LLMClient, run: ScopingRun) -> list[dict[str, Any]]:
+    """A step served from llm_cache keeps the latency of its original call, so the replay
+    plays at the speed of the real model."""
     events = []
+    cache = response_cache(llm)
+    seen = 0
     last = time.perf_counter()
     async for event in run_pipeline(llm, run, NullRepo()):
         now = time.perf_counter()
-        events.append({**event, "delay_ms": int((now - last) * 1000)})
+        delay = int((now - last) * 1000)
+        new_hits = cache.hits[seen:] if cache else []
+        if event["event"] == "step_done" and new_hits:
+            seen += len(new_hits)
+            delay = max(delay, sum(h.latency_ms for h in new_hits))
+        events.append({**event, "delay_ms": delay})
         last = now
     return events
 
 
 async def main(case_id: str, attach: list[str] | None = None) -> None:
-    case = load_case(case_paths(case_id)[0])
+    given = Path(case_id)
+    case = load_case(
+        given if given.suffix == ".yaml" and given.exists() else case_paths(case_id)[0]
+    )
+    case_id = case["id"]
     llm = get_llm(get_settings())
     run = new_run(case)
     for i, path in enumerate(attach or [], start=1):
@@ -67,7 +81,7 @@ async def main(case_id: str, attach: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ghi lại một run để phát lại khi demo")
-    parser.add_argument("--case", required=True, help="Ví dụ case_01")
+    parser.add_argument("--case", required=True, help="Ví dụ case_01, hoặc đường dẫn file .yaml")
     parser.add_argument("--attach", nargs="*", default=[], help="File đính kèm (xlsx, csv, pdf…)")
     args = parser.parse_args()
     asyncio.run(main(args.case, args.attach))

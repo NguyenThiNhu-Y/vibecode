@@ -1,4 +1,6 @@
-# BẢN NHÁP – toàn bộ số liệu là GIẢ LẬP. Chủ dự án thay bằng đơn giá thật (sửa trên trang Cài đặt).
+# Số liệu GIẢ LẬP theo mặt bằng tham khảo của team offshore Việt Nam (2026), dùng cho bài thi;
+# không phải đơn giá của công ty nào. Sửa trên trang Cài đặt.
+# Quy đổi: 1 người-tháng = 20 ngày công; ví dụ AI engineer 4.000.000 VND/ngày ≈ 23.500 JPY/ngày ≈ 470.000 JPY/người-tháng.
 currency: VND
 exchange_rates:          # 1 đơn vị ngoại tệ = ? VND
   USD: 25000
@@ -46,8 +48,8 @@ roles:                   # đơn giá theo ngày công (VND); match = từ khóa
     match: [ba, business analyst, phân tích nghiệp vụ]
   - key: bridge_se
     label: BrSE (Bridge SE)
-    day_rate: 3800000
-    onsite_day_rate: 11400000
+    day_rate: 4800000
+    onsite_day_rate: 14400000
     match: [brse, bridge]
   - key: comtor
     label: Comtor (phiên dịch IT)
@@ -64,12 +66,12 @@ contingency:             # dự phòng rủi ro (% trên chi phí nhân sự)
   base_pct: 10
   per_high_risk_pct: 5   # cộng thêm cho mỗi rủi ro mức >= 4
   max_pct: 25
-run_cost_monthly:        # chi phí vận hành/tháng ước tính (VND): hạ tầng + LLM API
-  no_ai_rule_based: 1000000
-  classic_ml: 8000000
-  rag: 15000000
-  agent: 25000000
-  fine_tune: 30000000
+run_cost_monthly:        # chi phí cloud/tháng ước tính (VND): hạ tầng, search index, LLM API (~200 người dùng)
+  no_ai_rule_based: 2000000
+  classic_ml: 15000000
+  rag: 45000000
+  agent: 60000000
+  fine_tune: 80000000
 on_prem_run_cost_factor: 1.5
 overheads:               # cộng thêm ngày công theo % effort WBS của mỗi giai đoạn (chuẩn công ty, giả lập)
   - key: pm

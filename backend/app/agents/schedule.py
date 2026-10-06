@@ -21,6 +21,14 @@ from app.schemas.schedule import (
 from app.schemas.wbs import PHASE_ORDER, WbsResult, id_key, leaves, task_of
 
 DEFAULT_HEADCOUNT: dict[WorkType, int] = {t: 1 for t in WorkType} | {WorkType.AI: 2}
+# Suggested team: calendar target per phase in working days, buffer included (~3 / 6 / 2 months),
+# and a realistic ceiling per role (one PM; management work does not split across people).
+TARGET_PHASE_DAYS = {Phase.POC: 60, Phase.MVP: 120, Phase.PRODUCTION: 40}
+MIN_GAIN_DAYS = 3  # an extra person must shorten the schedule by at least this many days
+MAX_HEADCOUNT: dict[WorkType, int] = {
+    WorkType.AI: 6, WorkType.BE: 6, WorkType.FE: 4, WorkType.QA: 4, WorkType.DATA: 4,
+    WorkType.BA: 2, WorkType.INFRA: 2, WorkType.DESIGN: 2, WorkType.PM: 1,
+}  # fmt: skip
 PHASE_NAMES = {Phase.POC: "PoC", Phase.MVP: "MVP", Phase.PRODUCTION: "Production"}
 # id, name, phase whose end it marks (None = project start), default payment %
 MILESTONES: list[tuple[str, str, Phase | None, int | None]] = [
@@ -35,11 +43,60 @@ class ScheduleError(ValueError):
     pass
 
 
-def default_config(today: date | None = None) -> ScheduleConfig:
-    """Start on the first Monday at least 14 days from today."""
-    start = (today or date.today()) + timedelta(days=14)
+def default_config(today: date | None = None, preferred: date | None = None) -> ScheduleConfig:
+    """Start on the customer's planned start (intake.project_start) when it is at least 14 days
+    away, otherwise on the first Monday at least 14 days from today; always on a Monday."""
+    earliest = (today or date.today()) + timedelta(days=14)
+    start = preferred if preferred and preferred >= earliest else earliest
     start += timedelta(days=(7 - start.weekday()) % 7)
     return ScheduleConfig(start_date=start, headcount=dict(DEFAULT_HEADCOUNT))
+
+
+def config_for(
+    run_config: ScheduleConfig | None, intake_start: date | None, wbs: WbsResult | None = None
+) -> ScheduleConfig:
+    """The run's own config, else the default start with a team sized from the WBS."""
+    if run_config:
+        return run_config
+    config = default_config(preferred=intake_start)
+    if wbs is not None:
+        config.headcount = suggest_headcount(wbs, config)
+    return config
+
+
+def _overrun(wbs: WbsResult, config: ScheduleConfig) -> int:
+    """Working days by which the phases exceed their calendar targets."""
+    phases = build_schedule(wbs, config).phases
+    return sum(max(0, p.working_days - TARGET_PHASE_DAYS[p.phase]) for p in phases)
+
+
+def suggest_headcount(wbs: WbsResult, base: ScheduleConfig | None = None) -> dict[WorkType, int]:
+    """Smallest team (greedy, deterministic) that fits every phase in TARGET_PHASE_DAYS: start
+    from the default team and keep adding the one person who shortens the schedule most, until
+    the targets hold or no role below its ceiling helps. Types absent from the WBS stay at 1."""
+    config = (base or default_config()).model_copy(deep=True)
+    used = {leaf.type for leaf in leaves(wbs) if leaf.type is not None}
+    team = {t: max(1, config.headcount.get(t, 1)) for t in WorkType}
+    config.headcount = team
+    try:
+        current = _overrun(wbs, config)
+    except ScheduleError:
+        return team
+    while current > 0:
+        best: tuple[int, WorkType] | None = None
+        for kind in sorted(used, key=lambda k: k.value):
+            if team[kind] >= MAX_HEADCOUNT[kind]:
+                continue
+            trial = config.model_copy(update={"headcount": team | {kind: team[kind] + 1}})
+            score = _overrun(wbs, trial)
+            if current - score >= MIN_GAIN_DAYS and (best is None or score < best[0]):
+                best = (score, kind)
+        if best is None:
+            break  # dependencies, not people, set the length now (or the gain is marginal)
+        current, kind = best
+        team = team | {kind: team[kind] + 1}
+        config.headcount = team
+    return team
 
 
 # ---------- working-day calendar (Mon–Fri minus holidays) ----------

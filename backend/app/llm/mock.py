@@ -54,9 +54,30 @@ class MockLLM(LLMClient):
                 else:
                     candidate = FIXTURE_DIR / "scenarios" / scenario / f"{tag}.json"
                 if candidate.exists():
-                    return _read(candidate)
+                    return _fit_estimates(tag, _read(candidate), user)
                 break
-        return _read(FIXTURE_DIR / f"valid_{tag}.json")
+        return _fit_estimates(tag, _read(FIXTURE_DIR / f"valid_{tag}.json"), user)
+
+
+def _fit_estimates(tag: str, text: str, user: str) -> str:
+    """Architecture fixtures take the code-computed effort ranges, so the mock passes the ±20%
+    check whatever the estimation template says."""
+    if tag != "architecture":
+        return text
+    try:
+        computed = json.loads(user.split("\n\nLần trước output không hợp lệ")[0]).get(
+            "computed_estimates"
+        )
+    except (json.JSONDecodeError, AttributeError):
+        return text
+    if not computed:
+        return text
+    data = json.loads(text)
+    for estimate in data.get("estimates", []):
+        if estimate["phase"] in computed:
+            estimate["min_person_days"], estimate["max_person_days"] = computed[estimate["phase"]]
+            estimate["adjustment_note"] = None
+    return json.dumps(data, ensure_ascii=False)
 
 
 def _has_answers(user: str) -> bool:

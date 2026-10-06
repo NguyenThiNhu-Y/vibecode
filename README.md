@@ -54,7 +54,7 @@ Giao diện kiểu app làm việc, mặc định nền sáng, có nút chuyển
 - **Trang Cài đặt:** thông tin công ty, logo và quy tắc đặt tên file, template, nội dung chuẩn, case study, đơn giá (offshore/onsite, overhead, hợp đồng mặc định), bảng effort chuẩn, tiêu chí Bid/No-bid, dự án tham chiếu, sửa ngay trên web (có kiểm tra dữ liệu). Toàn bộ số liệu mặc định là **giả lập**; template mẫu không dùng nhận diện của công ty thật.
 - **Slide theo ngôn ngữ khách:** VI / EN / JA.
 - **Hỏi lại thay vì đoán:** dừng ở bước 2 khi thiếu thông tin quyết định, người dùng trả lời rồi chạy tiếp.
-- **Effort minh bạch:** hiển thị công thức bảng chuẩn × hệ số (on-prem, tiếng Nhật, dữ liệu, tuân thủ).
+- **Effort minh bạch:** hiển thị công thức bảng chuẩn × hệ số (on-prem, tiếng Nhật, dữ liệu chưa sẵn sàng, tuân thủ, đa ngôn ngữ, OCR, khối lượng dữ liệu lớn, nhiều requirement), tích hệ số có trần (`max_factor`). Bảng chuẩn là **số liệu tham khảo thị trường, giả lập** (mốc: dự án quy mô vừa, team offshore), sửa ở Cài đặt → Effort.
 - **Sơ đồ kiến trúc** Mermaid sinh tự động.
 - **Compliance theo thị trường** VN (Nghị định 13/2023), JP (APPI, hướng dẫn y tế), EU (GDPR, AI Act).
 - **Human-in-the-loop:** duyệt / yêu cầu sửa, **chạy lại từ một bước theo góp ý**, **sửa proposal trực tiếp**.
@@ -97,10 +97,15 @@ Trong `backend/.env`:
 | `LLM_PROVIDER` | Hành vi |
 | --- | --- |
 | `mock` | Trả JSON mẫu trong `tests/fixtures/` (có kịch bản riêng cho yêu cầu "Excel" → không cần AI, và "năng suất" → cần làm rõ) |
-| `openai` | Gọi `POST {LLM_BASE_URL}/chat/completions` (mọi endpoint OpenAI-compatible) |
+| `openrouter` | Gọi OpenRouter bằng `OPENROUTER_API_KEY`, model trong `MODEL_NAME` (ví dụ `google/gemma-4-31b-it:free`; danh sách model free thay đổi theo thời gian) |
+| `openai` | Gọi `POST {LLM_BASE_URL}/chat/completions` (mọi endpoint OpenAI-compatible: OpenAI, Ollama, vLLM…) |
 | `vibeflow` | Chưa cài đặt: cần bổ sung cách gọi VibeFlow trong `app/llm/vibeflow.py` |
 
-`PII_MASKING=true` (mặc định) che email/số điện thoại/link trước khi gửi LLM; `LLM_MAX_RETRIES` đặt số lần thử lại khi lỗi mạng.
+`PII_MASKING=true` (mặc định) che email/số điện thoại/link trước khi gửi LLM; `LLM_MAX_RETRIES` đặt số lần thử lại khi lỗi mạng, 429 hoặc response rỗng; `LLM_JSON_MODE=true` gửi `response_format=json_object` cho model hỗ trợ. Xem mẫu đầy đủ ở `backend/.env.example`.
+
+**Cache response LLM (`LLM_CACHE=true`, mặc định):** mỗi output đã qua kiểm tra schema được lưu thành một file JSON ở `backend/llm_cache/<bước>/` (gồm context đã che PII, response gốc, output đã parse, latency, số lần thử). Lần sau cùng model + prompt + dữ liệu thì đọc lại, không gọi LLM; sửa prompt, knowledge base, dữ liệu khách hay đổi model thì bước bị ảnh hưởng gọi lại. Output sai schema không bao giờ được lưu. Xóa thư mục (hoặc thư mục của một bước) để ép gọi lại. Không áp dụng cho `mock`; thư mục đã nằm trong `.gitignore`. Eval tính số lần thử và replay giữ thời gian chờ theo lần gọi gốc.
+
+**Bộ hồ sơ RFP mẫu gần với thực tế:** [samples/rfp_tokai_minato/](samples/rfp_tokai_minato/README.md) (RFP tiếng Nhật, 41 requirement, lịch sử sự cố, trích manual; nạp một lần ở trang Tạo hồ sơ).
 
 ## Kiểm thử và evaluation
 

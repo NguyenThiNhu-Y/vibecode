@@ -65,7 +65,7 @@ async def test_quotation_is_consistent() -> None:
     assert q.total_min <= q.total <= q.total_max
     assert q.contingency_pct == 15  # base 10 + one risk with severity 4
     assert sum(m.percent for m in q.milestones) == 100
-    assert q.monthly_run_cost == 15_000_000  # rag, cloud
+    assert q.monthly_run_cost == load_rate_card().run_cost_monthly["rag"]  # rag, cloud
 
 
 async def test_quotation_currency_and_override() -> None:

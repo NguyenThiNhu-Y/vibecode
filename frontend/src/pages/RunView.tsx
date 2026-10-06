@@ -4,6 +4,7 @@ import {
   exportUrl,
   getReplay,
   getRun,
+  getScheduleSuggestion,
   getStats,
   postAnswers,
   postReview,
@@ -627,6 +628,7 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
                 schedule={schedule}
                 downloadHref={mode === "run" ? exportUrl(key, "bidding.xlsx") : replay?.has_final_run ? replayExportUrl(key, "bidding.xlsx") : undefined}
                 onScheduleChange={mode === "run" && status !== "running" ? changeSchedule : undefined}
+                onScheduleSuggest={mode === "run" ? () => getScheduleSuggestion(key) : undefined}
                 edited={meta.wbs_edited}
                 onEstimatesSave={mode === "run" && wbsLock === null ? editWbs : undefined}
                 lockReason={wbsLock}

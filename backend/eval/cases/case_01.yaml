@@ -11,5 +11,5 @@ expected:
   acceptable_patterns: [rag]
   question_topics: [data, accuracy]
   can_proceed: true
-  mvp_person_days: [35, 80]
+  mvp_person_days: [131, 300]
   must_not_mention: []

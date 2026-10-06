@@ -123,7 +123,10 @@ async def test_architecture_event_carries_effort_basis(memory_repo: MemoryRepo) 
         e for e in events if e["event"] == "step_done" and e["data"]["step"] == "architecture"
     )
     basis = arch["data"]["effort_basis"]
-    assert basis["pattern"] == "rag" and basis["computed"]["mvp"] == [30, 50]
+    from app.knowledge.loader import load_yaml
+
+    base = load_yaml("estimation_template.yaml")["base"]["rag"]["mvp"]
+    assert basis["pattern"] == "rag" and basis["computed"]["mvp"] == base  # vi, cloud: factor 1
     assert run.effort_basis is not None
 
 
@@ -187,3 +190,36 @@ async def test_requirements_skipped_without_file(memory_repo: MemoryRepo) -> Non
     await collect(llm, run, memory_repo)
     assert "requirements" not in llm.calls
     assert run.requirements is not None and run.requirements.skipped
+
+
+async def test_second_identical_run_is_served_from_cache(tmp_path) -> None:
+    """Same request + attachments + model: every LLM step comes from llm_cache, no call."""
+    from app.ingest import build_attachment
+    from app.llm.cache import CachedLLM, ResponseCache
+    from tests.samples import data_csv, requirements_xlsx
+
+    def fresh_run():
+        run = make_run()
+        run.id = "cached01"
+        run.attachments = [
+            build_attachment("a1", "req.xlsx", requirements_xlsx()),
+            build_attachment("a2", "data.csv", data_csv()),
+        ]
+        return run
+
+    identity = {"provider": "openai", "model": "test-model"}
+    first_inner = MockLLM()
+    first = fresh_run()
+    async for _ in run_pipeline(CachedLLM(first_inner, ResponseCache(tmp_path, identity)), first,
+                                MemoryRepo()):  # fmt: skip
+        pass
+    assert first.status == RunStatus.DONE and len(first_inner.calls) >= 8
+
+    second_inner = MockLLM()
+    cached = CachedLLM(second_inner, ResponseCache(tmp_path, identity))
+    second = fresh_run()
+    async for _ in run_pipeline(cached, second, MemoryRepo()):
+        pass
+    assert second.status == RunStatus.DONE and second_inner.calls == []
+    assert second.wbs == first.wbs and second.proposal == first.proposal
+    assert sorted({h.tag for h in cached.cache.hits}) == sorted(set(first_inner.calls))

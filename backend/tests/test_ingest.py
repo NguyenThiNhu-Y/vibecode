@@ -1,3 +1,5 @@
+import io
+
 import pytest
 
 from app.ingest import DocumentError, build_attachment
@@ -84,3 +86,50 @@ def test_digest_budgets_and_masks() -> None:
     assert digest["data_samples"][0]["rows"] == 150
     assert digest["source_code"][0]["frameworks"]
     assert attachments_digest([], str) == {}
+
+
+def test_japanese_requirement_list_headers() -> None:
+    """Typical Japanese RFP list: 要件ID must not be taken for the text column, 要件内容 is the
+    text, 要件名 is prefixed to it, a cover sheet without a table is skipped."""
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    wb.active.title = "表紙"
+    wb.active.append(["要件一覧"])
+    ws = wb.create_sheet("機能要件")
+    ws.append(["No.", "要件ID", "大分類", "中分類", "要件名", "要件内容", "優先度", "備考"])
+    ws.append(
+        [
+            1,
+            "FR-QA-001",
+            "検索・回答",
+            "質問応答",
+            "自然言語での質問応答",
+            "日本語で質問できること",
+            "必須",
+            "",
+        ]
+    )
+    ws.append(
+        [2, "FR-QA-002", "検索・回答", "根拠", "根拠の提示", "参照ページを表示すること", "推奨", ""]
+    )
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    att = build_attachment("a1", "要件一覧.xlsx", buffer.getvalue())
+    assert att.kind == "requirements" and [r.id for r in att.requirements] == [
+        "FR-QA-001",
+        "FR-QA-002",
+    ]
+    first = att.requirements[0]
+    assert first.text == "自然言語での質問応答: 日本語で質問できること"
+    assert first.category == "検索・回答" and first.priority == "必須" and first.sheet == "機能要件"
+
+
+def test_auto_detect_keeps_data_table_with_free_text_column() -> None:
+    csv = "受付番号,発生日時,症状,処置内容\n" + "".join(
+        f"MP-{i},2026/01/0{i % 9 + 1} 10:00,主軸異音,工具交換\n" for i in range(20)
+    )
+    auto = build_attachment("a1", "履歴.csv", csv.encode("utf-8"))
+    assert auto.kind == "data_sample" and not auto.requirements
+    forced = build_attachment("a2", "履歴.csv", csv.encode("utf-8"), "requirements")
+    assert forced.kind == "requirements" and len(forced.requirements) == 20

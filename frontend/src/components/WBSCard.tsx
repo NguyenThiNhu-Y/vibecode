@@ -3,8 +3,8 @@ import { downloadUrl } from "../api";
 import { PHASE_LABELS } from "../labels";
 import type { Phase, Priority, ScheduleConfig, ScheduleResult, WbsItem, WbsResult, WorkType } from "../types";
 import { input } from "./form";
-import { IconChevronRight, IconDownload, IconRefresh } from "./icons";
-import { Badge, Card, ErrorBox, Spinner, buttonClass } from "./ui";
+import { IconChevronRight, IconDownload, IconRefresh, IconSparkles } from "./icons";
+import { Badge, Card, ErrorBox, HoverTip, Spinner, buttonClass } from "./ui";
 
 const PHASES: Phase[] = ["poc", "mvp", "production"];
 const PHASE_COLOR: Record<Phase, string> = { poc: "var(--phase-poc)", mvp: "var(--phase-mvp)", production: "var(--phase-production)" };
@@ -106,8 +106,20 @@ function Gantt({ wbs, schedule }: { wbs: WbsResult; schedule: ScheduleResult }) 
   const span = weeks * 7 * DAY;
   const pct = (iso: string, plusDay = false) => ((day(iso).getTime() + (plusDay ? DAY : 0) - first.getTime()) / span) * 100;
   const step = Math.max(1, Math.ceil(weeks / 14));
-  const hovered = schedule.tasks.find((t) => t.wbs_id === hover);
-  const hoveredItem = hovered ? items[hovered.wbs_id] : null;
+  const details = (task: ScheduleResult["tasks"][number], item: WbsItem) => (
+    <>
+      <p className="font-semibold text-fg">
+        {task.wbs_id} · {item.name}
+      </p>
+      <p className="mt-1 text-muted">
+        {PHASE_LABELS[item.phase]} · <b className="text-fg">{md(item.estimate_md)} man-day</b>
+      </p>
+      <p className="text-muted tabular-nums">
+        {ddmmyyyy(task.start)} → {ddmmyyyy(task.end)}
+      </p>
+      {item.depends_on.length > 0 && <p className="text-subtle">Sau: {item.depends_on.join(", ")}</p>}
+    </>
+  );
 
   return (
     <div className="relative">
@@ -129,13 +141,17 @@ function Gantt({ wbs, schedule }: { wbs: WbsResult; schedule: ScheduleResult }) 
           const item = items[task.wbs_id];
           if (!item) return null;
           return (
-            <li key={task.wbs_id} className="grid grid-cols-[minmax(0,15rem)_1fr] items-center gap-3 border-t border-line/60 py-1">
-              <span className="truncate text-sm text-muted" title={item.name}>
+            <li
+              key={task.wbs_id}
+              onMouseEnter={() => setHover(task.wbs_id)}
+              className="grid grid-cols-[minmax(0,15rem)_1fr] items-center gap-3 border-t border-line/60 py-1"
+            >
+              <HoverTip content={details(task, item)} className="block cursor-default truncate text-sm text-muted">
                 <span className="font-mono text-subtle">{task.wbs_id}</span> {item.name}
-              </span>
+              </HoverTip>
               <div className="relative h-4">
-                <div
-                  onMouseEnter={() => setHover(task.wbs_id)}
+                <HoverTip
+                  content={details(task, item)}
                   className="bar-grow absolute inset-y-0.5 rounded-sm"
                   style={{
                     left: `${pct(task.start)}%`,
@@ -143,7 +159,9 @@ function Gantt({ wbs, schedule }: { wbs: WbsResult; schedule: ScheduleResult }) 
                     background: PHASE_COLOR[item.phase],
                     opacity: hover && hover !== task.wbs_id ? 0.4 : 1,
                   }}
-                />
+                >
+                  {null}
+                </HoverTip>
               </div>
             </li>
           );
@@ -153,7 +171,17 @@ function Gantt({ wbs, schedule }: { wbs: WbsResult; schedule: ScheduleResult }) 
           <div className="relative h-9">
             {schedule.milestones.map((m) => (
               <div key={m.id} className="absolute top-0 flex -translate-x-1/2 flex-col items-center" style={{ left: `${pct(m.date) + 100 / span * DAY / 2}%` }}>
-                <span className="h-3 w-3 rotate-45 bg-fg" title={`${m.id} ${m.name} · ${ddmmyyyy(m.date)}`} />
+                <HoverTip
+                  content={
+                    <>
+                      <b>{m.id}</b> {m.name} · {ddmmyyyy(m.date)}
+                      {m.payment_percent ? ` · thanh toán ${m.payment_percent}%` : ""}
+                    </>
+                  }
+                  className="block h-3 w-3 rotate-45 bg-fg"
+                >
+                  {null}
+                </HoverTip>
                 <span className="mt-1 text-[11px] whitespace-nowrap text-subtle tabular-nums">
                   {m.id}
                   {m.payment_percent ? ` · ${m.payment_percent}%` : ""}
@@ -163,20 +191,6 @@ function Gantt({ wbs, schedule }: { wbs: WbsResult; schedule: ScheduleResult }) 
           </div>
         </li>
       </ul>
-      {hovered && hoveredItem && (
-        <div className="pointer-events-none absolute top-0 right-0 z-10 w-64 rounded-md border border-line bg-surface p-3 text-sm shadow-lg">
-          <p className="font-semibold text-fg">
-            {hovered.wbs_id} · {hoveredItem.name}
-          </p>
-          <p className="mt-1 text-muted">
-            {PHASE_LABELS[hoveredItem.phase]} · <b className="text-fg">{md(hoveredItem.estimate_md)} man-day</b>
-          </p>
-          <p className="text-muted tabular-nums">
-            {ddmmyyyy(hovered.start)} → {ddmmyyyy(hovered.end)}
-          </p>
-          {hoveredItem.depends_on.length > 0 && <p className="text-subtle">Sau: {hoveredItem.depends_on.join(", ")}</p>}
-        </div>
-      )}
       <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted">
         {schedule.phases.map((p) => (
           <span key={p.phase} className="flex items-center gap-1.5 tabular-nums">
@@ -193,16 +207,35 @@ function ScheduleForm({
   config,
   types,
   onSubmit,
+  onSuggest,
 }: {
   config: ScheduleConfig;
   types: WorkType[];
   onSubmit: (config: ScheduleConfig) => Promise<void>;
+  onSuggest?: () => Promise<ScheduleConfig>;
 }) {
   const [start, setStart] = useState(config.start_date);
   const [buffer, setBuffer] = useState(Math.round(config.buffer_ratio * 100));
   const [headcount, setHeadcount] = useState(config.headcount);
   const [busy, setBusy] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggested, setSuggested] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const suggest = async () => {
+    if (!onSuggest) return;
+    setSuggesting(true);
+    setError(null);
+    try {
+      const s = await onSuggest();
+      setHeadcount(s.headcount);
+      setSuggested(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không lấy được số người gợi ý.");
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   const submit = async () => {
     setBusy(true);
@@ -252,10 +285,26 @@ function ScheduleForm({
           {busy ? <Spinner /> : <IconRefresh />}
           Tính lại lịch
         </button>
+        {onSuggest && (
+          <button
+            type="button"
+            disabled={busy || suggesting}
+            onClick={suggest}
+            className={buttonClass.soft}
+            title="Số người mỗi loại để PoC ~3 tháng, phát triển ~6 tháng, triển khai ~2 tháng (đã gồm buffer)"
+          >
+            {suggesting ? <Spinner /> : <IconSparkles />}
+            Gợi ý theo effort
+          </button>
+        )}
       </div>
+      {suggested && (
+        <p className="mt-2 text-sm text-fg">Đã điền số người gợi ý theo effort của WBS. Bấm <b>Tính lại lịch</b> để áp dụng.</p>
+      )}
       <p className="mt-2 text-xs text-subtle">
-        Tính bằng code, không gọi LLM: mỗi task = man-day theo loại ÷ số người; giai đoạn = max(đường găng, tổng man-day ÷ số người) + buffer. Lịch
-        sơ bộ, chưa cân bằng nguồn lực từng ngày.
+        Tính bằng code, không gọi LLM: mỗi task = man-day theo loại ÷ số người; giai đoạn = max(đường găng, tổng man-day ÷ số người) + buffer. Số
+        người mặc định được gợi ý theo effort (PoC ~3 tháng, phát triển ~6 tháng, triển khai ~2 tháng; 1 PM). Lịch sơ bộ, chưa cân bằng nguồn lực
+        từng ngày.
       </p>
       {error && (
         <div className="mt-2">
@@ -454,8 +503,12 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
                     )}
                   </td>
                   <td className="px-2 py-1.5 font-mono text-xs text-subtle">{i.depends_on.join(", ") || "—"}</td>
-                  <td className="max-w-64 truncate px-3 py-1.5 text-muted" title={i.deliverable ?? ""}>
-                    {i.deliverable ?? ""}
+                  <td className="max-w-64 px-3 py-1.5 text-muted">
+                    {i.deliverable && (
+                      <HoverTip onlyIfTruncated content={i.deliverable} className="block truncate">
+                        {i.deliverable}
+                      </HoverTip>
+                    )}
                   </td>
                 </tr>
               );
@@ -505,6 +558,7 @@ export default function WBSCard({
   schedule,
   downloadHref,
   onScheduleChange,
+  onScheduleSuggest,
   edited = false,
   onEstimatesSave,
   lockReason = null,
@@ -513,6 +567,7 @@ export default function WBSCard({
   schedule: ScheduleResult | null;
   downloadHref?: string;
   onScheduleChange?: (config: ScheduleConfig) => Promise<void>;
+  onScheduleSuggest?: () => Promise<ScheduleConfig>;
   edited?: boolean;
   onEstimatesSave?: (estimates: Record<string, number>) => Promise<void>;
   lockReason?: string | null;
@@ -566,7 +621,7 @@ export default function WBSCard({
       {schedule && (
         <div className="mt-5 space-y-3">
           <h3 className="text-sm font-semibold text-muted">Master schedule</h3>
-          {onScheduleChange && <ScheduleForm key={JSON.stringify(schedule.config)} config={schedule.config} types={types} onSubmit={onScheduleChange} />}
+          {onScheduleChange && <ScheduleForm key={JSON.stringify(schedule.config)} config={schedule.config} types={types} onSubmit={onScheduleChange} onSuggest={onScheduleSuggest} />}
           <Gantt wbs={data} schedule={schedule} />
         </div>
       )}

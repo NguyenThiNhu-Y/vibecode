@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel
 
 from app.schemas.common import Language
@@ -13,3 +15,4 @@ class IntakeResult(BaseModel):
     timeline: str | None = None
     language: Language
     industry: str | None = None
+    project_start: date | None = None  # planned start of the project / PoC, if the customer says

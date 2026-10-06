@@ -429,3 +429,5 @@ Phạm vi đã chọn: phần "ăn tiền" của mục 0 (B01–B04, B06) trên 
 | — | Run cũ (WBS phẳng `tasks`, lịch theo số ngày) tự chuyển sang dạng mới khi đọc; lịch được tính lại khi xuất | Hồ sơ và replay đã lưu vẫn mở được |
 
 Lịch tổng thể là **ước lượng sơ bộ**: chưa cân bằng nguồn lực từng ngày giữa các task chạy song song (mục 4.1).
+
+**Khác mục 4.2:** headcount mặc định không cố định (mỗi loại 1, AI 2) mà được gợi ý theo WBS (`suggest_headcount`) để các giai đoạn vừa ~3 / 6 / 2 tháng; người dùng vẫn chỉnh tay hoặc bấm **Gợi ý theo effort** trên giao diện (`GET /runs/{id}/schedule-suggestion`).

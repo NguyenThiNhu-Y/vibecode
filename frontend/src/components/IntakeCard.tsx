@@ -35,6 +35,11 @@ export default function IntakeCard({ data }: { data: IntakeResult }) {
         </Row>
         <Row label="Ngân sách">{data.budget ? <span>{data.budget}</span> : unknown}</Row>
         <Row label="Thời hạn">{data.timeline ? <span>{data.timeline}</span> : unknown}</Row>
+        {data.project_start && (
+          <Row label="Dự kiến bắt đầu">
+            <span>{data.project_start.split("-").reverse().join("/")} (lịch tổng thể bắt đầu từ ngày này)</span>
+          </Row>
+        )}
         <Row label="Ngành">{data.industry ? <span>{data.industry}</span> : unknown}</Row>
       </dl>
     </Card>
