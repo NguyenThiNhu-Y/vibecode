@@ -54,7 +54,8 @@ class ScopingRun(BaseModel):
     revision: int = 0  # number of re-runs requested by the reviewer
     redactions: dict[str, int] = {}  # PII type -> count masked before sending to the LLM
     proposal_edited: bool = False  # proposal markdown edited by a human
-    wbs_edited: bool = False  # WBS leaf estimates edited by a human (totals still by code)
+    wbs_edited: bool = False  # WBS edited by a human (totals still by code)
+    wbs_warnings: list[str] = []  # business rules the human-edited WBS no longer meets
     translations: dict[str, str] = {}  # language -> translated proposal markdown
     attachments: list[Attachment] = []  # files the customer sent, parsed by code
     schedule: ScheduleResult | None = None  # computed from wbs by code (BIDDING_SPEC 4)

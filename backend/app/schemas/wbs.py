@@ -94,6 +94,37 @@ def task_of(item_id: str) -> str:
     return ".".join(parts[:2])
 
 
+def renumber(wbs: WbsResult) -> WbsResult:
+    """Sequential ids after a human edit (groups in phase order: 1, 2, ...; children 1.1, 1.2,
+    ... in their current order) with depends_on remapped; a node that has children carries no
+    type of its own (its leaves do). Pure; returns a new WbsResult."""
+    kids = children_map(wbs)
+    mapping: dict[str, str] = {}
+
+    def walk(item: WbsItem, new_id: str) -> None:
+        mapping[item.id] = new_id
+        for n, child in enumerate(sorted(kids.get(item.id, []), key=lambda c: id_key(c.id)), 1):
+            walk(child, f"{new_id}.{n}")
+
+    roots = [i for i in wbs.items if parent_id(i.id) is None]
+    roots.sort(key=lambda i: (PHASE_ORDER.index(i.phase), id_key(i.id)))
+    for n, root in enumerate(roots, 1):
+        walk(root, str(n))
+    items = [
+        item.model_copy(
+            update={
+                "id": mapping[item.id],
+                "depends_on": [mapping[d] for d in item.depends_on if d in mapping],
+                **({"type": None} if item.id in kids else {}),
+            }
+        )
+        for item in wbs.items
+        if item.id in mapping
+    ]
+    data = wbs.model_dump(mode="json") | {"items": [i.model_dump(mode="json") for i in items]}
+    return WbsResult.model_validate(data)
+
+
 def rollup(wbs: WbsResult) -> WbsResult:
     """Parent estimate = sum of its children; totals per phase and per type. Keeps the
     adjustment_note the LLM gave for a phase."""

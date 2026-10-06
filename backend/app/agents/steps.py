@@ -142,7 +142,8 @@ WBS_ID = re.compile(r"^[1-9]\d*(\.[1-9]\d*){0,2}$")
 AI_PATTERNS_EXEMPT = {SolutionPattern.NO_AI_RULE_BASED, SolutionPattern.NEEDS_CLARIFICATION}
 
 
-def _check_tree(result: WbsResult) -> None:
+def _check_tree(result: WbsResult, strict: bool = True) -> None:
+    """strict (LLM output): also no sub-tasks in production. Human edits may add them."""
     ids = [i.id for i in result.items]
     duplicated = sorted({i for i in ids if ids.count(i) > 1})
     if duplicated:
@@ -163,7 +164,7 @@ def _check_tree(result: WbsResult) -> None:
             raise ValueError(f"{item.id}: nhóm cấp 1 phải có task con")
         if item.id not in kids and (item.type is None or item.estimate_md is None):
             raise ValueError(f"{item.id}: node lá phải có type và estimate_md")
-        if item.phase == Phase.PRODUCTION and item.level == 3:
+        if strict and item.phase == Phase.PRODUCTION and item.level == 3:
             raise ValueError(
                 f"{item.id}: giai đoạn production chỉ có task mức tổng, không sub-task"
             )
@@ -181,6 +182,56 @@ def _check_dependencies(result: WbsResult) -> None:
     raw = {i.id: i.depends_on for i in result.items}
     if (cycle := find_cycle(raw)) or (cycle := find_cycle(lifted_dependencies(result))):
         raise ValueError(f"WBS có phụ thuộc vòng: {' -> '.join(cycle)}")
+
+
+def check_wbs_edit(result: WbsResult) -> None:
+    """Hard rules for a WBS edited by a person: the tree and the dependencies must be sound
+    (the schedule needs them). Business rules only warn, see review_wbs."""
+    blank = [i.id for i in result.items if not i.name.strip()]
+    if blank:
+        raise ValueError(f"Task {', '.join(blank[:10])} chưa có tên")
+    _check_tree(result, strict=False)
+    _check_dependencies(result)
+
+
+def review_wbs(
+    result: WbsResult,
+    pattern: SolutionPattern | None,
+    computed: dict[Phase, tuple[int, int]],
+    phases: list[Phase],
+) -> list[str]:
+    """Rules the WBS step enforces on the LLM, reported as warnings after a human edit."""
+    warnings: list[str] = []
+    present = {i.phase for i in result.items}
+    for phase in phases:
+        if phase not in present:
+            warnings.append(f"Giai đoạn {phase.value} trong kiến trúc không còn task nào.")
+    for phase in PHASE_ORDER:
+        if phase not in present:
+            continue
+        types = {leaf.type for leaf in leaves(result) if leaf.phase == phase}
+        lacking = [t.value for t in (WorkType.PM, WorkType.QA) if t not in types]
+        if lacking:
+            warnings.append(f"Giai đoạn {phase.value} không còn task loại {', '.join(lacking)}.")
+    if pattern is not None and pattern not in AI_PATTERNS_EXEMPT:
+        tags = {tag for item in result.items for tag in item.tags}
+        for tag, label in (
+            (TaskTag.DATA_PREP, "chuẩn bị dữ liệu"),
+            (TaskTag.EVALUATION, "đánh giá chất lượng AI"),
+        ):
+            if tag not in tags:
+                warnings.append(f"Không còn task {label} (tag {tag.value}) cho giải pháp có AI.")
+    for total in result.totals:
+        if total.phase not in computed:
+            continue
+        low, high = computed[total.phase]
+        floor, ceiling = low * (1 - ESTIMATE_TOLERANCE), high * (1 + ESTIMATE_TOLERANCE)
+        if not floor <= total.total_md <= ceiling:
+            warnings.append(
+                f"Tổng effort {total.phase.value} = {total.total_md:g} man-day, lệch quá ±20% "
+                f"so với mức chuẩn {low}–{high}: nên ghi lý do trong giả định gửi khách."
+            )
+    return warnings
 
 
 def make_wbs_validator(

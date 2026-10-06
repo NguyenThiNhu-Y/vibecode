@@ -25,6 +25,7 @@ import type {
   LogoInfo,
   ReplayInfo,
   ScheduleConfig,
+  WbsItem,
   RunErrorEvent,
   RunStatus,
   RunSummary,
@@ -94,6 +95,11 @@ export interface QuotationOptions {
   contract_model?: ContractModel;
   onsite_ratio?: number;
 }
+
+/** Human edit of the whole WBS (add / edit / delete); the server checks the tree, renumbers
+ * ids and recomputes totals, schedule and quotation by code. */
+export const putWbs = (id: string, items: WbsItem[]) =>
+  request<ScopingRun>(`/runs/${id}/wbs`, { method: "PUT", body: JSON.stringify({ items }) });
 
 /** Human edit of leaf man-days; parents, totals, schedule and quotation are recomputed by code. */
 export const patchWbsEstimates = (id: string, estimates: Record<string, number>) =>

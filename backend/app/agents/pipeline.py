@@ -369,5 +369,6 @@ def reset_from(run: ScopingRun, step: str) -> None:
         run.schedule = None
         run.quotation = None
         run.wbs_edited = False
+        run.wbs_warnings = []
     run.translations = {}
     run.proposal_edited = False

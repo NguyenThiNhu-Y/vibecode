@@ -3,7 +3,7 @@ import { downloadUrl } from "../api";
 import { PHASE_LABELS } from "../labels";
 import type { Phase, Priority, ScheduleConfig, ScheduleResult, WbsItem, WbsResult, WorkType } from "../types";
 import { input } from "./form";
-import { IconChevronRight, IconDownload, IconRefresh, IconSparkles } from "./icons";
+import { IconChevronRight, IconDownload, IconPlus, IconRefresh, IconSparkles, IconTrash } from "./icons";
 import { Badge, Card, ErrorBox, HoverTip, Spinner, buttonClass } from "./ui";
 
 const PHASES: Phase[] = ["poc", "mvp", "production"];
@@ -316,55 +316,184 @@ function ScheduleForm({
 }
 
 const MAX_LEAF_MD = 10;
+/** Natural order of hierarchical ids: 1.2 < 1.10 < 2. */
+const idCompare = (a: string, b: string) => {
+  const x = a.split(".").map(Number);
+  const y = b.split(".").map(Number);
+  for (let k = 0; k < Math.max(x.length, y.length); k++) if ((x[k] ?? -1) !== (y[k] ?? -1)) return (x[k] ?? -1) - (y[k] ?? -1);
+  return 0;
+};
+const NEW_TASK = { priority: "mid" as Priority, depends_on: [] as string[], deliverable: null, tags: [] as WbsItem["tags"], note: null };
 
-/** Collapsible WBS tree with phase tabs and Type / Priority filters. With `onSave`, leaf man-days
- * are editable: parent sums update while typing, the server recomputes everything on save. */
-function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<string, number>) => Promise<void> }) {
-  const [draft, setDraft] = useState<Record<string, string>>({});
+const cellInput =
+  "w-full rounded border border-transparent bg-transparent px-1.5 py-0.5 text-fg hover:border-line focus:border-accent focus:bg-surface focus:outline-none";
+const cellSelect =
+  "rounded border border-transparent bg-transparent px-1 py-0.5 text-sm text-fg hover:border-line focus:border-accent focus:bg-surface focus:outline-none";
+
+const childNumber = (items: WbsItem[], parent: string | null) =>
+  Math.max(
+    0,
+    ...items.filter((i) => parentOf(i.id) === parent).map((i) => Number(i.id.split(".").pop()) || 0),
+  ) + 1;
+const descendantsOf = (items: WbsItem[], id: string) => items.filter((i) => i.id.startsWith(`${id}.`)).map((i) => i.id);
+const parseDeps = (text: string) =>
+  text
+    .split(/[\s,;]+/)
+    .map((d) => d.trim())
+    .filter(Boolean);
+
+/** Collapsible WBS tree with phase tabs and Type / Priority filters. With `onSave` it is an
+ * inline editor: every field of a task, add group / task / sub-task, delete; parent sums update
+ * while typing; on save the server checks the tree, renumbers ids and recomputes schedule and
+ * quotation (no LLM). */
+function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (items: WbsItem[]) => Promise<void> }) {
+  const editable = Boolean(onSave);
+  const [draft, setDraft] = useState<WbsItem[] | null>(null);
+  const [mdText, setMdText] = useState<Record<string, string>>({});
+  const [depText, setDepText] = useState<Record<string, string>>({});
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const [newGroupPhase, setNewGroupPhase] = useState<Phase>("mvp");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase | "all">("all");
   const [type, setType] = useState<WorkType | "all">("all");
   const [priority, setPriority] = useState<Priority | "all">("all");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const parents = useMemo(() => new Set(wbs.items.map((i) => parentOf(i.id)).filter((p): p is string => p !== null)), [wbs]);
-  const phases = PHASES.filter((p) => wbs.items.some((i) => i.phase === p));
-  const types = TYPES.filter((t) => wbs.items.some((i) => i.type === t));
 
-  const original = useMemo(() => Object.fromEntries(wbs.items.map((i) => [i.id, i.estimate_md ?? 0])), [wbs]);
-  const parsed = (id: string): number | null => {
-    const raw = draft[id];
-    if (raw === undefined) return original[id];
+  const items = draft ?? wbs.items;
+  const parents = useMemo(() => new Set(items.map((i) => parentOf(i.id)).filter((p): p is string => p !== null)), [items]);
+  const ordered = useMemo(
+    () => [...items].sort((a, b) => PHASES.indexOf(a.phase) - PHASES.indexOf(b.phase) || idCompare(a.id, b.id)),
+    [items],
+  );
+  const phases = PHASES.filter((p) => items.some((i) => i.phase === p));
+  const types = TYPES.filter((t) => items.some((i) => i.type === t));
+
+  // ---- draft helpers ----
+  const edit = (fn: (current: WbsItem[]) => WbsItem[]) => setDraft((d) => fn(d ?? wbs.items));
+  const update = (id: string, patch: Partial<WbsItem>) => edit((cur) => cur.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+  const mdOf = (i: WbsItem): number | null => {
+    const raw = mdText[i.id];
+    if (raw === undefined) return i.estimate_md ?? 0;
     const value = Number(raw.replace(",", "."));
     return raw.trim() !== "" && Number.isFinite(value) && value >= 0 && value <= MAX_LEAF_MD ? value : null;
   };
-  const changed = Object.keys(draft).filter((id) => parsed(id) !== original[id]);
-  const invalid = Object.keys(draft).filter((id) => parsed(id) === null);
-  // live sums: a parent shows the sum of its (possibly edited) children; ~150 rows, so no memo
+  const ids = new Set(items.map((i) => i.id));
+  const depsOf = (i: WbsItem) => (depText[i.id] !== undefined ? parseDeps(depText[i.id]) : i.depends_on);
+  const errors = {
+    name: items.filter((i) => !i.name.trim()).map((i) => i.id),
+    md: items.filter((i) => !parents.has(i.id) && mdOf(i) === null).map((i) => i.id),
+    deps: items.filter((i) => depsOf(i).some((d) => !ids.has(d) || d === i.id)).map((i) => i.id),
+  };
+  const invalid = new Set([...errors.name, ...errors.md, ...errors.deps]);
+
+  const addChild = (parent: WbsItem) => {
+    edit((cur) => {
+      const id = `${parent.id}.${childNumber(cur, parent.id)}`;
+      const wasLeaf = !cur.some((i) => parentOf(i.id) === parent.id);
+      const lastChild = cur.filter((i) => parentOf(i.id) === parent.id).pop();
+      const child: WbsItem = {
+        ...NEW_TASK,
+        id,
+        phase: parent.phase,
+        level: (parent.level + 1) as WbsItem["level"],
+        name: "",
+        type: wasLeaf && parent.level === 2 ? (parent.type ?? "BE") : (lastChild?.type ?? "BE"),
+        priority: wasLeaf && parent.level === 2 ? parent.priority : "mid",
+        // the first sub-task takes over the task's estimate, so totals do not jump
+        estimate_md: wasLeaf && parent.level === 2 ? (mdOf(parent) ?? parent.estimate_md ?? 1) : 1,
+      };
+      return [...cur.map((i) => (i.id === parent.id && wasLeaf ? { ...i, estimate_md: null } : i)), child];
+    });
+    setCollapsed((c) => {
+      const next = new Set(c);
+      next.delete(parent.id);
+      return next;
+    });
+    setFocusId(`${parent.id}.${childNumber(items, parent.id)}`);
+  };
+
+  const addGroup = () => {
+    const n = childNumber(items, null);
+    edit((cur) => [
+      ...cur,
+      { ...NEW_TASK, id: String(n), phase: newGroupPhase, level: 1, name: "", type: null, estimate_md: null },
+      { ...NEW_TASK, id: `${n}.1`, phase: newGroupPhase, level: 2, name: "Task mới", type: "BE", estimate_md: 1 },
+    ]);
+    setPhase("all");
+    setFocusId(String(n));
+  };
+
+  const remove = (item: WbsItem) => {
+    const gone = new Set([item.id, ...descendantsOf(items, item.id)]);
+    if (gone.size > 1 && !window.confirm(`Xóa "${item.name || item.id}" và ${gone.size - 1} task con?`)) return;
+    edit((cur) => {
+      let next = cur.filter((i) => !gone.has(i.id));
+      const parent = parentOf(item.id);
+      if (parent && !next.some((i) => parentOf(i.id) === parent)) {
+        if (!parent.includes(".")) {
+          next = next.filter((i) => i.id !== parent); // an empty group cannot stay
+          gone.add(parent);
+        } else {
+          // the task has no sub-task left: it becomes a task again, with 0 man-day to fill in
+          next = next.map((i) => (i.id === parent ? { ...i, type: item.type ?? "BE", priority: item.priority, estimate_md: 0 } : i));
+        }
+      }
+      return next.map((i) => (i.depends_on.some((d) => gone.has(d)) ? { ...i, depends_on: i.depends_on.filter((d) => !gone.has(d)) } : i));
+    });
+    setDepText((t) => Object.fromEntries(Object.entries(t).filter(([k]) => !gone.has(k))));
+  };
+
+  const reset = () => {
+    setDraft(null);
+    setMdText({});
+    setDepText({});
+    setSaveError(null);
+  };
+
+  // ---- change summary ----
+  // a row counts as modified when a field a person can edit changed (parent sums are derived)
+  const signature = (i: WbsItem, isParent: boolean) =>
+    JSON.stringify([i.name.trim(), i.phase, isParent ? null : i.type, isParent ? null : i.priority,
+      isParent ? null : i.estimate_md, i.depends_on, i.deliverable ?? null]); // prettier-ignore
+  const original = useMemo(() => {
+    const had = new Set(wbs.items.map((i) => parentOf(i.id)));
+    return new Map(wbs.items.map((i) => [i.id, signature(i, had.has(i.id))]));
+  }, [wbs]); // eslint-disable-line react-hooks/exhaustive-deps
+  const finalItems = (): WbsItem[] =>
+    items.map((i) => ({ ...i, name: i.name.trim(), estimate_md: parents.has(i.id) ? null : mdOf(i), depends_on: depsOf(i) }));
+  const added = items.filter((i) => !original.has(i.id)).length;
+  const removed = [...original.keys()].filter((id) => !ids.has(id)).length;
+  const changedRows = draft || Object.keys(mdText).length || Object.keys(depText).length ? finalItems() : [];
+  const modified = changedRows.filter((i) => original.has(i.id) && original.get(i.id) !== signature(i, parents.has(i.id))).length;
+  const dirty = added + removed + modified > 0;
+
+  // live sums: a parent shows the sum of its (possibly edited) children
   const kids: Record<string, string[]> = {};
-  for (const i of wbs.items) {
+  for (const i of items) {
     const p = parentOf(i.id);
     if (p) (kids[p] ??= []).push(i.id);
   }
+  const byDraftId = Object.fromEntries(items.map((i) => [i.id, i]));
   const sums: Record<string, number> = {};
   const sumOf = (id: string): number => {
     if (sums[id] === undefined) {
-      const value = kids[id] ? kids[id].reduce((s, c) => s + sumOf(c), 0) : (parsed(id) ?? original[id]);
+      const value = kids[id] ? kids[id].reduce((s, c) => s + sumOf(c), 0) : (mdOf(byDraftId[id]) ?? 0);
       sums[id] = Math.round(value * 100) / 100;
     }
     return sums[id];
   };
-  wbs.items.forEach((i) => sumOf(i.id));
+  items.forEach((i) => sumOf(i.id));
   const totalBefore = wbs.totals.reduce((s, t) => s + t.total_md, 0);
-  const totalAfter = wbs.items.filter((i) => i.level === 1).reduce((s, i) => s + sums[i.id], 0);
+  const totalAfter = items.filter((i) => !i.id.includes(".")).reduce((s, i) => s + sums[i.id], 0);
 
   const save = async () => {
-    if (!onSave || invalid.length || !changed.length) return;
+    if (!onSave || !dirty || invalid.size) return;
     setSaving(true);
     setSaveError(null);
     try {
-      await onSave(Object.fromEntries(changed.map((id) => [id, parsed(id) as number])));
-      setDraft({});
+      await onSave(finalItems());
+      reset();
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Không lưu được WBS.");
     } finally {
@@ -373,7 +502,7 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
   };
 
   const rows = useMemo(() => {
-    const inPhase = wbs.items.filter((i) => phase === "all" || i.phase === phase);
+    const inPhase = ordered.filter((i) => phase === "all" || i.phase === phase);
     const filtering = type !== "all" || priority !== "all";
     let shown: WbsItem[] = inPhase;
     if (filtering) {
@@ -388,7 +517,7 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
       for (let id = parentOf(i.id); id; id = parentOf(id)) if (collapsed.has(id)) return false;
       return true;
     });
-  }, [wbs, phase, type, priority, collapsed, parents]);
+  }, [ordered, phase, type, priority, collapsed, parents]);
 
   const toggle = (id: string) =>
     setCollapsed((c) => {
@@ -398,6 +527,7 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
       return next;
     });
   const select = "rounded-md border border-line bg-surface px-2 py-1 text-sm text-fg focus:border-accent focus:outline-none";
+  const bad = "!border-danger bg-danger/10";
 
   return (
     <div>
@@ -428,7 +558,7 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
             </option>
           ))}
         </select>
-        <button type="button" onClick={() => setCollapsed(new Set(wbs.items.filter((i) => i.level === 1).map((i) => i.id)))} className={buttonClass.ghost}>
+        <button type="button" onClick={() => setCollapsed(new Set(items.filter((i) => i.level === 1).map((i) => i.id)))} className={buttonClass.ghost}>
           Thu gọn
         </button>
         <button type="button" onClick={() => setCollapsed(new Set())} className={buttonClass.ghost}>
@@ -436,7 +566,7 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
         </button>
       </div>
       <div className="overflow-x-auto rounded-md border border-line">
-        <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+        <table className={`w-full ${editable ? "min-w-[1040px]" : "min-w-[720px]"} border-collapse text-left text-sm`}>
           <thead className="bg-surface-2 text-subtle">
             <tr>
               <th className="px-3 py-2 font-medium">Task</th>
@@ -445,38 +575,84 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
               <th className="px-2 py-2 text-right font-medium">Man-day</th>
               <th className="px-2 py-2 font-medium">Sau</th>
               <th className="px-3 py-2 font-medium">Bàn giao</th>
+              {editable && <th className="w-24 px-2 py-2" aria-label="Thao tác" />}
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {rows.map((i) => {
               const isParent = parents.has(i.id);
+              const isNew = !original.has(i.id);
               return (
-                <tr key={i.id} className={i.level === 1 ? "bg-surface-2/50" : ""}>
-                  <td className="px-3 py-1.5" style={{ paddingLeft: `${0.75 + (i.level - 1) * 1.25}rem` }}>
-                    <span className="flex items-start gap-1">
+                <tr key={i.id} className={`group ${i.level === 1 ? "bg-surface-2/50" : ""} ${isNew ? "bg-accent-soft/60" : ""}`}>
+                  <td className="px-3 py-1" style={{ paddingLeft: `${0.75 + (i.level - 1) * 1.25}rem` }}>
+                    <span className="flex items-center gap-1">
                       {isParent ? (
                         <button
                           type="button"
                           onClick={() => toggle(i.id)}
                           aria-label={collapsed.has(i.id) ? "Mở" : "Thu gọn"}
-                          className="mt-0.5 shrink-0 text-subtle hover:text-fg"
+                          className="shrink-0 text-subtle hover:text-fg"
                         >
                           <IconChevronRight className={`transition-transform ${collapsed.has(i.id) ? "" : "rotate-90"}`} />
                         </button>
                       ) : (
                         <span className="w-4 shrink-0" />
                       )}
-                      <span className="font-mono text-subtle">{i.id}</span>
-                      <span className={i.level === 1 ? "font-semibold text-fg" : "text-fg"}>{i.name}</span>
+                      <span className="shrink-0 font-mono text-subtle">{isNew ? "mới" : i.id}</span>
+                      {editable ? (
+                        <input
+                          value={i.name}
+                          autoFocus={focusId === i.id}
+                          placeholder={i.level === 1 ? "Tên nhóm" : i.level === 2 ? "Tên task" : "Tên sub-task"}
+                          onChange={(e) => update(i.id, { name: e.target.value })}
+                          aria-label={`Tên ${i.id}`}
+                          aria-invalid={errors.name.includes(i.id)}
+                          className={`${cellInput} min-w-[16rem] ${i.level === 1 ? "font-semibold" : ""} ${errors.name.includes(i.id) ? bad : ""}`}
+                        />
+                      ) : (
+                        <span className={i.level === 1 ? "font-semibold text-fg" : "text-fg"}>{i.name}</span>
+                      )}
                     </span>
                   </td>
-                  <td className="px-2 py-1.5">{i.type && !isParent && <TypeChip type={i.type} />}</td>
-                  <td className="px-2 py-1.5 text-muted">
-                    {!isParent && (i.priority === "high" ? <Badge tone="danger">Cao</Badge> : PRIORITY_LABEL[i.priority])}
+                  <td className="px-2 py-1">
+                    {!isParent &&
+                      i.type &&
+                      (editable ? (
+                        <select value={i.type} onChange={(e) => update(i.id, { type: e.target.value as WorkType })} aria-label={`Loại ${i.id}`} className={cellSelect}>
+                          {TYPES.map((t) => (
+                            <option key={t} value={t}>
+                              {TYPE_LABEL[t]}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <TypeChip type={i.type} />
+                      ))}
+                  </td>
+                  <td className="px-2 py-1 text-muted">
+                    {!isParent &&
+                      (editable ? (
+                        <select
+                          value={i.priority}
+                          onChange={(e) => update(i.id, { priority: e.target.value as Priority })}
+                          aria-label={`Ưu tiên ${i.id}`}
+                          className={`${cellSelect} ${i.priority === "high" ? "text-danger" : ""}`}
+                        >
+                          {(["high", "mid", "low"] as const).map((p) => (
+                            <option key={p} value={p}>
+                              {PRIORITY_LABEL[p]}
+                            </option>
+                          ))}
+                        </select>
+                      ) : i.priority === "high" ? (
+                        <Badge tone="danger">Cao</Badge>
+                      ) : (
+                        PRIORITY_LABEL[i.priority]
+                      ))}
                   </td>
                   <td className={`px-2 py-1 text-right tabular-nums ${isParent ? "font-semibold text-fg" : "text-muted"}`}>
-                    {isParent || !onSave ? (
-                      <span className={isParent && changed.length ? "text-accent-strong" : ""}>{md(isParent ? sums[i.id] : i.estimate_md)}</span>
+                    {isParent || !editable ? (
+                      <span className={isParent && dirty ? "text-accent-strong" : ""}>{md(isParent ? sums[i.id] : i.estimate_md)}</span>
                     ) : (
                       <input
                         type="number"
@@ -484,38 +660,79 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
                         min={0}
                         max={MAX_LEAF_MD}
                         step={0.5}
-                        value={draft[i.id] ?? String(i.estimate_md ?? 0)}
-                        onChange={(e) => setDraft((d) => ({ ...d, [i.id]: e.target.value }))}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") save();
-                          if (e.key === "Escape") setDraft((d) => Object.fromEntries(Object.entries(d).filter(([k]) => k !== i.id)));
-                        }}
+                        value={mdText[i.id] ?? String(i.estimate_md ?? 0)}
+                        onChange={(e) => setMdText((d) => ({ ...d, [i.id]: e.target.value }))}
+                        onKeyDown={(e) => e.key === "Enter" && save()}
                         aria-label={`Man-day ${i.id}`}
-                        aria-invalid={parsed(i.id) === null}
-                        className={`w-20 rounded border px-1.5 py-0.5 text-right tabular-nums text-fg focus:outline-none ${
-                          parsed(i.id) === null
-                            ? "border-danger bg-danger/10"
-                            : changed.includes(i.id)
-                              ? "border-accent bg-accent/10"
-                              : "border-line bg-surface focus:border-accent"
-                        }`}
+                        aria-invalid={errors.md.includes(i.id)}
+                        className={`w-20 rounded border border-line bg-surface px-1.5 py-0.5 text-right tabular-nums text-fg focus:border-accent focus:outline-none ${errors.md.includes(i.id) ? bad : ""}`}
                       />
                     )}
                   </td>
-                  <td className="px-2 py-1.5 font-mono text-xs text-subtle">{i.depends_on.join(", ") || "—"}</td>
-                  <td className="max-w-64 px-3 py-1.5 text-muted">
-                    {i.deliverable && (
-                      <HoverTip onlyIfTruncated content={i.deliverable} className="block truncate">
-                        {i.deliverable}
-                      </HoverTip>
+                  <td className="px-2 py-1 font-mono text-xs text-subtle">
+                    {editable ? (
+                      <input
+                        value={depText[i.id] ?? i.depends_on.join(", ")}
+                        placeholder="—"
+                        onChange={(e) => setDepText((d) => ({ ...d, [i.id]: e.target.value }))}
+                        aria-label={`Phụ thuộc ${i.id}`}
+                        aria-invalid={errors.deps.includes(i.id)}
+                        title="Mã task phải xong trước, cách nhau bằng dấu phẩy, ví dụ 1.2, 1.3"
+                        className={`${cellInput} w-24 font-mono text-xs ${errors.deps.includes(i.id) ? bad : ""}`}
+                      />
+                    ) : (
+                      i.depends_on.join(", ") || "—"
                     )}
                   </td>
+                  <td className="max-w-64 px-3 py-1 text-muted">
+                    {editable ? (
+                      <input
+                        value={i.deliverable ?? ""}
+                        placeholder="—"
+                        onChange={(e) => update(i.id, { deliverable: e.target.value || null })}
+                        aria-label={`Bàn giao ${i.id}`}
+                        className={`${cellInput} min-w-[12rem] text-muted`}
+                      />
+                    ) : (
+                      i.deliverable && (
+                        <HoverTip onlyIfTruncated content={i.deliverable} className="block truncate">
+                          {i.deliverable}
+                        </HoverTip>
+                      )
+                    )}
+                  </td>
+                  {editable && (
+                    <td className="px-2 py-1">
+                      <span className="flex justify-end gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+                        {i.level < 3 && (
+                          <button
+                            type="button"
+                            onClick={() => addChild(i)}
+                            title={i.level === 1 ? "Thêm task vào nhóm" : "Thêm sub-task"}
+                            aria-label={i.level === 1 ? `Thêm task vào ${i.id}` : `Thêm sub-task vào ${i.id}`}
+                            className="rounded p-1 text-subtle hover:bg-surface-2 hover:text-accent-strong"
+                          >
+                            <IconPlus />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => remove(i)}
+                          title="Xóa"
+                          aria-label={`Xóa ${i.id}`}
+                          className="rounded p-1 text-subtle hover:bg-danger-soft hover:text-danger"
+                        >
+                          <IconTrash />
+                        </button>
+                      </span>
+                    </td>
+                  )}
                 </tr>
               );
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-3 text-center text-subtle">
+                <td colSpan={editable ? 7 : 6} className="px-3 py-3 text-center text-subtle">
                   Không có task phù hợp bộ lọc.
                 </td>
               </tr>
@@ -523,25 +740,52 @@ function WbsTree({ wbs, onSave }: { wbs: WbsResult; onSave?: (estimates: Record<
           </tbody>
         </table>
       </div>
-      {onSave && (changed.length > 0 || invalid.length > 0) && (
-        <div className="sticky bottom-0 mt-2 flex flex-wrap items-center gap-3 rounded-md border border-accent/40 bg-surface p-3 shadow-sm">
+      {editable && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <select value={newGroupPhase} onChange={(e) => setNewGroupPhase(e.target.value as Phase)} className={select} aria-label="Giai đoạn của nhóm mới">
+            {PHASES.map((p) => (
+              <option key={p} value={p}>
+                {PHASE_LABELS[p]}
+              </option>
+            ))}
+          </select>
+          <button type="button" onClick={addGroup} className={buttonClass.secondary}>
+            <IconPlus /> Thêm nhóm
+          </button>
+          <span className="text-xs text-subtle">Rê chuột vào một dòng để thêm task / sub-task hoặc xóa.</span>
+        </div>
+      )}
+      {editable && (dirty || invalid.size > 0) && (
+        <div className="sticky bottom-0 z-10 mt-2 flex flex-wrap items-center gap-3 rounded-md border border-accent/40 bg-surface p-3 shadow-sm">
           <span className="text-sm text-fg">
-            <b>{changed.length}</b> task đã sửa · tổng{" "}
+            {[modified && `${modified} sửa`, added && `${added} thêm`, removed && `${removed} xóa`].filter(Boolean).join(" · ") || "Có thay đổi"} · tổng{" "}
             <span className="tabular-nums">
               {md(totalBefore)} → <b>{md(totalAfter)}</b> man-day
             </span>
           </span>
-          {invalid.length > 0 && <span className="text-sm text-danger">Mỗi task từ 0 đến {MAX_LEAF_MD} man-day; task lớn hơn cần tách nhỏ.</span>}
+          {invalid.size > 0 && (
+            <span className="text-sm text-danger">
+              {[
+                errors.name.length && `${errors.name.length} task chưa có tên`,
+                errors.md.length && `man-day mỗi task từ 0 đến ${MAX_LEAF_MD}`,
+                errors.deps.length && `${errors.deps.length} ô "Sau" có mã task không tồn tại`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          )}
           <span className="ml-auto flex gap-2">
-            <button type="button" disabled={saving} onClick={() => setDraft({})} className={buttonClass.ghost}>
+            <button type="button" disabled={saving} onClick={reset} className={buttonClass.ghost}>
               Hủy
             </button>
-            <button type="button" disabled={saving || invalid.length > 0 || changed.length === 0} onClick={save} className={buttonClass.primary}>
+            <button type="button" disabled={saving || invalid.size > 0 || !dirty} onClick={save} className={buttonClass.primary}>
               {saving ? <Spinner /> : <IconRefresh />}
               Lưu & tính lại
             </button>
           </span>
-          <p className="w-full text-xs text-subtle">Khi lưu, code cộng lại tổng, tính lại master schedule và báo giá (không gọi LLM).</p>
+          <p className="w-full text-xs text-subtle">
+            Khi lưu, code kiểm tra cây WBS và phụ thuộc, đánh lại mã task, cộng lại tổng, tính lại master schedule và báo giá (không gọi LLM).
+          </p>
           {saveError && (
             <div className="w-full">
               <ErrorBox>{saveError}</ErrorBox>
@@ -560,7 +804,8 @@ export default function WBSCard({
   onScheduleChange,
   onScheduleSuggest,
   edited = false,
-  onEstimatesSave,
+  warnings = [],
+  onWbsSave,
   lockReason = null,
 }: {
   data: WbsResult;
@@ -569,7 +814,8 @@ export default function WBSCard({
   onScheduleChange?: (config: ScheduleConfig) => Promise<void>;
   onScheduleSuggest?: () => Promise<ScheduleConfig>;
   edited?: boolean;
-  onEstimatesSave?: (estimates: Record<string, number>) => Promise<void>;
+  warnings?: string[];
+  onWbsSave?: (items: WbsItem[]) => Promise<void>;
   lockReason?: string | null;
 }) {
   const [downloading, setDownloading] = useState(false);
@@ -629,12 +875,12 @@ export default function WBSCard({
       <div className="mt-5">
         <div className="mb-1.5 flex flex-wrap items-center gap-2">
           <h3 className="text-sm font-semibold text-muted">Bảng WBS</h3>
-          {onEstimatesSave && <span className="text-xs text-subtle">Sửa trực tiếp man-day của task lá; node cha tự cộng.</span>}
+          {onWbsSave && <span className="text-xs text-subtle">Bấm vào ô để sửa; thêm / xóa task ở cuối mỗi dòng; node cha tự cộng.</span>}
           {edited && <Badge tone="info">Đã sửa tay</Badge>}
         </div>
         {lockReason && (
           <p className="mb-2 rounded-md border border-line bg-surface-2/50 px-3 py-2 text-sm text-muted">
-            <b className="text-fg">Không sửa được man-day:</b> {lockReason}
+            <b className="text-fg">Không sửa được WBS:</b> {lockReason}
           </p>
         )}
         {edited && (
@@ -643,7 +889,17 @@ export default function WBSCard({
             tra lại hoặc chạy lại từ bước proposal.
           </p>
         )}
-        <WbsTree wbs={data} onSave={onEstimatesSave} />
+        {warnings.length > 0 && (
+          <div className="mb-2 rounded-md border border-warning/40 bg-warning-soft px-3 py-2 text-sm text-fg">
+            <b>WBS đã sửa không còn đạt một số quy tắc:</b>
+            <ul className="mt-1 list-disc pl-5 text-muted">
+              {warnings.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <WbsTree wbs={data} onSave={onWbsSave} />
       </div>
 
       {(data.assumptions.length > 0 || data.out_of_scope.length > 0) && (

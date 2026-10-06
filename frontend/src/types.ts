@@ -425,7 +425,8 @@ export interface ScopingRun {
   attachments: Attachment[];
   schedule: ScheduleResult | null;
   schedule_config: ScheduleConfig | null;
-  wbs_edited: boolean; // leaf man-days edited by a human
+  wbs_edited: boolean; // WBS edited by a human
+  wbs_warnings?: string[]; // business rules the edited WBS no longer meets
   quotation: Quotation | null;
   client_email: { subject: string; body: string } | null;
   project_name: string | null;

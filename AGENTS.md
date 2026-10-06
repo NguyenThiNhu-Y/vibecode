@@ -332,7 +332,8 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
     revision: int = 0                     # số lần chạy lại theo góp ý
     redactions: dict[str, int] = {}       # loại PII -> số lượng đã che
     proposal_edited: bool = False         # proposal đã được người sửa tay
-    wbs_edited: bool = False              # man-day node lá WBS đã được người sửa tay
+    wbs_edited: bool = False              # WBS đã được người sửa tay
+    wbs_warnings: list[str] = []          # quy tắc nghiệp vụ (PM/QA mỗi giai đoạn, tag AI, effort ±20%) WBS đã sửa không còn đạt
     translations: dict[str, str] = {}     # ngôn ngữ -> proposal đã dịch
 ```
 
@@ -376,6 +377,7 @@ class ClientEmail(BaseModel):  subject: str; body: str   # LLM viết placeholde
 | `GET /runs/{id}/schedule-suggestion` | — | `200 ScheduleConfig` (config hiện tại với số người gợi ý theo WBS; không lưu) | `409` chưa có WBS |
 | `PUT /runs/{id}/schedule-config` | `ScheduleConfig` | `200 ScopingRun` (tính lại `schedule` bằng code, không gọi LLM; báo giá chưa duyệt được tính lại) | `409` chưa có WBS; `422` headcount 0 cho loại có task |
 | `POST /runs` (bidding) | thêm `schedule_config` tùy chọn | như cũ | `422` |
+| `PUT /runs/{id}/wbs` | `{items: WbsItem[], assumptions?, out_of_scope?}` (sửa toàn bộ: tên, loại, ưu tiên, man-day, phụ thuộc, bàn giao; thêm nhóm/task/sub-task; xóa) | `200 ScopingRun` (code kiểm tra cây + phụ thuộc, đánh lại mã task 1, 1.1…, cộng lại tổng, tính lại `schedule` và báo giá; quy tắc nghiệp vụ không còn đạt → `wbs_warnings`; `wbs_edited = true`; không gọi LLM) | `409` như PATCH; `422` tên trống, mã/cha sai, phụ thuộc không tồn tại hoặc vòng, task lá > 10 man-day, loại sai |
 | `PATCH /runs/{id}/wbs` | `{estimates: {leaf_id: man_day}}` (0–10, chỉ node lá) | `200 ScopingRun` (`wbs_edited = true`; code cộng lại node cha, totals, tính lại `schedule` và báo giá; không gọi LLM) | `409` chưa có WBS / hồ sơ chưa xong hoặc đã duyệt / giá đã duyệt; `422` id không có, node cha, ngoài 0–10 |
 | `GET /runs/{id}/export/{slides.pptx\|package.zip}?lang=vi\|en\|ja` | — | slide theo ngôn ngữ (nội dung dịch bằng LLM, cache `deck_translations`) | `422` ngôn ngữ sai; `502` dịch lỗi |
 | `GET /runs/{id}/similar` | — | `200 list[RunSummary + score]` (tối đa 3) | `404` |

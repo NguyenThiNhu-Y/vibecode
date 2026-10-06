@@ -9,7 +9,7 @@ import {
   postAnswers,
   postReview,
   proposalUrl,
-  patchWbsEstimates,
+  putWbs,
   putScheduleConfig,
   replayExportUrl,
   rerunRun,
@@ -60,6 +60,7 @@ import {
   type ReplayInfo,
   type RunStatus,
   type ScheduleResult,
+  type WbsItem,
   type ScopingRun,
   type SimilarRun,
   type Stats,
@@ -143,8 +144,8 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
   });
   const [stats, setStats] = useState<Stats | null>(null);
   const [meta, setMeta] = useState<
-    Pick<ScopingRun, "redactions" | "revision" | "feedback" | "feedback_step" | "proposal_edited" | "wbs_edited" | "translations">
-  >({ redactions: {}, revision: 0, feedback: null, feedback_step: null, proposal_edited: false, wbs_edited: false, translations: {} });
+    Pick<ScopingRun, "redactions" | "revision" | "feedback" | "feedback_step" | "proposal_edited" | "wbs_edited" | "wbs_warnings" | "translations">
+  >({ redactions: {}, revision: 0, feedback: null, feedback_step: null, proposal_edited: false, wbs_edited: false, wbs_warnings: [], translations: {} });
   const [reloadKey, setReloadKey] = useState(0);
   const closeStream = useRef<(() => void) | null>(null);
 
@@ -171,6 +172,7 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
       feedback_step: run.feedback_step ?? null,
       proposal_edited: run.proposal_edited ?? false,
       wbs_edited: run.wbs_edited ?? false,
+      wbs_warnings: run.wbs_warnings ?? [],
       translations: run.translations ?? {},
     });
   }, []);
@@ -295,8 +297,8 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
     applyMeta(await updateQuotation(key, body));
   };
 
-  const editWbs = async (estimates: Record<string, number>) => {
-    applyRun(await patchWbsEstimates(key, estimates));
+  const editWbs = async (items: WbsItem[]) => {
+    applyRun(await putWbs(key, items));
   };
 
   const changeSchedule = async (config: Parameters<typeof putScheduleConfig>[1]) => {
@@ -630,7 +632,8 @@ export default function RunView({ mode }: { mode: "run" | "replay" }) {
                 onScheduleChange={mode === "run" && status !== "running" ? changeSchedule : undefined}
                 onScheduleSuggest={mode === "run" ? () => getScheduleSuggestion(key) : undefined}
                 edited={meta.wbs_edited}
-                onEstimatesSave={mode === "run" && wbsLock === null ? editWbs : undefined}
+                warnings={meta.wbs_warnings}
+                onWbsSave={mode === "run" && wbsLock === null ? editWbs : undefined}
                 lockReason={wbsLock}
               />
             )}

@@ -20,7 +20,7 @@ from app.agents.pipeline import Event, reset_from, run_pipeline
 from app.agents.pricing import compute_quotation, load_rate_card
 from app.agents.schedule import ScheduleError, build_schedule, config_for, suggest_headcount
 from app.agents.step import StepError
-from app.agents.steps import CLIENT_EMAIL, TRANSLATE
+from app.agents.steps import CLIENT_EMAIL, TRANSLATE, check_wbs_edit, review_wbs
 from app.bid import evaluate_bid, load_bid_criteria
 from app.company import (
     content_disposition,
@@ -53,7 +53,7 @@ from app.schemas.quotation import ContractModel, Currency
 from app.schemas.run import RunStatus, RunSummary, ScopingRun
 from app.schemas.schedule import ScheduleConfig
 from app.schemas.settings import TemplateKind, TemplatesConfig, TemplateSource
-from app.schemas.wbs import MAX_LEAF_MD, WbsResult
+from app.schemas.wbs import MAX_LEAF_MD, WbsResult, renumber
 from app.settings_store import (
     delete_reference_project,
     read_settings,
@@ -147,6 +147,15 @@ class CreateRunBody(BaseModel):
 
 class WbsEditBody(BaseModel):
     estimates: dict[str, Annotated[float, Field(ge=0, le=MAX_LEAF_MD)]] = Field(min_length=1)
+
+
+class WbsReplaceBody(BaseModel):
+    """The whole WBS edited by a person: items (add / edit / delete) and optionally the
+    assumptions / out-of-scope lists. Totals are always recomputed by code."""
+
+    items: list[dict[str, Any]] = Field(min_length=1, max_length=300)
+    assumptions: list[str] | None = None
+    out_of_scope: list[str] | None = None
 
 
 class MetaBody(BaseModel):
@@ -520,12 +529,8 @@ def edit_wbs_estimates(
     """Human edit of leaf man-days; parents, phase totals, schedule and quotation are
     recomputed by code (no LLM)."""
     run = _load(repo, run_id)
-    if run.wbs is None:
-        raise HTTPException(409, "Run chưa có WBS")
-    if run.status not in EDITABLE:
-        raise HTTPException(409, "Chỉ sửa được WBS khi hồ sơ đã phân tích xong và chưa duyệt")
-    if run.pricing_approval and run.pricing_approval.approved:
-        raise HTTPException(409, "Báo giá đã được duyệt giá; hủy duyệt giá trước khi sửa WBS")
+    _check_wbs_editable(run)
+    assert run.wbs is not None
     parents = {i.id.rsplit(".", 1)[0] for i in run.wbs.items if "." in i.id}
     known = {i.id for i in run.wbs.items}
     unknown = sorted(set(body.estimates) - known)
@@ -541,7 +546,49 @@ def edit_wbs_estimates(
     for item in data["items"]:
         if item["id"] in body.estimates:
             item["estimate_md"] = round(body.estimates[item["id"]], 2)
-    wbs = WbsResult.model_validate(data)  # re-rolls parent and phase totals
+    _apply_wbs(run, WbsResult.model_validate(data))  # re-rolls parent and phase totals
+    repo.save(run)
+    return run
+
+
+@app.put("/api/runs/{run_id}/wbs")
+def replace_wbs(run_id: str, body: WbsReplaceBody, repo: RunRepo = Depends(get_repo)) -> ScopingRun:
+    """Human edit of the whole WBS (rename, retype, re-estimate, add / delete tasks and
+    sub-tasks). The tree and dependencies must be sound (422 otherwise); ids are renumbered;
+    totals, schedule and quotation are recomputed by code (no LLM). Business rules the WBS no
+    longer meets come back as warnings in `wbs_warnings`."""
+    run = _load(repo, run_id)
+    _check_wbs_editable(run)
+    assert run.wbs is not None
+    data = {
+        "items": body.items,
+        "totals": [t.model_dump(mode="json") for t in run.wbs.totals],  # keep phase notes
+        "assumptions": run.wbs.assumptions if body.assumptions is None else body.assumptions,
+        "out_of_scope": run.wbs.out_of_scope if body.out_of_scope is None else body.out_of_scope,
+    }
+    try:
+        wbs = WbsResult.model_validate(data)
+        check_wbs_edit(wbs)
+    except ValidationError as exc:
+        raise _settings_error(exc) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    _apply_wbs(run, renumber(wbs))
+    repo.save(run)
+    return run
+
+
+def _check_wbs_editable(run: ScopingRun) -> None:
+    if run.wbs is None:
+        raise HTTPException(409, "Run chưa có WBS")
+    if run.status not in EDITABLE:
+        raise HTTPException(409, "Chỉ sửa được WBS khi hồ sơ đã phân tích xong và chưa duyệt")
+    if run.pricing_approval and run.pricing_approval.approved:
+        raise HTTPException(409, "Báo giá đã được duyệt giá; hủy duyệt giá trước khi sửa WBS")
+
+
+def _apply_wbs(run: ScopingRun, wbs: WbsResult) -> None:
+    """Store a human-edited WBS: schedule (same start / team), quotation and warnings."""
     try:
         schedule = build_schedule(
             wbs,
@@ -552,9 +599,14 @@ def edit_wbs_estimates(
     run.wbs, run.schedule = wbs, schedule
     run.schedule_config = schedule.config
     run.wbs_edited = True
+    computed = run.effort_basis.computed if run.effort_basis else {}
+    run.wbs_warnings = review_wbs(
+        wbs,
+        run.pattern.pattern if run.pattern else None,
+        {phase: (rng[0], rng[1]) for phase, rng in computed.items()},
+        [e.phase for e in run.architecture.estimates] if run.architecture else [],
+    )
     _requote(run)
-    repo.save(run)
-    return run
 
 
 @app.patch("/api/runs/{run_id}/meta")

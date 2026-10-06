@@ -834,3 +834,91 @@ def test_schedule_suggestion_endpoint(client: TestClient) -> None:
     assert (
         client.get(f"/api/runs/{run_id}").json()["schedule_config"] == run["schedule_config"]
     )  # not saved
+
+
+def test_replace_wbs_add_edit_delete(client: TestClient) -> None:
+    run_id = create(client)
+    url = f"/api/runs/{run_id}/wbs"
+    assert client.put(url, json={"items": [{"id": "1"}]}).status_code == 409  # no WBS yet
+    read_sse(client, f"/api/runs/{run_id}/stream")
+    before = client.get(f"/api/runs/{run_id}").json()
+    items = before["wbs"]["items"]
+    parents = {i["id"].rsplit(".", 1)[0] for i in items if "." in i["id"]}
+    flat = [i for i in items if i["level"] == 2 and i["id"] not in parents]
+    first = flat[0]
+    second = next(i for i in flat[1:] if i["id"].split(".")[0] == first["id"].split(".")[0])
+    phase = first["phase"]
+
+    edited = [dict(i) for i in items if i["id"] != second["id"]]  # delete a task
+    for i in edited:
+        if i["id"] == first["id"]:  # rename, retype, re-estimate
+            i.update(name="Khảo sát hiện trường Toyohashi", type="BA", priority="high",
+                     estimate_md=4, deliverable="Biên bản khảo sát")  # fmt: skip
+        i["depends_on"] = [d for d in i["depends_on"] if d != second["id"]]
+    group = first["id"].split(".")[0]
+    edited.append({"id": f"{first['id']}.1", "phase": phase, "name": "Phỏng vấn tổ bảo trì",
+                   "level": 3, "type": "BA", "estimate_md": 2})  # fmt: skip
+    edited.append({"id": f"{first['id']}.2", "phase": phase, "name": "Thu thập manual mẫu",
+                   "level": 3, "type": "DATA", "estimate_md": 3,
+                   "tags": ["data_prep"]})  # fmt: skip
+    edited.append({"id": f"{group}.99", "phase": phase, "name": "Demo cho khách", "level": 2,
+                   "type": "PM", "estimate_md": 1, "depends_on": [first["id"]]})  # fmt: skip
+    resp = client.put(url, json={"items": edited, "out_of_scope": ["Ứng dụng mobile native"]})
+    assert resp.status_code == 200, resp.text
+    run = resp.json()
+    after = {i["name"]: i for i in run["wbs"]["items"]}
+    assert (
+        sum(1 for i in run["wbs"]["items"] if i["name"] == second["name"])
+        == sum(1 for i in items if i["name"] == second["name"]) - 1
+    )
+    renamed = after["Khảo sát hiện trường Toyohashi"]
+    assert renamed["estimate_md"] == 5 and renamed["type"] is None  # now a parent: 2 + 3
+    assert after["Thu thập manual mẫu"]["id"] == f"{renamed['id']}.2"
+    demo = after["Demo cho khách"]
+    assert not demo["id"].endswith(".99") and demo["depends_on"] == [renamed["id"]]  # renumbered
+    ids = [i["id"] for i in run["wbs"]["items"]]
+    assert len(set(ids)) == len(ids)
+    assert run["wbs"]["out_of_scope"] == ["Ứng dụng mobile native"]
+    assert run["wbs"]["assumptions"] == before["wbs"]["assumptions"]
+    assert run["wbs_edited"] is True and run["schedule"]["tasks"]
+    assert any(t["wbs_id"] == demo["id"] for t in run["schedule"]["tasks"])
+
+
+def test_replace_wbs_rejects_broken_tree_and_warns_on_rules(client: TestClient) -> None:
+    run_id = create(client)
+    read_sse(client, f"/api/runs/{run_id}/stream")
+    items = client.get(f"/api/runs/{run_id}").json()["wbs"]["items"]
+    url = f"/api/runs/{run_id}/wbs"
+    leaf = next(i for i in items if i["level"] == 2 and i["type"])
+
+    def with_change(**change):
+        return [dict(i, **change) if i["id"] == leaf["id"] else i for i in items]
+
+    for body, fragment in [
+        (with_change(depends_on=["99.9"]), "không tồn tại"),
+        (with_change(depends_on=[leaf["id"]]), "vòng"),
+        (with_change(estimate_md=12), "tối đa 10"),
+        (with_change(name="  "), "chưa có tên"),
+        (with_change(type="CHEF"), "type"),
+        (
+            items
+            + [
+                {
+                    "id": "77.1",
+                    "phase": "poc",
+                    "name": "x",
+                    "level": 2,
+                    "type": "BE",
+                    "estimate_md": 1,
+                }
+            ],
+            "không có node cha",
+        ),  # fmt: skip
+    ]:
+        resp = client.put(url, json={"items": body})
+        assert resp.status_code == 422 and fragment in resp.json()["detail"], (fragment, resp.text)
+
+    no_qa = [dict(i, type="BE") if i.get("type") == "QA" else i for i in items]
+    run = client.put(url, json={"items": no_qa}).json()
+    assert any("QA" in w for w in run["wbs_warnings"])
+    assert client.put(url, json={"items": items}).json()["wbs_warnings"] == []
