@@ -1,0 +1,602 @@
+{
+  "key": "8783fc4289e61462d0a1723986e549470a5b82fd1d9f10ab0dece37d40f3adf4",
+  "step": "requirements",
+  "created_at": "2026-10-06T16:02:12.312804+00:00",
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "model": "anthropic/claude-opus-5.5",
+  "temperature": null,
+  "json_mode": false,
+  "reasoning_effort": "",
+  "latency_ms": 61986,
+  "attempts": 1,
+  "system_prompt_sha256": "1db390d9bbc7fedca8773a9c22d9077a6048437f6b816f2466e1193ad3e1e3e1",
+  "context": {
+    "pattern": {
+      "pattern": "rag",
+      "rationale": "Bài toán cốt lõi là hỏi đáp tiếng Nhật/Việt trên kho khoảng 48.000 trang tài liệu và 62.000 bản ghi sự cố, kèm yêu cầu bắt buộc phải trích dẫn nguồn (tên tài liệu, số phiên bản, số trang hoặc số tiếp nhận sự cố) và không suy đoán khi thiếu căn cứ (FR-QA-002/003). Yêu cầu loại bỏ bản cũ (FR-DOC-003), lọc theo quyền nhà máy/bộ phận áp dụng cả cho nguồn căn cứ (FR-DOC-004) và đồng bộ SharePoint hằng ngày cho thấy kiến thức thay đổi liên tục, rất đúng với RAG kết hợp security trimming. Tìm sự cố tương tự xuyên ngôn ngữ (FR-HIS-001) được giải bằng hybrid search (vector + từ khóa), cộng thêm chuẩn hóa mã cảnh báo/mã thiết bị bằng quy tắc. Nháp báo cáo tiếng Nhật và bảng thuật ngữ 1.200 từ xử lý bằng prompt kèm glossary, không cần fine-tune hay agent.",
+      "rejected": [
+        {
+          "pattern": "no_ai_rule_based",
+          "reason": "Câu hỏi là ngôn ngữ tự nhiên Nhật/Việt, tài liệu phi cấu trúc có PDF scan và chữ viết tay, cách ghi sự cố không thống nhất, nên quy tắc hay tìm kiếm từ khóa không đáp ứng được; quy tắc chỉ dùng hỗ trợ như chuẩn hóa mã AL-2047 hoặc che email."
+        },
+        {
+          "pattern": "classic_ml",
+          "reason": "Mục tiêu chính là hiểu và sinh câu trả lời ngôn ngữ tự nhiên có trích dẫn, không phải dự đoán trên dữ liệu bảng; dữ liệu sự cố cũng thiếu 57% mã cảnh báo và 24% nguyên nhân, không đủ làm nhãn tin cậy cho mô hình phân loại nguyên nhân."
+        },
+        {
+          "pattern": "agent",
+          "reason": "Phần lõi là truy xuất và trả lời. Việc ghi báo cáo vào MAINTE-PRO (FR-HIS-004) chỉ ở mức 任意 và API hiện chỉ đọc, nên có thể làm bằng một bước workflow tĩnh có người xác nhận, không cần agent tự quyết định nhiều bước."
+        },
+        {
+          "pattern": "fine_tune",
+          "reason": "Tài liệu và lịch sử sự cố thay đổi, cần cập nhật bản mới và trích dẫn nguồn, đây là trường hợp nên dùng RAG. Văn phong báo cáo và thuật ngữ Nhật–Việt có thể đạt bằng prompt, few-shot và bảng thuật ngữ mà quản trị viên tự cập nhật được; hiện cũng chưa có bộ mẫu lớn để huấn luyện."
+        }
+      ],
+      "confidence": "high",
+      "assumptions": [
+        "Giả định khách cho phép dùng Azure OpenAI (model chat và embedding đa ngôn ngữ) cùng Azure AI Search và Azure AI Document Intelligence trong tenant vùng Đông Nhật Bản. Kiểu triển khai (Regional/Data Zone) cần xác nhận ở câu q2 và có thể ảnh hưởng đến lựa chọn model và độ trễ.",
+        "Giả định OCR của Document Intelligence đạt chất lượng chấp nhận được với PDF scan tiếng Nhật. Ghi chú viết tay có thể nhận dạng kém; cần dự phòng thêm 20–30% effort tiền xử lý (q3).",
+        "Giả định lịch sử sự cố được nạp vào chỉ mục qua REST API chỉ đọc hoặc file export CSV. Cột email và tên người xử lý được loại bỏ hoặc che trước khi đánh chỉ mục; nếu tên xuất hiện trong văn bản tự do thì cần thêm bước che dữ liệu cá nhân (PII masking) (q6).",
+        "Giả định khách tự xác định bản mới nhất và gắn metadata phiên bản/ngày sửa đổi cho 300 file PoC, hoặc chấp nhận việc này nằm trong phạm vi tiền xử lý của dự án.",
+        "Giả định phân quyền được thực hiện bằng security trimming dựa trên nhóm Entra ID, lọc ngay ở bước truy xuất cả với tài liệu lẫn sự cố.",
+        "Giả định các chức năng Teams, nháp báo cáo, đồng bộ SharePoint và màn hình quản trị đầy đủ có thể dời sang phát triển chính thức để PoC nằm trong ngân sách 15 triệu yên (q7).",
+        "Giả định tỉ lệ đúng mục tiêu sẽ được đề xuất sau khi biết cơ cấu bộ 300 câu hỏi và định nghĩa 'trả lời đúng' (q1). Hiện chưa có câu trả lời của khách cho các câu hỏi mở, nhưng không câu nào là blocking với việc chọn pattern."
+      ]
+    },
+    "architecture": {
+      "components": [
+        {
+          "name": "Pipeline nạp tài liệu và OCR",
+          "purpose": "Nạp PDF (văn bản/scan), Word, Excel từ file server/SharePoint Online. Chạy OCR tiếng Nhật cho khoảng 30% PDF scan, tách layout, bảng và ảnh trang, sau đó chia chunk. Mỗi chunk gắn metadata gồm tên tài liệu, số phiên bản, ngày sửa đổi, số trang, nhà máy/bộ phận và nhóm Entra ID. Bản cũ được loại khỏi chỉ mục (FR-DOC-001/002/003). Từ Phase 2 có đồng bộ SharePoint hằng ngày (FR-DOC-005).",
+          "tech_options": [
+            "Azure AI Document Intelligence (layout model) + Azure Functions (Python)",
+            "Microsoft Graph API (SharePoint delta sync) + Azure Blob Storage (lưu file gốc và ảnh trang)",
+            "Azure AI Search indexer + custom skill"
+          ]
+        },
+        {
+          "name": "Connector MAINTE-PRO và che dữ liệu cá nhân",
+          "purpose": "Lấy lịch sử sự cố từ MAINTE-PRO (on-prem, SQL Server 2019). PoC dùng CSV export 8.000 bản ghi; MVP chuyển sang REST API chỉ đọc qua kết nối nội bộ. Bước này loại hoặc ẩn danh cột 対応者/対応者メール, che tên người trong văn bản tự do (症状, 処置内容), chuẩn hóa mã cảnh báo/mã thiết bị (AL2047, ＡＬ－２０４７ → AL-2047) và trích mã cảnh báo từ 症状 khi cột mã bị trống.",
+          "tech_options": [
+            "Azure Functions/Container Apps Job (Python hoặc C# .NET để tương thích MAINTE-PRO) + Azure VPN Gateway/ExpressRoute tới mạng nội bộ",
+            "Azure AI Language (PII detection, tiếng Nhật) + quy tắc regex",
+            "Azure Data Factory với Self-hosted Integration Runtime (khi cần đồng bộ định kỳ)"
+          ]
+        },
+        {
+          "name": "Chỉ mục hybrid search có security trimming",
+          "purpose": "Lưu chunk tài liệu và sự cố cùng vector embedding đa ngôn ngữ và trường từ khóa. Hỗ trợ tìm kiếm xuyên ngôn ngữ Nhật–Việt (FR-HIS-001). Hệ thống lọc theo nhóm Entra ID, nhà máy/bộ phận ngay ở bước truy xuất (FR-DOC-004), lọc theo mã thiết bị/mã cảnh báo (FR-QA-004) và dùng semantic reranking để tăng độ chính xác.",
+          "tech_options": [
+            "Azure AI Search (hybrid vector + BM25, semantic ranker, security filter) tại Japan East",
+            "Azure OpenAI text-embedding-3-large (đa ngôn ngữ)"
+          ]
+        },
+        {
+          "name": "RAG orchestration API",
+          "purpose": "Tự nhận diện ngôn ngữ câu hỏi, viết lại câu hỏi theo ngữ cảnh hội thoại (FR-QA-005) và truy xuất có lọc quyền. Khi điểm truy xuất dưới ngưỡng, hệ thống trả 「該当する情報が見つかりません」 kèm hướng dẫn escalation. Câu trả lời được sinh bằng streaming, đúng ngôn ngữ câu hỏi, đưa bảng thuật ngữ 1.200 từ vào prompt, bắt buộc trích dẫn nguồn và hiển thị song song nguyên văn tiếng Nhật. Câu trả lời được kiểm tra PII trước khi hiển thị. Từ Phase 2 có thêm gợi ý nguyên nhân/xử lý (FR-HIS-002) và nháp báo cáo tiếng Nhật (FR-HIS-003).",
+          "tech_options": [
+            "Azure OpenAI Service (GPT-4o/GPT-4.1 series, deployment Regional Japan East hoặc theo xác nhận q2; PTU nếu cần đạt 5s/15s)",
+            "Azure Container Apps hoặc App Service (Python FastAPI) + Semantic Kernel/LangChain",
+            "Azure API Management (giới hạn tốc độ, định tuyến model)"
+          ]
+        },
+        {
+          "name": "Giao diện người dùng Web và Teams",
+          "purpose": "Web chat dùng được trên PC, iPad (iPadOS 17+) và Android 12+. Giao diện có nút lớn cho người đeo găng tay, chuyển cỡ chữ và nhập bằng giọng nói (FR-UI-004). Mỗi câu trả lời hiển thị trích dẫn có thể bấm mở bản gốc, ảnh trang chứa sơ đồ/bảng (FR-QA-006) và nút feedback (FR-UI-003). Từ Phase 2 có bot Microsoft Teams (FR-UI-002).",
+          "tech_options": [
+            "React/Next.js (responsive PWA) host trên Azure Static Web Apps hoặc App Service",
+            "Azure Bot Service + Teams app",
+            "Azure AI Speech (nhận dạng giọng nói Nhật/Việt)"
+          ]
+        },
+        {
+          "name": "Xác thực, log kiểm toán và màn hình quản trị",
+          "purpose": "Đăng nhập một lần và xác thực đa yếu tố qua Entra ID, phân quyền theo nhóm (NFR-SEC-003, FR-ADM-003). Hệ thống lưu log câu hỏi, câu trả lời, tài liệu tham chiếu, người dùng và thời gian trong 1 năm, cho phép tìm kiếm và xuất CSV (NFR-SEC-005). Màn hình quản trị gồm thống kê sử dụng theo nhà máy/kỳ (FR-ADM-001), quản lý tài liệu và bảng thuật ngữ (FR-ML-002), xử lý câu trả lời bị đánh giá thấp (FR-ADM-002). Dữ liệu được mã hóa khi truyền và khi lưu. Hệ thống có giám sát để đạt mức sẵn sàng 99,5%.",
+          "tech_options": [
+            "Microsoft Entra ID (MSAL, group claims)",
+            "Azure Cosmos DB hoặc Azure SQL Database (log, feedback, thuật ngữ) + Azure Key Vault",
+            "Azure Monitor/Application Insights/Log Analytics"
+          ]
+        },
+        {
+          "name": "Bộ đánh giá chất lượng câu trả lời",
+          "purpose": "Chạy tự động bộ 300 câu hỏi đánh giá có đáp án (NFR-QA-001), đo độ đúng theo từng loại câu hỏi và chạy bộ test phân quyền. Bộ này dùng để kiểm định trước khi cập nhật phiên bản LLM (NFR-OPS-002) và theo dõi điểm đánh giá hiện trường (mục tiêu ≥3,5/5).",
+          "tech_options": [
+            "Azure AI Foundry Evaluation / Prompt flow",
+            "Script Python (pytest + LLM-as-judge) chạy trên Azure DevOps/GitHub Actions"
+          ]
+        }
+      ],
+      "deployment": "cloud"
+    },
+    "requirements": [
+      {
+        "id": "FR-QA-001",
+        "text": "自然言語での質問応答: 保全担当者が自然文（日本語・ベトナム語）で質問すると、設備取扱説明書・保全標準書・過去の故障履歴を根拠として回答を生成すること。",
+        "priority": "必須",
+        "category": "検索・回答"
+      },
+      {
+        "id": "FR-QA-002",
+        "text": "根拠の提示: 回答には参照した文書名・版数・ページ番号（故障履歴の場合は受付番号）を必ず表示し、クリックで原文の該当箇所を開けること。",
+        "priority": "必須",
+        "category": "検索・回答"
+      },
+      {
+        "id": "FR-QA-003",
+        "text": "回答不能時の振る舞い: 根拠となる情報が見つからない場合は推測で回答せず「該当する情報が見つかりません」と表示し、保全課へのエスカレーション手順を案内すること。",
+        "priority": "必須",
+        "category": "検索・回答"
+      },
+      {
+        "id": "FR-QA-004",
+        "text": "設備ID・アラームコードによる絞り込み: 質問に設備ID（例：MC-0215）やアラームコード（例：AL-2047）が含まれる場合、該当設備の機種・該当コードの情報を優先して回答すること。表記ゆれ（AL2047、ＡＬ－２０４７等）も同一とみなすこと。",
+        "priority": "必須",
+        "category": "検索・回答"
+      },
+      {
+        "id": "FR-QA-005",
+        "text": "追加質問への対応: 同一セッション内で直前のやり取りを踏まえた追加質問（「その場合の部品番号は？」等）に回答できること。",
+        "priority": "推奨",
+        "category": "検索・回答"
+      },
+      {
+        "id": "FR-QA-006",
+        "text": "図・表の表示: 回答の根拠が図・表を含むページの場合、該当ページの画像を回答画面に表示すること。",
+        "priority": "推奨",
+        "category": "検索・回答"
+      },
+      {
+        "id": "FR-ML-001",
+        "text": "質問言語での回答: 質問の言語（日本語／ベトナム語）を自動判定し、同じ言語で回答すること。根拠文書が日本語のみの場合もベトナム語で回答できること。",
+        "priority": "必須",
+        "category": "多言語"
+      },
+      {
+        "id": "FR-ML-002",
+        "text": "専門用語対訳表の反映: 当社の専門用語・略語の対訳表（約1,200語、Excel）を回答・翻訳に反映し、管理者が対訳表を更新できること。",
+        "priority": "必須",
+        "category": "多言語"
+      },
+      {
+        "id": "FR-ML-003",
+        "text": "日本語原文の併記: ベトナム語で回答する際、根拠部分の日本語原文を併記または切替表示できること。",
+        "priority": "推奨",
+        "category": "多言語"
+      },
+      {
+        "id": "FR-HIS-001",
+        "text": "類似故障事例の検索: 症状の記述（自由文）から類似する過去の故障事例を上位5件表示し、推定原因・処置内容・停止時間を一覧で確認できること。日本語とベトナム語の記述を横断して検索できること。",
+        "priority": "必須",
+        "category": "故障履歴活用"
+      },
+      {
+        "id": "FR-HIS-002",
+        "text": "原因・処置候補の提示: 類似事例とマニュアルをもとに、推定原因と処置の候補を確からしさの順に提示すること。最終判断は保全担当者が行う前提とする。",
+        "priority": "推奨",
+        "category": "故障履歴活用"
+      },
+      {
+        "id": "FR-HIS-003",
+        "text": "作業報告書の下書き作成: 保全担当者の入力メモ（箇条書き、音声入力のテキスト）から、当社様式の作業報告書（日本語）の下書きを作成すること。ベトナム語のメモからも日本語の報告書を作成できること。",
+        "priority": "推奨",
+        "category": "故障履歴活用"
+      },
+      {
+        "id": "FR-HIS-004",
+        "text": "保全管理システムへの登録: 確定した作業報告書を保全管理システム（MAINTE-PRO）に登録できること。",
+        "priority": "任意",
+        "category": "故障履歴活用"
+      },
+      {
+        "id": "FR-DOC-001",
+        "text": "文書の取り込み: 管理者がPDF（テキスト／スキャン）、Word、Excelをアップロードすると、自動で検索対象に登録されること。",
+        "priority": "必須",
+        "category": "文書管理"
+      },
+      {
+        "id": "FR-DOC-002",
+        "text": "スキャンPDFの文字認識: スキャンPDF（日本語、一部に手書きの注記あり）を文字認識して検索対象とすること。",
+        "priority": "必須",
+        "category": "文書管理"
+      },
+      {
+        "id": "FR-DOC-003",
+        "text": "文書の版管理: 文書の改訂時は旧版を回答の根拠から除外し、版数・改訂日を管理できること。",
+        "priority": "必須",
+        "category": "文書管理"
+      },
+      {
+        "id": "FR-DOC-004",
+        "text": "文書の閲覧権限: 工場・部署ごとに参照可能な文書を制限できること（例：バクニン工場は自工場設備の文書と共通文書のみ）。回答の根拠にも同じ制限を適用すること。",
+        "priority": "必須",
+        "category": "文書管理"
+      },
+      {
+        "id": "FR-DOC-005",
+        "text": "SharePointとの定期同期: SharePoint Online上の指定フォルダと日次で同期し、追加・更新・削除を反映すること。",
+        "priority": "推奨",
+        "category": "文書管理"
+      },
+      {
+        "id": "FR-UI-001",
+        "text": "Webブラウザでの利用: PCおよびタブレット（iPad、Androidタブレット）のブラウザで利用できること。",
+        "priority": "必須",
+        "category": "利用者画面"
+      },
+      {
+        "id": "FR-UI-002",
+        "text": "Microsoft Teamsからの利用: Microsoft Teamsのチャットから質問・回答を利用できること。",
+        "priority": "推奨",
+        "category": "利用者画面"
+      },
+      {
+        "id": "FR-UI-003",
+        "text": "回答へのフィードバック: 回答ごとに「役に立った／役に立たなかった」の評価とコメントを登録できること。",
+        "priority": "必須",
+        "category": "利用者画面"
+      },
+      {
+        "id": "FR-UI-004",
+        "text": "現場での操作性: 手袋着用時でも操作しやすいボタンサイズ、文字サイズの切替、音声入力に対応すること。",
+        "priority": "任意",
+        "category": "利用者画面"
+      },
+      {
+        "id": "FR-ADM-001",
+        "text": "利用状況の可視化: 利用者数、質問数、回答不能率、評価結果を工場別・期間別に表示し、CSVで出力できること。",
+        "priority": "必須",
+        "category": "管理・分析"
+      },
+      {
+        "id": "FR-ADM-002",
+        "text": "低評価回答の改善: 低評価の回答を一覧化し、管理者が正しい回答・参照文書を登録して以後の回答に反映できること。",
+        "priority": "推奨",
+        "category": "管理・分析"
+      },
+      {
+        "id": "FR-ADM-003",
+        "text": "利用者・権限管理: Microsoft Entra IDのグループと連携して、一般利用者・管理者の権限を付与できること。",
+        "priority": "必須",
+        "category": "管理・分析"
+      },
+      {
+        "id": "NFR-PF-001",
+        "text": "応答時間: 質問から回答表示開始まで平均5秒以内、回答完了まで15秒以内であること（同時利用50名時）。",
+        "priority": "必須",
+        "category": "性能"
+      },
+      {
+        "id": "NFR-PF-002",
+        "text": "利用規模: 登録利用者約230名（日本150名、ベトナム80名）、同時利用最大50名に対応すること。",
+        "priority": "必須",
+        "category": "性能"
+      },
+      {
+        "id": "NFR-PF-003",
+        "text": "データ量: 初期文書約2,300ファイル（約48,000ページ）、故障履歴約62,000件を対象とし、年10%程度の増加に対応すること。",
+        "priority": "必須",
+        "category": "性能"
+      },
+      {
+        "id": "NFR-AV-001",
+        "text": "稼働時間: 24時間365日利用できること（バクニン工場は3交替勤務）。計画停止は月1回・4時間以内とし、事前に通知すること。",
+        "priority": "必須",
+        "category": "可用性"
+      },
+      {
+        "id": "NFR-AV-002",
+        "text": "月間稼働率99.5%以上であること。",
+        "priority": "推奨",
+        "category": "可用性"
+      },
+      {
+        "id": "NFR-SEC-001",
+        "text": "データの保管場所: 文書、検索用インデックス、ログ等のデータは当社Azureテナント（東日本リージョン）内に保管すること。",
+        "priority": "必須",
+        "category": "セキュリティ"
+      },
+      {
+        "id": "NFR-SEC-002",
+        "text": "入力データの学習利用禁止: 入力データおよび文書がLLM提供者のモデル学習に利用されないことを契約上保証できるサービス（Azure OpenAI Service等）を使用すること。",
+        "priority": "必須",
+        "category": "セキュリティ"
+      },
+      {
+        "id": "NFR-SEC-003",
+        "text": "Microsoft Entra IDによるシングルサインオンおよび多要素認証に対応すること。",
+        "priority": "必須",
+        "category": "セキュリティ"
+      },
+      {
+        "id": "NFR-SEC-004",
+        "text": "通信・保存データの暗号化: 通信はTLS1.2以上で暗号化し、保存データも暗号化すること。",
+        "priority": "必須",
+        "category": "セキュリティ"
+      },
+      {
+        "id": "NFR-SEC-005",
+        "text": "操作ログ: 質問、回答、参照文書、利用者、日時を記録して1年間保管し、管理者が検索・CSV出力できること。",
+        "priority": "必須",
+        "category": "セキュリティ"
+      },
+      {
+        "id": "NFR-SEC-006",
+        "text": "個人情報の非表示: 故障履歴に含まれる作業者の氏名・メールアドレスは回答に表示しないこと。",
+        "priority": "推奨",
+        "category": "セキュリティ"
+      },
+      {
+        "id": "NFR-QA-001",
+        "text": "回答精度の評価: 当社が用意する評価用質問（約300問、正解付き）で正答率を測定し、PoC終了時に報告すること。目標正答率は提案時に提示すること。",
+        "priority": "必須",
+        "category": "品質"
+      },
+      {
+        "id": "NFR-OPS-001",
+        "text": "本番稼働後1年間の運用保守（問い合わせ対応、障害対応、月次報告、軽微な改修）を見積に含めること。問い合わせ対応は日本語、バクニン工場向けはベトナム語でも可とする。",
+        "priority": "必須",
+        "category": "運用保守"
+      },
+      {
+        "id": "NFR-OPS-002",
+        "text": "LLMの更新: LLMのバージョン更新時は、評価用質問で回答品質を確認したうえで切り替えること。",
+        "priority": "推奨",
+        "category": "運用保守"
+      },
+      {
+        "id": "NFR-TRN-001",
+        "text": "教育・マニュアル: 管理者向け操作研修（日本語）と、利用者向け操作マニュアル（日本語・ベトナム語）を提供すること。",
+        "priority": "必須",
+        "category": "教育"
+      }
+    ]
+  },
+  "response": "{\"items\":[{\"req_id\":\"FR-QA-001\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"RAG orchestration API truy xuất hybrid trên chỉ mục gồm hướng dẫn sử dụng thiết bị, tiêu chuẩn bảo trì và lịch sử sự cố, sau đó sinh câu trả lời cho câu hỏi tự nhiên tiếng Nhật/Việt.\"},{\"req_id\":\"FR-QA-002\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"Mỗi chunk mang metadata tên tài liệu, phiên bản, số trang hoặc số tiếp nhận sự cố; prompt bắt buộc trích dẫn và giao diện hiển thị trích dẫn có thể bấm để mở đúng vị trí bản gốc.\"},{\"req_id\":\"FR-QA-003\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"Khi điểm truy xuất dưới ngưỡng, hệ thống không sinh câu trả lời mà hiển thị 「該当する情報が見つかりません」 kèm hướng dẫn escalation lên phòng bảo trì; ngưỡng sẽ được hiệu chỉnh bằng bộ đánh giá.\"},{\"req_id\":\"FR-QA-004\",\"coverage\":\"partial\",\"component\":\"Chỉ mục hybrid search có security trimming\",\"note\":\"Mã cảnh báo và mã thiết bị được chuẩn hóa bằng quy tắc (AL2047, ＡＬ－２０４７ → AL-2047) rồi dùng để lọc và ưu tiên; tuy nhiên để ưu tiên theo model máy từ mã thiết bị (MC-0215) cần khách cung cấp bảng master ánh xạ thiết bị–model.\"},{\"req_id\":\"FR-QA-005\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"Câu hỏi bổ sung được viết lại theo lịch sử hội thoại trong cùng phiên trước khi truy xuất, nên trả lời được các câu như 「その場合の部品番号は？」.\"},{\"req_id\":\"FR-QA-006\",\"coverage\":\"full\",\"component\":\"Giao diện người dùng Web và Teams\",\"note\":\"Pipeline lưu ảnh trang vào Blob Storage và giao diện hiển thị ảnh trang chứa sơ đồ/bảng làm căn cứ cùng với câu trả lời.\"},{\"req_id\":\"FR-ML-001\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"Hệ thống tự nhận diện ngôn ngữ câu hỏi và sinh câu trả lời cùng ngôn ngữ, kể cả trả lời tiếng Việt khi tài liệu căn cứ chỉ có tiếng Nhật, nhờ embedding đa ngôn ngữ và LLM.\"},{\"req_id\":\"FR-ML-002\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"Bảng thuật ngữ khoảng 1.200 từ được nạp từ Excel, đưa vào prompt khi trả lời và dịch, và quản trị viên tự cập nhật qua màn hình quản trị.\"},{\"req_id\":\"FR-ML-003\",\"coverage\":\"full\",\"component\":\"Giao diện người dùng Web và Teams\",\"note\":\"Khi trả lời bằng tiếng Việt, giao diện hiển thị song song hoặc cho chuyển sang nguyên văn tiếng Nhật của đoạn căn cứ.\"},{\"req_id\":\"FR-HIS-001\",\"coverage\":\"full\",\"component\":\"Chỉ mục hybrid search có security trimming\",\"note\":\"Hybrid search (vector đa ngôn ngữ + từ khóa) tìm xuyên ngôn ngữ Nhật–Việt và hiển thị 5 sự cố tương tự nhất kèm nguyên nhân, xử lý và thời gian dừng; lưu ý khoảng 24% bản ghi thiếu nguyên nhân nên các cột này có thể trống.\"},{\"req_id\":\"FR-HIS-002\",\"coverage\":\"partial\",\"component\":\"RAG orchestration API\",\"note\":\"Chức năng thuộc Phase 2: LLM tổng hợp các nguyên nhân và cách xử lý ứng viên từ sự cố tương tự và manual; thứ tự 'độ chắc chắn' dựa trên điểm tương đồng và tần suất xuất hiện nên chỉ mang tính tham khảo, quyết định cuối cùng thuộc về người bảo trì.\"},{\"req_id\":\"FR-HIS-003\",\"coverage\":\"partial\",\"component\":\"RAG orchestration API\",\"note\":\"Chức năng thuộc Phase 2: hệ thống sinh nháp báo cáo tiếng Nhật từ ghi chú tiếng Nhật hoặc tiếng Việt; để đúng mẫu của công ty cần khách cung cấp mẫu báo cáo và các báo cáo ví dụ.\"},{\"req_id\":\"FR-HIS-004\",\"coverage\":\"not_supported\",\"component\":\"Connector MAINTE-PRO và che dữ liệu cá nhân\",\"note\":\"API hiện tại của MAINTE-PRO chỉ cho đọc nên không thể ghi báo cáo trong phạm vi đề xuất; có thể bổ sung bước ghi có người xác nhận nếu khách cung cấp API ghi.\"},{\"req_id\":\"FR-DOC-001\",\"coverage\":\"full\",\"component\":\"Pipeline nạp tài liệu và OCR\",\"note\":\"Quản trị viên tải lên PDF, Word hoặc Excel qua màn hình quản trị, sau đó pipeline tự động tách nội dung, chia chunk, gắn metadata và đánh chỉ mục.\"},{\"req_id\":\"FR-DOC-002\",\"coverage\":\"partial\",\"component\":\"Pipeline nạp tài liệu và OCR\",\"note\":\"Azure AI Document Intelligence OCR được PDF scan tiếng Nhật, nhưng chất lượng nhận dạng ghi chú viết tay có thể thấp và cần dự phòng thêm effort tiền xử lý.\"},{\"req_id\":\"FR-DOC-003\",\"coverage\":\"partial\",\"component\":\"Pipeline nạp tài liệu và OCR\",\"note\":\"Pipeline quản lý số phiên bản và ngày sửa đổi, đồng thời loại bản cũ khỏi chỉ mục; điều kiện là khách gắn metadata phiên bản hoặc chấp nhận đưa việc xác định bản mới nhất vào phạm vi tiền xử lý.\"},{\"req_id\":\"FR-DOC-004\",\"coverage\":\"full\",\"component\":\"Chỉ mục hybrid search có security trimming\",\"note\":\"Security trimming theo nhóm Entra ID và nhà máy/bộ phận được áp dụng ngay ở bước truy xuất, nên nguồn căn cứ của câu trả lời cũng chịu cùng giới hạn quyền.\"},{\"req_id\":\"FR-DOC-005\",\"coverage\":\"full\",\"component\":\"Pipeline nạp tài liệu và OCR\",\"note\":\"Từ Phase 2, hệ thống đồng bộ hằng ngày bằng Microsoft Graph delta sync và phản ánh các thao tác thêm, cập nhật, xóa trong thư mục SharePoint được chỉ định.\"},{\"req_id\":\"FR-UI-001\",\"coverage\":\"full\",\"component\":\"Giao diện người dùng Web và Teams\",\"note\":\"Web chat responsive (PWA) dùng được trên trình duyệt PC, iPad (iPadOS 17+) và tablet Android 12+.\"},{\"req_id\":\"FR-UI-002\",\"coverage\":\"full\",\"component\":\"Giao diện người dùng Web và Teams\",\"note\":\"Từ Phase 2 cung cấp bot Microsoft Teams qua Azure Bot Service, dùng chung RAG orchestration API với web chat.\"},{\"req_id\":\"FR-UI-003\",\"coverage\":\"full\",\"component\":\"Giao diện người dùng Web và Teams\",\"note\":\"Mỗi câu trả lời có nút đánh giá 「役に立った／役に立たなかった」 và ô nhập bình luận, dữ liệu được lưu vào DB log.\"},{\"req_id\":\"FR-UI-004\",\"coverage\":\"full\",\"component\":\"Giao diện người dùng Web và Teams\",\"note\":\"Giao diện có nút lớn cho người đeo găng tay, cho chuyển cỡ chữ và nhập bằng giọng nói Nhật/Việt qua Azure AI Speech.\"},{\"req_id\":\"FR-ADM-001\",\"coverage\":\"full\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Màn hình quản trị thống kê số người dùng, số câu hỏi, tỉ lệ không trả lời được và kết quả đánh giá theo nhà máy/kỳ, đồng thời cho xuất CSV.\"},{\"req_id\":\"FR-ADM-002\",\"coverage\":\"partial\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Màn hình quản trị liệt kê các câu trả lời bị đánh giá thấp và cho quản trị viên đăng ký câu trả lời đúng cùng tài liệu tham chiếu; cơ chế phản ánh vào các lần trả lời sau (đánh chỉ mục QA đã hiệu chỉnh và ưu tiên khi truy xuất) cần thiết kế chi tiết thêm.\"},{\"req_id\":\"FR-ADM-003\",\"coverage\":\"full\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Quyền người dùng thường và quản trị viên được cấp theo group claims của Microsoft Entra ID.\"},{\"req_id\":\"NFR-PF-001\",\"coverage\":\"partial\",\"component\":\"RAG orchestration API\",\"note\":\"Streaming giúp đạt mục tiêu bắt đầu hiển thị trong 5 giây, nhưng việc hoàn tất trong 15 giây với 50 người đồng thời phụ thuộc kiểu triển khai Azure OpenAI (q2) và có thể cần PTU, nên cần kiểm chứng bằng tải thử ở PoC.\"},{\"req_id\":\"NFR-PF-002\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"Quy mô 230 người dùng và tối đa 50 người đồng thời đáp ứng được nhờ Container Apps/App Service có autoscale và giới hạn tốc độ qua API Management.\"},{\"req_id\":\"NFR-PF-003\",\"coverage\":\"full\",\"component\":\"Chỉ mục hybrid search có security trimming\",\"note\":\"Chọn tier và số partition của Azure AI Search phù hợp với 48.000 trang và 62.000 sự cố, có thể mở rộng theo mức tăng khoảng 10% mỗi năm.\"},{\"req_id\":\"NFR-AV-001\",\"coverage\":\"full\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Hệ thống dùng dịch vụ PaaS vận hành 24/365, có giám sát qua Azure Monitor; dừng theo kế hoạch được giới hạn 1 lần/tháng, tối đa 4 giờ và thông báo trước theo quy trình vận hành.\"},{\"req_id\":\"NFR-AV-002\",\"coverage\":\"partial\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Tỉ lệ sẵn sàng 99,5% đạt được với điều kiện cấu hình dự phòng (AI Search từ 2 replica trở lên, App Service nhiều instance); SLA tổng hợp phụ thuộc SLA của Azure OpenAI và các dịch vụ liên quan.\"},{\"req_id\":\"NFR-SEC-001\",\"coverage\":\"partial\",\"component\":\"Chỉ mục hybrid search có security trimming\",\"note\":\"Tài liệu, chỉ mục và log được lưu trong tenant của khách tại Japan East; riêng Azure OpenAI nếu dùng triển khai Data Zone hoặc Global thì vùng xử lý có thể khác, cần xác nhận ở q2.\"},{\"req_id\":\"NFR-SEC-002\",\"coverage\":\"full\",\"component\":\"RAG orchestration API\",\"note\":\"Giải pháp dùng Azure OpenAI Service, có bảo đảm theo hợp đồng rằng dữ liệu đầu vào và tài liệu không được dùng để huấn luyện model.\"},{\"req_id\":\"NFR-SEC-003\",\"coverage\":\"full\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Đăng nhập một lần và xác thực đa yếu tố qua Microsoft Entra ID (MSAL), áp dụng chính sách Conditional Access của khách.\"},{\"req_id\":\"NFR-SEC-004\",\"coverage\":\"full\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Dữ liệu truyền được mã hóa bằng TLS 1.2 trở lên; dữ liệu lưu trên Blob, AI Search, Cosmos DB/SQL được mã hóa, khóa quản lý bằng Key Vault.\"},{\"req_id\":\"NFR-SEC-005\",\"coverage\":\"full\",\"component\":\"Xác thực, log kiểm toán và màn hình quản trị\",\"note\":\"Hệ thống lưu câu hỏi, câu trả lời, tài liệu tham chiếu, người dùng và thời gian trong 1 năm; quản trị viên tìm kiếm và xuất CSV được.\"},{\"req_id\":\"NFR-SEC-006\",\"coverage\":\"partial\",\"component\":\"Connector MAINTE-PRO và che dữ liệu cá nhân\",\"note\":\"Cột 対応者 và 対応者メール được loại bỏ hoàn toàn; tên người trong văn bản tự do được che bằng PII detection kết hợp regex và kiểm tra lại câu trả lời, nhưng không bảo đảm phát hiện 100% tên tiếng Nhật.\"},{\"req_id\":\"NFR-QA-001\",\"coverage\":\"partial\",\"component\":\"Bộ đánh giá chất lượng câu trả lời\",\"note\":\"Bộ đánh giá tự động đo tỉ lệ trả lời đúng theo từng loại câu hỏi và báo cáo khi kết thúc PoC; tuy nhiên mục tiêu tỉ lệ đúng chỉ đưa ra được sau khi khách cho biết cơ cấu bộ 300 câu hỏi và định nghĩa 'trả lời đúng' (q1).\"},{\"req_id\":\"NFR-OPS-001\",\"coverage\":\"partial\",\"component\":null,\"note\":\"Kiến trúc không mô tả gói vận hành bảo trì 1 năm; cần bổ sung vào báo giá các hạng mục hỗ trợ hỏi đáp tiếng Nhật/Việt, xử lý sự cố, báo cáo tháng và chỉnh sửa nhỏ.\"},{\"req_id\":\"NFR-OPS-002\",\"coverage\":\"full\",\"component\":\"Bộ đánh giá chất lượng câu trả lời\",\"note\":\"Trước khi cập nhật phiên bản LLM, hệ thống chạy bộ câu hỏi đánh giá để so sánh chất lượng rồi mới chuyển đổi.\"},{\"req_id\":\"NFR-TRN-001\",\"coverage\":\"partial\",\"component\":null,\"note\":\"Kiến trúc không bao gồm hạng mục đào tạo; cần bổ sung vào phạm vi và báo giá buổi đào tạo quản trị viên (tiếng Nhật) và manual người dùng (tiếng Nhật/Việt).\"}],\"skipped\":false}",
+  "output": {
+    "items": [
+      {
+        "req_id": "FR-QA-001",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "RAG orchestration API truy xuất hybrid trên chỉ mục gồm hướng dẫn sử dụng thiết bị, tiêu chuẩn bảo trì và lịch sử sự cố, sau đó sinh câu trả lời cho câu hỏi tự nhiên tiếng Nhật/Việt."
+      },
+      {
+        "req_id": "FR-QA-002",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "Mỗi chunk mang metadata tên tài liệu, phiên bản, số trang hoặc số tiếp nhận sự cố; prompt bắt buộc trích dẫn và giao diện hiển thị trích dẫn có thể bấm để mở đúng vị trí bản gốc."
+      },
+      {
+        "req_id": "FR-QA-003",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "Khi điểm truy xuất dưới ngưỡng, hệ thống không sinh câu trả lời mà hiển thị 「該当する情報が見つかりません」 kèm hướng dẫn escalation lên phòng bảo trì; ngưỡng sẽ được hiệu chỉnh bằng bộ đánh giá."
+      },
+      {
+        "req_id": "FR-QA-004",
+        "coverage": "partial",
+        "component": "Chỉ mục hybrid search có security trimming",
+        "note": "Mã cảnh báo và mã thiết bị được chuẩn hóa bằng quy tắc (AL2047, ＡＬ－２０４７ → AL-2047) rồi dùng để lọc và ưu tiên; tuy nhiên để ưu tiên theo model máy từ mã thiết bị (MC-0215) cần khách cung cấp bảng master ánh xạ thiết bị–model."
+      },
+      {
+        "req_id": "FR-QA-005",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "Câu hỏi bổ sung được viết lại theo lịch sử hội thoại trong cùng phiên trước khi truy xuất, nên trả lời được các câu như 「その場合の部品番号は？」."
+      },
+      {
+        "req_id": "FR-QA-006",
+        "coverage": "full",
+        "component": "Giao diện người dùng Web và Teams",
+        "note": "Pipeline lưu ảnh trang vào Blob Storage và giao diện hiển thị ảnh trang chứa sơ đồ/bảng làm căn cứ cùng với câu trả lời."
+      },
+      {
+        "req_id": "FR-ML-001",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "Hệ thống tự nhận diện ngôn ngữ câu hỏi và sinh câu trả lời cùng ngôn ngữ, kể cả trả lời tiếng Việt khi tài liệu căn cứ chỉ có tiếng Nhật, nhờ embedding đa ngôn ngữ và LLM."
+      },
+      {
+        "req_id": "FR-ML-002",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "Bảng thuật ngữ khoảng 1.200 từ được nạp từ Excel, đưa vào prompt khi trả lời và dịch, và quản trị viên tự cập nhật qua màn hình quản trị."
+      },
+      {
+        "req_id": "FR-ML-003",
+        "coverage": "full",
+        "component": "Giao diện người dùng Web và Teams",
+        "note": "Khi trả lời bằng tiếng Việt, giao diện hiển thị song song hoặc cho chuyển sang nguyên văn tiếng Nhật của đoạn căn cứ."
+      },
+      {
+        "req_id": "FR-HIS-001",
+        "coverage": "full",
+        "component": "Chỉ mục hybrid search có security trimming",
+        "note": "Hybrid search (vector đa ngôn ngữ + từ khóa) tìm xuyên ngôn ngữ Nhật–Việt và hiển thị 5 sự cố tương tự nhất kèm nguyên nhân, xử lý và thời gian dừng; lưu ý khoảng 24% bản ghi thiếu nguyên nhân nên các cột này có thể trống."
+      },
+      {
+        "req_id": "FR-HIS-002",
+        "coverage": "partial",
+        "component": "RAG orchestration API",
+        "note": "Chức năng thuộc Phase 2: LLM tổng hợp các nguyên nhân và cách xử lý ứng viên từ sự cố tương tự và manual; thứ tự 'độ chắc chắn' dựa trên điểm tương đồng và tần suất xuất hiện nên chỉ mang tính tham khảo, quyết định cuối cùng thuộc về người bảo trì."
+      },
+      {
+        "req_id": "FR-HIS-003",
+        "coverage": "partial",
+        "component": "RAG orchestration API",
+        "note": "Chức năng thuộc Phase 2: hệ thống sinh nháp báo cáo tiếng Nhật từ ghi chú tiếng Nhật hoặc tiếng Việt; để đúng mẫu của công ty cần khách cung cấp mẫu báo cáo và các báo cáo ví dụ."
+      },
+      {
+        "req_id": "FR-HIS-004",
+        "coverage": "not_supported",
+        "component": "Connector MAINTE-PRO và che dữ liệu cá nhân",
+        "note": "API hiện tại của MAINTE-PRO chỉ cho đọc nên không thể ghi báo cáo trong phạm vi đề xuất; có thể bổ sung bước ghi có người xác nhận nếu khách cung cấp API ghi."
+      },
+      {
+        "req_id": "FR-DOC-001",
+        "coverage": "full",
+        "component": "Pipeline nạp tài liệu và OCR",
+        "note": "Quản trị viên tải lên PDF, Word hoặc Excel qua màn hình quản trị, sau đó pipeline tự động tách nội dung, chia chunk, gắn metadata và đánh chỉ mục."
+      },
+      {
+        "req_id": "FR-DOC-002",
+        "coverage": "partial",
+        "component": "Pipeline nạp tài liệu và OCR",
+        "note": "Azure AI Document Intelligence OCR được PDF scan tiếng Nhật, nhưng chất lượng nhận dạng ghi chú viết tay có thể thấp và cần dự phòng thêm effort tiền xử lý."
+      },
+      {
+        "req_id": "FR-DOC-003",
+        "coverage": "partial",
+        "component": "Pipeline nạp tài liệu và OCR",
+        "note": "Pipeline quản lý số phiên bản và ngày sửa đổi, đồng thời loại bản cũ khỏi chỉ mục; điều kiện là khách gắn metadata phiên bản hoặc chấp nhận đưa việc xác định bản mới nhất vào phạm vi tiền xử lý."
+      },
+      {
+        "req_id": "FR-DOC-004",
+        "coverage": "full",
+        "component": "Chỉ mục hybrid search có security trimming",
+        "note": "Security trimming theo nhóm Entra ID và nhà máy/bộ phận được áp dụng ngay ở bước truy xuất, nên nguồn căn cứ của câu trả lời cũng chịu cùng giới hạn quyền."
+      },
+      {
+        "req_id": "FR-DOC-005",
+        "coverage": "full",
+        "component": "Pipeline nạp tài liệu và OCR",
+        "note": "Từ Phase 2, hệ thống đồng bộ hằng ngày bằng Microsoft Graph delta sync và phản ánh các thao tác thêm, cập nhật, xóa trong thư mục SharePoint được chỉ định."
+      },
+      {
+        "req_id": "FR-UI-001",
+        "coverage": "full",
+        "component": "Giao diện người dùng Web và Teams",
+        "note": "Web chat responsive (PWA) dùng được trên trình duyệt PC, iPad (iPadOS 17+) và tablet Android 12+."
+      },
+      {
+        "req_id": "FR-UI-002",
+        "coverage": "full",
+        "component": "Giao diện người dùng Web và Teams",
+        "note": "Từ Phase 2 cung cấp bot Microsoft Teams qua Azure Bot Service, dùng chung RAG orchestration API với web chat."
+      },
+      {
+        "req_id": "FR-UI-003",
+        "coverage": "full",
+        "component": "Giao diện người dùng Web và Teams",
+        "note": "Mỗi câu trả lời có nút đánh giá 「役に立った／役に立たなかった」 và ô nhập bình luận, dữ liệu được lưu vào DB log."
+      },
+      {
+        "req_id": "FR-UI-004",
+        "coverage": "full",
+        "component": "Giao diện người dùng Web và Teams",
+        "note": "Giao diện có nút lớn cho người đeo găng tay, cho chuyển cỡ chữ và nhập bằng giọng nói Nhật/Việt qua Azure AI Speech."
+      },
+      {
+        "req_id": "FR-ADM-001",
+        "coverage": "full",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Màn hình quản trị thống kê số người dùng, số câu hỏi, tỉ lệ không trả lời được và kết quả đánh giá theo nhà máy/kỳ, đồng thời cho xuất CSV."
+      },
+      {
+        "req_id": "FR-ADM-002",
+        "coverage": "partial",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Màn hình quản trị liệt kê các câu trả lời bị đánh giá thấp và cho quản trị viên đăng ký câu trả lời đúng cùng tài liệu tham chiếu; cơ chế phản ánh vào các lần trả lời sau (đánh chỉ mục QA đã hiệu chỉnh và ưu tiên khi truy xuất) cần thiết kế chi tiết thêm."
+      },
+      {
+        "req_id": "FR-ADM-003",
+        "coverage": "full",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Quyền người dùng thường và quản trị viên được cấp theo group claims của Microsoft Entra ID."
+      },
+      {
+        "req_id": "NFR-PF-001",
+        "coverage": "partial",
+        "component": "RAG orchestration API",
+        "note": "Streaming giúp đạt mục tiêu bắt đầu hiển thị trong 5 giây, nhưng việc hoàn tất trong 15 giây với 50 người đồng thời phụ thuộc kiểu triển khai Azure OpenAI (q2) và có thể cần PTU, nên cần kiểm chứng bằng tải thử ở PoC."
+      },
+      {
+        "req_id": "NFR-PF-002",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "Quy mô 230 người dùng và tối đa 50 người đồng thời đáp ứng được nhờ Container Apps/App Service có autoscale và giới hạn tốc độ qua API Management."
+      },
+      {
+        "req_id": "NFR-PF-003",
+        "coverage": "full",
+        "component": "Chỉ mục hybrid search có security trimming",
+        "note": "Chọn tier và số partition của Azure AI Search phù hợp với 48.000 trang và 62.000 sự cố, có thể mở rộng theo mức tăng khoảng 10% mỗi năm."
+      },
+      {
+        "req_id": "NFR-AV-001",
+        "coverage": "full",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Hệ thống dùng dịch vụ PaaS vận hành 24/365, có giám sát qua Azure Monitor; dừng theo kế hoạch được giới hạn 1 lần/tháng, tối đa 4 giờ và thông báo trước theo quy trình vận hành."
+      },
+      {
+        "req_id": "NFR-AV-002",
+        "coverage": "partial",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Tỉ lệ sẵn sàng 99,5% đạt được với điều kiện cấu hình dự phòng (AI Search từ 2 replica trở lên, App Service nhiều instance); SLA tổng hợp phụ thuộc SLA của Azure OpenAI và các dịch vụ liên quan."
+      },
+      {
+        "req_id": "NFR-SEC-001",
+        "coverage": "partial",
+        "component": "Chỉ mục hybrid search có security trimming",
+        "note": "Tài liệu, chỉ mục và log được lưu trong tenant của khách tại Japan East; riêng Azure OpenAI nếu dùng triển khai Data Zone hoặc Global thì vùng xử lý có thể khác, cần xác nhận ở q2."
+      },
+      {
+        "req_id": "NFR-SEC-002",
+        "coverage": "full",
+        "component": "RAG orchestration API",
+        "note": "Giải pháp dùng Azure OpenAI Service, có bảo đảm theo hợp đồng rằng dữ liệu đầu vào và tài liệu không được dùng để huấn luyện model."
+      },
+      {
+        "req_id": "NFR-SEC-003",
+        "coverage": "full",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Đăng nhập một lần và xác thực đa yếu tố qua Microsoft Entra ID (MSAL), áp dụng chính sách Conditional Access của khách."
+      },
+      {
+        "req_id": "NFR-SEC-004",
+        "coverage": "full",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Dữ liệu truyền được mã hóa bằng TLS 1.2 trở lên; dữ liệu lưu trên Blob, AI Search, Cosmos DB/SQL được mã hóa, khóa quản lý bằng Key Vault."
+      },
+      {
+        "req_id": "NFR-SEC-005",
+        "coverage": "full",
+        "component": "Xác thực, log kiểm toán và màn hình quản trị",
+        "note": "Hệ thống lưu câu hỏi, câu trả lời, tài liệu tham chiếu, người dùng và thời gian trong 1 năm; quản trị viên tìm kiếm và xuất CSV được."
+      },
+      {
+        "req_id": "NFR-SEC-006",
+        "coverage": "partial",
+        "component": "Connector MAINTE-PRO và che dữ liệu cá nhân",
+        "note": "Cột 対応者 và 対応者メール được loại bỏ hoàn toàn; tên người trong văn bản tự do được che bằng PII detection kết hợp regex và kiểm tra lại câu trả lời, nhưng không bảo đảm phát hiện 100% tên tiếng Nhật."
+      },
+      {
+        "req_id": "NFR-QA-001",
+        "coverage": "partial",
+        "component": "Bộ đánh giá chất lượng câu trả lời",
+        "note": "Bộ đánh giá tự động đo tỉ lệ trả lời đúng theo từng loại câu hỏi và báo cáo khi kết thúc PoC; tuy nhiên mục tiêu tỉ lệ đúng chỉ đưa ra được sau khi khách cho biết cơ cấu bộ 300 câu hỏi và định nghĩa 'trả lời đúng' (q1)."
+      },
+      {
+        "req_id": "NFR-OPS-001",
+        "coverage": "partial",
+        "component": null,
+        "note": "Kiến trúc không mô tả gói vận hành bảo trì 1 năm; cần bổ sung vào báo giá các hạng mục hỗ trợ hỏi đáp tiếng Nhật/Việt, xử lý sự cố, báo cáo tháng và chỉnh sửa nhỏ."
+      },
+      {
+        "req_id": "NFR-OPS-002",
+        "coverage": "full",
+        "component": "Bộ đánh giá chất lượng câu trả lời",
+        "note": "Trước khi cập nhật phiên bản LLM, hệ thống chạy bộ câu hỏi đánh giá để so sánh chất lượng rồi mới chuyển đổi."
+      },
+      {
+        "req_id": "NFR-TRN-001",
+        "coverage": "partial",
+        "component": null,
+        "note": "Kiến trúc không bao gồm hạng mục đào tạo; cần bổ sung vào phạm vi và báo giá buổi đào tạo quản trị viên (tiếng Nhật) và manual người dùng (tiếng Nhật/Việt)."
+      }
+    ],
+    "skipped": false
+  }
+}

@@ -1,0 +1,288 @@
+{
+  "key": "2aabb5a21aa2baf9fc90aa974bf477ef292af1ee2a4b602546eb9f5daaeaec02",
+  "step": "pattern",
+  "created_at": "2026-10-06T15:57:02.674546+00:00",
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "model": "anthropic/claude-opus-5.5",
+  "temperature": null,
+  "json_mode": false,
+  "reasoning_effort": "",
+  "latency_ms": 22902,
+  "attempts": 1,
+  "system_prompt_sha256": "19c3640da99831406d0091d84ca628fb4215b59877d606a95e35372e0dcf941e",
+  "context": {
+    "intake": {
+      "business_goal": "Xây dựng trợ lý AI tri thức bảo trì thiết bị. Trợ lý trả lời bằng tiếng Nhật và tiếng Việt, dựa trên sách hướng dẫn thiết bị, tiêu chuẩn bảo trì và lịch sử sự cố. Mục tiêu: giảm 20% thời gian dừng máy trung bình (74 phút → 59 phút/lần), giảm 50% số câu hỏi kỹ thuật từ nhà máy Bắc Ninh gửi về Nhật (khoảng 120 → ≤60 câu/tháng), rút ngắn thời gian tự lập của nhân viên mới (18 → 12 tháng) và thời gian viết báo cáo (15 → 5 phút/báo cáo), đồng thời kế thừa kinh nghiệm của nhân viên bảo trì lâu năm.",
+      "current_process": "Việc bảo trì phụ thuộc nhiều vào kinh nghiệm của nhân viên lâu năm. Khoảng 30% nhân sự bảo trì sẽ nghỉ hưu trong 5 năm tới. Khi thiết bị dừng, thời gian dừng trung bình là 74 phút/lần, trong đó khoảng 40% dành cho việc tra cứu sách hướng dẫn và sự cố cũ. Sách hướng dẫn nằm rải rác ở bản giấy, PDF và file server (đang chuyển sang SharePoint Online), khó xác định bản mới nhất. PDF scan không tìm kiếm toàn văn được. Lịch sử sự cố khoảng 62.000 bản ghi trong hệ thống MAINTE-PRO chỉ tìm được bằng từ khóa, cách ghi và thuật ngữ không thống nhất. Nhà máy Bắc Ninh chỉ có sách hướng dẫn tiếng Nhật nên phát sinh khoảng 120 câu hỏi/tháng gửi về Nhật và phải chờ trả lời do lệch múi giờ. Mỗi báo cáo công việc sau xử lý mất trung bình 15 phút, thường thiếu nội dung.",
+      "users": [
+        "Nhân viên bảo trì khoảng 230 người (Nhật 150, Việt Nam 80)",
+        "Nhân viên bảo trì nhà máy Toyohashi khoảng 95 người (PC, khoảng 40 iPad, tiếng Nhật)",
+        "Nhân viên bảo trì nhà máy Kariya khoảng 55 người (PC, khoảng 20 iPad, tiếng Nhật)",
+        "Nhân viên bảo trì nhà máy Bắc Ninh khoảng 80 người (PC, khoảng 40 máy tính bảng Android, tiếng Việt, một số dùng được tiếng Nhật)",
+        "Quản trị viên (quản lý tài liệu, bảng đối chiếu thuật ngữ, phân quyền, xem thống kê sử dụng)"
+      ],
+      "data_sources": [
+        "Sách hướng dẫn của nhà sản xuất thiết bị: khoảng 1.400 file, khoảng 36.000 trang, PDF lẫn văn bản và scan, tiếng Nhật (một phần tiếng Anh), lưu trên file server (đang chuyển sang SharePoint Online)",
+        "Tiêu chuẩn và quy trình bảo trì nội bộ: khoảng 650 file, khoảng 9.500 trang, Word/PDF, tiếng Nhật, lưu trên SharePoint Online",
+        "Phiếu kiểm tra: khoảng 250 file Excel, tiếng Nhật và tiếng Việt, lưu trên SharePoint Online",
+        "Lịch sử sự cố trong hệ thống MAINTE-PRO (tự phát triển, .NET Framework 4.8, SQL Server 2019 on-prem, có một phần REST API chỉ đọc): khoảng 62.000 bản ghi từ 2015, tiếng Nhật và tiếng Việt lẫn lộn",
+        "Bảng đối chiếu thuật ngữ chuyên môn Nhật–Việt: khoảng 1.200 từ, Excel, lưu trên SharePoint Online",
+        "Mẫu lịch sử sự cố gửi kèm (Phụ lục 2): 600 dòng, 14 cột. Cột 'アラームコード' (mã cảnh báo) thiếu 57%, cột '推定原因' (nguyên nhân dự đoán) thiếu 24%, cột '対応者メール' (email người xử lý) chứa dữ liệu cá nhân",
+        "Trích sách hướng dẫn máy MC-850H, phần bảo trì (Phụ lục 3)",
+        "Danh sách yêu cầu (Phụ lục 1): 41 yêu cầu chức năng và phi chức năng"
+      ],
+      "constraints": [
+        "strict_compliance",
+        "multilingual",
+        "ocr_required",
+        "large_data_volume",
+        "japanese_ui",
+        "cloud_allowed",
+        "market_jp",
+        "market_vn",
+        "Mọi dữ liệu (tài liệu, chỉ mục tìm kiếm, log) phải lưu trong Azure tenant của khách, vùng Đông Nhật Bản",
+        "Phải dùng dịch vụ đảm bảo theo hợp đồng rằng dữ liệu không được dùng để huấn luyện mô hình (ví dụ Azure OpenAI Service)",
+        "Đăng nhập một lần và xác thực đa yếu tố qua Microsoft Entra ID; phân quyền theo nhóm Entra ID",
+        "Giới hạn quyền xem tài liệu theo nhà máy/bộ phận, áp dụng cả cho nguồn căn cứ của câu trả lời",
+        "Lưu log thao tác (câu hỏi, câu trả lời, tài liệu tham chiếu, người dùng, thời gian) trong 1 năm; cho phép tìm kiếm và xuất CSV",
+        "Không hiển thị tên và email người xử lý trong câu trả lời",
+        "Mã hóa đường truyền bằng TLS1.2 trở lên và mã hóa dữ liệu lưu trữ",
+        "OCR cho PDF scan tiếng Nhật có ghi chú viết tay (ước tính khoảng 30% là PDF scan)",
+        "Câu trả lời phải hiển thị nguồn: tên tài liệu, số phiên bản, số trang hoặc số tiếp nhận sự cố; không suy đoán khi thiếu căn cứ",
+        "Thời gian phản hồi: bắt đầu hiển thị câu trả lời trung bình trong 5 giây, hoàn tất trong 15 giây khi có 50 người dùng đồng thời",
+        "Hoạt động 24/7; bảo trì theo kế hoạch tối đa 1 lần/tháng, mỗi lần không quá 4 tiếng; tỉ lệ sẵn sàng hằng tháng từ 99,5%",
+        "Dùng được trên trình duyệt PC, iPad (iPadOS 17 trở lên), Android (12 trở lên); có tích hợp Microsoft Teams",
+        "Tích hợp MAINTE-PRO (on-prem) qua REST API; mạng nội bộ khép kín, nhà máy Bắc Ninh ra Internet qua trụ sở chính",
+        "Báo cáo công việc đầu ra bằng tiếng Nhật",
+        "Đánh giá độ chính xác bằng 300 câu hỏi đánh giá; tiêu chí PoC là đánh giá hiện trường trung bình từ 3,5/5",
+        "PoC giới hạn ở nhóm máy trung tâm gia công của nhà máy Toyohashi (khoảng 120 máy, khoảng 300 file, khoảng 8.000 bản ghi sự cố)",
+        "Cần đầu mối giao tiếp bằng tiếng Nhật (bridge SE); nếu dùng offshore phải nêu rõ cách quản lý chất lượng và bảo mật",
+        "Tài liệu được cung cấp theo thỏa thuận bảo mật (NDA)"
+      ],
+      "budget": "PoC: không quá 15 triệu yên (chưa thuế), hợp đồng ủy thác (準委任). Phát triển chính thức và vận hành bảo trì: thỏa thuận sau PoC (tham khảo tổng khoảng 60 triệu yên). Chi phí Azure do khách chi trả, không nằm trong các khoản trên.",
+      "timeline": "Hạn gửi câu hỏi: 17:00 ngày 2026-10-14. Hạn nộp đề xuất: 17:00 ngày 2026-10-30. Thuyết trình: trong khoảng 2026-11-09 đến 2026-11-13. Thông báo kết quả: cuối tháng 11/2026. Phase 1 PoC: tháng 12/2026 đến tháng 2/2027 (3 tháng). Phase 2 phát triển chính thức: tháng 4/2027 đến tháng 9/2027. Phase 3 vận hành chính thức: từ tháng 10/2027 (vận hành bảo trì 1 năm).",
+      "language": "ja",
+      "industry": "Sản xuất – gia công cắt gọt và lắp ráp linh kiện chính xác cho ô tô",
+      "project_start": "2026-12-01"
+    },
+    "gaps": {
+      "missing_info": [
+        "Bộ 300 câu hỏi đánh giá: thời điểm bàn giao, cơ cấu (tiếng Nhật/Việt, tài liệu/lịch sử sự cố, câu không có đáp án) và định nghĩa 'trả lời đúng' để đề xuất tỉ lệ đúng mục tiêu",
+        "Kiểu triển khai Azure OpenAI được phép (chỉ Regional Đông Nhật Bản hay chấp nhận Data Zone/Global) và model đã được duyệt dùng",
+        "Thực trạng 300 file của PoC: tỉ lệ PDF scan, ghi chú viết tay, bảng/hình; đã xác định bản mới nhất chưa; có được nhận mẫu trước khi đề xuất không",
+        "Cách lấy dữ liệu MAINTE-PRO trong PoC (REST API hay export CSV) và đường kết nối mạng giữa Azure và on-prem (ExpressRoute/VPN, Private Endpoint)",
+        "Sự tham gia của nhà máy Bắc Ninh vào đánh giá tiếng Việt trong PoC; số người đánh giá hiện trường và thời gian chuyên gia phía khách",
+        "Thiết kế phân quyền hiện tại (nhóm Entra ID theo nhà máy/bộ phận, quyền trên SharePoint, quyền xem lịch sử sự cố) và việc tên người xử lý có xuất hiện trong cột văn bản tự do hay không",
+        "Phạm vi chức năng bắt buộc trong PoC (Teams, nháp báo cáo, đồng bộ SharePoint, màn hình quản trị…) để ước tính effort trong ngân sách 15 triệu yên"
+      ],
+      "questions": [
+        {
+          "id": "q1",
+          "topic": "accuracy",
+          "question": "評価用質問（約300問、正解付き）について、PoC開始時点でご用意いただけますでしょうか。また、①日本語／ベトナム語の比率、②マニュアル起点／故障履歴起点の比率、③根拠が存在しない（回答不能が正解となる）質問の有無、④「正答」の判定基準（完全一致か、要点を含めば正答か、判定者はどなたか）を差し支えない範囲でご教示いただけますと幸いです。",
+          "why_it_matters": "Quyết định cách đề xuất tỉ lệ đúng mục tiêu trong hồ sơ (bắt buộc theo RFP) và phương pháp đánh giá. Tránh rủi ro kỳ vọng độ chính xác không thống nhất khi nghiệm thu PoC.",
+          "blocking": false,
+          "priority": "high"
+        },
+        {
+          "id": "q2",
+          "topic": "compliance",
+          "question": "Azure OpenAI Service のデプロイ形態について、推論処理も東日本リージョン内に限定する必要がございますでしょうか（Standard リージョナル）。それとも Data Zone（日本）や Global デプロイも許容されますでしょうか。あわせて、利用申請済み・利用可能なモデル（例：GPT-4o、GPT-4.1、埋め込みモデル）および Azure AI Document Intelligence の利用可否をご教示ください。",
+          "why_it_matters": "Quyết định chọn model LLM/OCR, khả năng đáp ứng yêu cầu phản hồi 5 giây/50 người dùng đồng thời và chất lượng dịch Nhật–Việt. Liên quan rủi ro data residency và chi phí Azure cần ước tính trong đề xuất.",
+          "blocking": false,
+          "priority": "high"
+        },
+        {
+          "id": "q3",
+          "topic": "data",
+          "question": "PoC対象の約300ファイルについて、スキャンPDFの割合、手書き注記や複雑な表・図面を含むページの割合はおおよそどの程度でしょうか。また、最新版の特定（版数・改訂日のメタデータ付与）はPoC開始前に貴社にて実施いただけますでしょうか。可能であれば、提案前にスキャンPDFのサンプル（数ファイル）をご開示いただけますでしょうか。",
+          "why_it_matters": "Quyết định phương án OCR (chữ viết tay, bảng) và effort tiền xử lý/quản lý phiên bản trong PoC. Theo checklist, cần dự phòng thêm 20–30% effort nếu phần lớn là bản scan.",
+          "blocking": false,
+          "priority": "high"
+        },
+        {
+          "id": "q4",
+          "topic": "integration",
+          "question": "PoCにおける故障履歴（約8,000件）の取得方法は、MAINTE-PRO の参照系REST API連携が必須でしょうか。それともCSV等のエクスポートデータでの検証も可能でしょうか。また、Azure とオンプレミス（MAINTE-PRO・社内閉域網）間の接続方式（ExpressRoute／サイト間VPN等）と、Azure 側リソースのプライベート接続（Private Endpoint 必須か否か）についてご教示ください。",
+          "why_it_matters": "Quyết định effort tích hợp và hạ tầng mạng trong PoC, cũng như rủi ro tích hợp với hệ thống on-prem. Đồng thời ảnh hưởng đến cách người dùng Bắc Ninh truy cập qua trụ sở chính.",
+          "blocking": false,
+          "priority": "high"
+        },
+        {
+          "id": "q5",
+          "topic": "users",
+          "question": "PoCの対象は豊橋工場とのことですが、日越対応の検証にバクニン工場の保全担当者にもご参加いただけますでしょうか。また、現場評価（5段階で平均3.5以上）に参加される評価者の人数、および設備保全課の有識者にPoC期間中ご協力いただける工数（評価・用語確認等）の目安をご教示ください。",
+          "why_it_matters": "Ảnh hưởng tới phạm vi đánh giá tiếng Việt, kế hoạch đánh giá hiện trường và phân công effort giữa hai bên. Liên quan rủi ro người dùng chưa chấp nhận công cụ và rủi ro chưa rõ đầu mối nghiệm thu.",
+          "blocking": false,
+          "priority": "mid"
+        },
+        {
+          "id": "q6",
+          "topic": "compliance",
+          "question": "閲覧権限について、工場・部署別の Entra ID グループや SharePoint 上のアクセス権は既に整備されておりますでしょうか。故障履歴にも工場別の閲覧制限が必要でしょうか。また、氏名・メールアドレスは「対応者」列以外（症状・処置内容などの自由記述）にも含まれる可能性がございますでしょうか。PoC段階からの権限制御・マスキング適用の要否もあわせてご教示ください。",
+          "why_it_matters": "Quyết định thiết kế lọc theo quyền khi truy xuất (security trimming) và mức độ ẩn danh dữ liệu cá nhân. Liên quan rủi ro truy cập vượt quyền và lộ dữ liệu cá nhân.",
+          "blocking": false,
+          "priority": "mid"
+        },
+        {
+          "id": "q7",
+          "topic": "budget",
+          "question": "PoC（3か月・1,500万円以内）で検証が必須となる機能の範囲をご教示ください。特に、作業報告書の下書き作成（FR-HIS-003）、Teams連携（FR-UI-002）、SharePoint定期同期（FR-DOC-005）、管理画面・利用状況可視化（FR-ADM系）、図・表ページの画像表示（FR-QA-006）は、PoCに含める想定でしょうか。それとも本開発での対応でよろしいでしょうか。",
+          "why_it_matters": "Quyết định phạm vi, WBS và ước tính effort PoC để không vượt ngân sách 15 triệu yên. Đồng thời xác định cách ghi mức đáp ứng ○/△ trong bảng yêu cầu.",
+          "blocking": false,
+          "priority": "high"
+        }
+      ],
+      "can_proceed": true
+    },
+    "answers": {},
+    "attachments": {
+      "requirements": {
+        "count": 41,
+        "sample": [
+          "FR-QA-001: 自然言語での質問応答: 保全担当者が自然文（日本語・ベトナム語）で質問すると、設備取扱説明書・保全標準書・過去の故障履歴を根拠として回答を生成すること。 (ưu tiên: 必須)",
+          "FR-QA-002: 根拠の提示: 回答には参照した文書名・版数・ページ番号（故障履歴の場合は受付番号）を必ず表示し、クリックで原文の該当箇所を開けること。 (ưu tiên: 必須)",
+          "FR-QA-003: 回答不能時の振る舞い: 根拠となる情報が見つからない場合は推測で回答せず「該当する情報が見つかりません」と表示し、保全課へのエスカレーション手順を案内すること。 (ưu tiên: 必須)",
+          "FR-QA-004: 設備ID・アラームコードによる絞り込み: 質問に設備ID（例：MC-0215）やアラームコード（例：AL-2047）が含まれる場合、該当設備の機種・該当コードの情報を優先して回答すること。表記ゆれ（AL2047、ＡＬ－２０４７等）も同一とみなすこと。 (ưu tiên: 必須)",
+          "FR-QA-005: 追加質問への対応: 同一セッション内で直前のやり取りを踏まえた追加質問（「その場合の部品番号は？」等）に回答できること。 (ưu tiên: 推奨)",
+          "FR-QA-006: 図・表の表示: 回答の根拠が図・表を含むページの場合、該当ページの画像を回答画面に表示すること。 (ưu tiên: 推奨)",
+          "FR-ML-001: 質問言語での回答: 質問の言語（日本語／ベトナム語）を自動判定し、同じ言語で回答すること。根拠文書が日本語のみの場合もベトナム語で回答できること。 (ưu tiên: 必須)",
+          "FR-ML-002: 専門用語対訳表の反映: 当社の専門用語・略語の対訳表（約1,200語、Excel）を回答・翻訳に反映し、管理者が対訳表を更新できること。 (ưu tiên: 必須)",
+          "FR-ML-003: 日本語原文の併記: ベトナム語で回答する際、根拠部分の日本語原文を併記または切替表示できること。 (ưu tiên: 推奨)",
+          "FR-HIS-001: 類似故障事例の検索: 症状の記述（自由文）から類似する過去の故障事例を上位5件表示し、推定原因・処置内容・停止時間を一覧で確認できること。日本語とベトナム語の記述を横断して検索できること。 (ưu tiên: 必須)",
+          "FR-HIS-002: 原因・処置候補の提示: 類似事例とマニュアルをもとに、推定原因と処置の候補を確からしさの順に提示すること。最終判断は保全担当者が行う前提とする。 (ưu tiên: 推奨)",
+          "FR-HIS-003: 作業報告書の下書き作成: 保全担当者の入力メモ（箇条書き、音声入力のテキスト）から、当社様式の作業報告書（日本語）の下書きを作成すること。ベトナム語のメモからも日本語の報告書を作成できること。 (ưu tiên: 推奨)",
+          "FR-HIS-004: 保全管理システムへの登録: 確定した作業報告書を保全管理システム（MAINTE-PRO）に登録できること。 (ưu tiên: 任意)",
+          "FR-DOC-001: 文書の取り込み: 管理者がPDF（テキスト／スキャン）、Word、Excelをアップロードすると、自動で検索対象に登録されること。 (ưu tiên: 必須)",
+          "FR-DOC-002: スキャンPDFの文字認識: スキャンPDF（日本語、一部に手書きの注記あり）を文字認識して検索対象とすること。 (ưu tiên: 必須)",
+          "FR-DOC-003: 文書の版管理: 文書の改訂時は旧版を回答の根拠から除外し、版数・改訂日を管理できること。 (ưu tiên: 必須)",
+          "FR-DOC-004: 文書の閲覧権限: 工場・部署ごとに参照可能な文書を制限できること（例：バクニン工場は自工場設備の文書と共通文書のみ）。回答の根拠にも同じ制限を適用すること。 (ưu tiên: 必須)",
+          "FR-DOC-005: SharePointとの定期同期: SharePoint Online上の指定フォルダと日次で同期し、追加・更新・削除を反映すること。 (ưu tiên: 推奨)",
+          "FR-UI-001: Webブラウザでの利用: PCおよびタブレット（iPad、Androidタブレット）のブラウザで利用できること。 (ưu tiên: 必須)",
+          "FR-UI-002: Microsoft Teamsからの利用: Microsoft Teamsのチャットから質問・回答を利用できること。 (ưu tiên: 推奨)",
+          "FR-UI-003: 回答へのフィードバック: 回答ごとに「役に立った／役に立たなかった」の評価とコメントを登録できること。 (ưu tiên: 必須)",
+          "FR-UI-004: 現場での操作性: 手袋着用時でも操作しやすいボタンサイズ、文字サイズの切替、音声入力に対応すること。 (ưu tiên: 任意)",
+          "FR-ADM-001: 利用状況の可視化: 利用者数、質問数、回答不能率、評価結果を工場別・期間別に表示し、CSVで出力できること。 (ưu tiên: 必須)",
+          "FR-ADM-002: 低評価回答の改善: 低評価の回答を一覧化し、管理者が正しい回答・参照文書を登録して以後の回答に反映できること。 (ưu tiên: 推奨)",
+          "FR-ADM-003: 利用者・権限管理: Microsoft Entra IDのグループと連携して、一般利用者・管理者の権限を付与できること。 (ưu tiên: 必須)",
+          "NFR-PF-001: 応答時間: 質問から回答表示開始まで平均5秒以内、回答完了まで15秒以内であること（同時利用50名時）。 (ưu tiên: 必須)",
+          "NFR-PF-002: 利用規模: 登録利用者約230名（日本150名、ベトナム80名）、同時利用最大50名に対応すること。 (ưu tiên: 必須)",
+          "NFR-PF-003: データ量: 初期文書約2,300ファイル（約48,000ページ）、故障履歴約62,000件を対象とし、年10%程度の増加に対応すること。 (ưu tiên: 必須)",
+          "NFR-AV-001: 稼働時間: 24時間365日利用できること（バクニン工場は3交替勤務）。計画停止は月1回・4時間以内とし、事前に通知すること。 (ưu tiên: 必須)",
+          "NFR-AV-002: 月間稼働率99.5%以上であること。 (ưu tiên: 推奨)",
+          "NFR-SEC-001: データの保管場所: 文書、検索用インデックス、ログ等のデータは当社Azureテナント（東日本リージョン）内に保管すること。 (ưu tiên: 必須)",
+          "NFR-SEC-002: 入力データの学習利用禁止: 入力データおよび文書がLLM提供者のモデル学習に利用されないことを契約上保証できるサービス（Azure OpenAI Service等）を使用すること。 (ưu tiên: 必須)",
+          "NFR-SEC-003: Microsoft Entra IDによるシングルサインオンおよび多要素認証に対応すること。 (ưu tiên: 必須)",
+          "NFR-SEC-004: 通信・保存データの暗号化: 通信はTLS1.2以上で暗号化し、保存データも暗号化すること。 (ưu tiên: 必須)",
+          "NFR-SEC-005: 操作ログ: 質問、回答、参照文書、利用者、日時を記録して1年間保管し、管理者が検索・CSV出力できること。 (ưu tiên: 必須)",
+          "NFR-SEC-006: 個人情報の非表示: 故障履歴に含まれる作業者の氏名・メールアドレスは回答に表示しないこと。 (ưu tiên: 推奨)",
+          "NFR-QA-001: 回答精度の評価: 当社が用意する評価用質問（約300問、正解付き）で正答率を測定し、PoC終了時に報告すること。目標正答率は提案時に提示すること。 (ưu tiên: 必須)",
+          "NFR-OPS-001: 本番稼働後1年間の運用保守（問い合わせ対応、障害対応、月次報告、軽微な改修）を見積に含めること。問い合わせ対応は日本語、バクニン工場向けはベトナム語でも可とする。 (ưu tiên: 必須)",
+          "NFR-OPS-002: LLMの更新: LLMのバージョン更新時は、評価用質問で回答品質を確認したうえで切り替えること。 (ưu tiên: 推奨)",
+          "NFR-TRN-001: 教育・マニュアル: 管理者向け操作研修（日本語）と、利用者向け操作マニュアル（日本語・ベトナム語）を提供すること。 (ưu tiên: 必須)"
+        ]
+      },
+      "data_samples": [
+        {
+          "file": "別紙2_故障履歴サンプル_2025-2026.csv",
+          "sheet": null,
+          "rows": 600,
+          "columns": [
+            {
+              "name": "受付番号",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "発生日時",
+              "type": "date",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "工場",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "ライン",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "設備ID",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "設備名",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "アラームコード",
+              "type": "text",
+              "null_pct": 57,
+              "pii": false
+            },
+            {
+              "name": "症状",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "推定原因",
+              "type": "text",
+              "null_pct": 24,
+              "pii": false
+            },
+            {
+              "name": "処置内容",
+              "type": "text",
+              "null_pct": 5,
+              "pii": false
+            },
+            {
+              "name": "停止時間(分)",
+              "type": "number",
+              "null_pct": 4,
+              "pii": false
+            },
+            {
+              "name": "対応者",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "対応者メール",
+              "type": "text",
+              "null_pct": 0,
+              "pii": true
+            },
+            {
+              "name": "状態",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            }
+          ],
+          "issues": [
+            "Cột 'アラームコード' thiếu 57% giá trị.",
+            "Có cột nghi chứa dữ liệu cá nhân, cần ẩn danh trước khi dùng."
+          ],
+          "readiness_hint": 4
+        }
+      ]
+    }
+  },
+  "response": "```json\n{\"pattern\":\"rag\",\"rationale\":\"Bài toán cốt lõi là hỏi đáp tiếng Nhật/Việt trên kho khoảng 48.000 trang tài liệu và 62.000 bản ghi sự cố, kèm yêu cầu bắt buộc phải trích dẫn nguồn (tên tài liệu, số phiên bản, số trang hoặc số tiếp nhận sự cố) và không suy đoán khi thiếu căn cứ (FR-QA-002/003). Yêu cầu loại bỏ bản cũ (FR-DOC-003), lọc theo quyền nhà máy/bộ phận áp dụng cả cho nguồn căn cứ (FR-DOC-004) và đồng bộ SharePoint hằng ngày cho thấy kiến thức thay đổi liên tục, rất đúng với RAG kết hợp security trimming. Tìm sự cố tương tự xuyên ngôn ngữ (FR-HIS-001) được giải bằng hybrid search (vector + từ khóa), cộng thêm chuẩn hóa mã cảnh báo/mã thiết bị bằng quy tắc. Nháp báo cáo tiếng Nhật và bảng thuật ngữ 1.200 từ xử lý bằng prompt kèm glossary, không cần fine-tune hay agent.\",\"rejected\":[{\"pattern\":\"no_ai_rule_based\",\"reason\":\"Câu hỏi là ngôn ngữ tự nhiên Nhật/Việt, tài liệu phi cấu trúc có PDF scan và chữ viết tay, cách ghi sự cố không thống nhất, nên quy tắc hay tìm kiếm từ khóa không đáp ứng được; quy tắc chỉ dùng hỗ trợ như chuẩn hóa mã AL-2047 hoặc che email.\"},{\"pattern\":\"classic_ml\",\"reason\":\"Mục tiêu chính là hiểu và sinh câu trả lời ngôn ngữ tự nhiên có trích dẫn, không phải dự đoán trên dữ liệu bảng; dữ liệu sự cố cũng thiếu 57% mã cảnh báo và 24% nguyên nhân, không đủ làm nhãn tin cậy cho mô hình phân loại nguyên nhân.\"},{\"pattern\":\"agent\",\"reason\":\"Phần lõi là truy xuất và trả lời. Việc ghi báo cáo vào MAINTE-PRO (FR-HIS-004) chỉ ở mức 任意 và API hiện chỉ đọc, nên có thể làm bằng một bước workflow tĩnh có người xác nhận, không cần agent tự quyết định nhiều bước.\"},{\"pattern\":\"fine_tune\",\"reason\":\"Tài liệu và lịch sử sự cố thay đổi, cần cập nhật bản mới và trích dẫn nguồn, đây là trường hợp nên dùng RAG. Văn phong báo cáo và thuật ngữ Nhật–Việt có thể đạt bằng prompt, few-shot và bảng thuật ngữ mà quản trị viên tự cập nhật được; hiện cũng chưa có bộ mẫu lớn để huấn luyện.\"}],\"confidence\":\"high\",\"assumptions\":[\"Giả định khách cho phép dùng Azure OpenAI (model chat và embedding đa ngôn ngữ) cùng Azure AI Search và Azure AI Document Intelligence trong tenant vùng Đông Nhật Bản. Kiểu triển khai (Regional/Data Zone) cần xác nhận ở câu q2 và có thể ảnh hưởng đến lựa chọn model và độ trễ.\",\"Giả định OCR của Document Intelligence đạt chất lượng chấp nhận được với PDF scan tiếng Nhật. Ghi chú viết tay có thể nhận dạng kém; cần dự phòng thêm 20–30% effort tiền xử lý (q3).\",\"Giả định lịch sử sự cố được nạp vào chỉ mục qua REST API chỉ đọc hoặc file export CSV. Cột email và tên người xử lý được loại bỏ hoặc che trước khi đánh chỉ mục; nếu tên xuất hiện trong văn bản tự do thì cần thêm bước che dữ liệu cá nhân (PII masking) (q6).\",\"Giả định khách tự xác định bản mới nhất và gắn metadata phiên bản/ngày sửa đổi cho 300 file PoC, hoặc chấp nhận việc này nằm trong phạm vi tiền xử lý của dự án.\",\"Giả định phân quyền được thực hiện bằng security trimming dựa trên nhóm Entra ID, lọc ngay ở bước truy xuất cả với tài liệu lẫn sự cố.\",\"Giả định các chức năng Teams, nháp báo cáo, đồng bộ SharePoint và màn hình quản trị đầy đủ có thể dời sang phát triển chính thức để PoC nằm trong ngân sách 15 triệu yên (q7).\",\"Giả định tỉ lệ đúng mục tiêu sẽ được đề xuất sau khi biết cơ cấu bộ 300 câu hỏi và định nghĩa 'trả lời đúng' (q1). Hiện chưa có câu trả lời của khách cho các câu hỏi mở, nhưng không câu nào là blocking với việc chọn pattern.\"]}\n```",
+  "output": null
+}

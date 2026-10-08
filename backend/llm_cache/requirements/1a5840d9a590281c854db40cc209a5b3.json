@@ -1,0 +1,124 @@
+{
+  "key": "1a5840d9a590281c854db40cc209a5b3220c089d0b545e485e125fe063984838",
+  "step": "requirements",
+  "created_at": "2026-10-06T16:02:22.851866+00:00",
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "model": "anthropic/claude-opus-5.5",
+  "temperature": null,
+  "json_mode": false,
+  "reasoning_effort": "",
+  "latency_ms": 10526,
+  "attempts": 1,
+  "system_prompt_sha256": "1db390d9bbc7fedca8773a9c22d9077a6048437f6b816f2466e1193ad3e1e3e1",
+  "context": {
+    "pattern": {
+      "pattern": "rag",
+      "rationale": "Bài toán cốt lõi là hỏi đáp tiếng Nhật/Việt trên kho khoảng 48.000 trang tài liệu và 62.000 bản ghi sự cố, kèm yêu cầu bắt buộc phải trích dẫn nguồn (tên tài liệu, số phiên bản, số trang hoặc số tiếp nhận sự cố) và không suy đoán khi thiếu căn cứ (FR-QA-002/003). Yêu cầu loại bỏ bản cũ (FR-DOC-003), lọc theo quyền nhà máy/bộ phận áp dụng cả cho nguồn căn cứ (FR-DOC-004) và đồng bộ SharePoint hằng ngày cho thấy kiến thức thay đổi liên tục, rất đúng với RAG kết hợp security trimming. Tìm sự cố tương tự xuyên ngôn ngữ (FR-HIS-001) được giải bằng hybrid search (vector + từ khóa), cộng thêm chuẩn hóa mã cảnh báo/mã thiết bị bằng quy tắc. Nháp báo cáo tiếng Nhật và bảng thuật ngữ 1.200 từ xử lý bằng prompt kèm glossary, không cần fine-tune hay agent.",
+      "rejected": [
+        {
+          "pattern": "no_ai_rule_based",
+          "reason": "Câu hỏi là ngôn ngữ tự nhiên Nhật/Việt, tài liệu phi cấu trúc có PDF scan và chữ viết tay, cách ghi sự cố không thống nhất, nên quy tắc hay tìm kiếm từ khóa không đáp ứng được; quy tắc chỉ dùng hỗ trợ như chuẩn hóa mã AL-2047 hoặc che email."
+        },
+        {
+          "pattern": "classic_ml",
+          "reason": "Mục tiêu chính là hiểu và sinh câu trả lời ngôn ngữ tự nhiên có trích dẫn, không phải dự đoán trên dữ liệu bảng; dữ liệu sự cố cũng thiếu 57% mã cảnh báo và 24% nguyên nhân, không đủ làm nhãn tin cậy cho mô hình phân loại nguyên nhân."
+        },
+        {
+          "pattern": "agent",
+          "reason": "Phần lõi là truy xuất và trả lời. Việc ghi báo cáo vào MAINTE-PRO (FR-HIS-004) chỉ ở mức 任意 và API hiện chỉ đọc, nên có thể làm bằng một bước workflow tĩnh có người xác nhận, không cần agent tự quyết định nhiều bước."
+        },
+        {
+          "pattern": "fine_tune",
+          "reason": "Tài liệu và lịch sử sự cố thay đổi, cần cập nhật bản mới và trích dẫn nguồn, đây là trường hợp nên dùng RAG. Văn phong báo cáo và thuật ngữ Nhật–Việt có thể đạt bằng prompt, few-shot và bảng thuật ngữ mà quản trị viên tự cập nhật được; hiện cũng chưa có bộ mẫu lớn để huấn luyện."
+        }
+      ],
+      "confidence": "high",
+      "assumptions": [
+        "Giả định khách cho phép dùng Azure OpenAI (model chat và embedding đa ngôn ngữ) cùng Azure AI Search và Azure AI Document Intelligence trong tenant vùng Đông Nhật Bản. Kiểu triển khai (Regional/Data Zone) cần xác nhận ở câu q2 và có thể ảnh hưởng đến lựa chọn model và độ trễ.",
+        "Giả định OCR của Document Intelligence đạt chất lượng chấp nhận được với PDF scan tiếng Nhật. Ghi chú viết tay có thể nhận dạng kém; cần dự phòng thêm 20–30% effort tiền xử lý (q3).",
+        "Giả định lịch sử sự cố được nạp vào chỉ mục qua REST API chỉ đọc hoặc file export CSV. Cột email và tên người xử lý được loại bỏ hoặc che trước khi đánh chỉ mục; nếu tên xuất hiện trong văn bản tự do thì cần thêm bước che dữ liệu cá nhân (PII masking) (q6).",
+        "Giả định khách tự xác định bản mới nhất và gắn metadata phiên bản/ngày sửa đổi cho 300 file PoC, hoặc chấp nhận việc này nằm trong phạm vi tiền xử lý của dự án.",
+        "Giả định phân quyền được thực hiện bằng security trimming dựa trên nhóm Entra ID, lọc ngay ở bước truy xuất cả với tài liệu lẫn sự cố.",
+        "Giả định các chức năng Teams, nháp báo cáo, đồng bộ SharePoint và màn hình quản trị đầy đủ có thể dời sang phát triển chính thức để PoC nằm trong ngân sách 15 triệu yên (q7).",
+        "Giả định tỉ lệ đúng mục tiêu sẽ được đề xuất sau khi biết cơ cấu bộ 300 câu hỏi và định nghĩa 'trả lời đúng' (q1). Hiện chưa có câu trả lời của khách cho các câu hỏi mở, nhưng không câu nào là blocking với việc chọn pattern."
+      ]
+    },
+    "architecture": {
+      "components": [
+        {
+          "name": "Pipeline nạp tài liệu và OCR",
+          "purpose": "Nạp PDF (văn bản/scan), Word, Excel từ file server/SharePoint Online. Chạy OCR tiếng Nhật cho khoảng 30% PDF scan, tách layout, bảng và ảnh trang, sau đó chia chunk. Mỗi chunk gắn metadata gồm tên tài liệu, số phiên bản, ngày sửa đổi, số trang, nhà máy/bộ phận và nhóm Entra ID. Bản cũ được loại khỏi chỉ mục (FR-DOC-001/002/003). Từ Phase 2 có đồng bộ SharePoint hằng ngày (FR-DOC-005).",
+          "tech_options": [
+            "Azure AI Document Intelligence (layout model) + Azure Functions (Python)",
+            "Microsoft Graph API (SharePoint delta sync) + Azure Blob Storage (lưu file gốc và ảnh trang)",
+            "Azure AI Search indexer + custom skill"
+          ]
+        },
+        {
+          "name": "Connector MAINTE-PRO và che dữ liệu cá nhân",
+          "purpose": "Lấy lịch sử sự cố từ MAINTE-PRO (on-prem, SQL Server 2019). PoC dùng CSV export 8.000 bản ghi; MVP chuyển sang REST API chỉ đọc qua kết nối nội bộ. Bước này loại hoặc ẩn danh cột 対応者/対応者メール, che tên người trong văn bản tự do (症状, 処置内容), chuẩn hóa mã cảnh báo/mã thiết bị (AL2047, ＡＬ－２０４７ → AL-2047) và trích mã cảnh báo từ 症状 khi cột mã bị trống.",
+          "tech_options": [
+            "Azure Functions/Container Apps Job (Python hoặc C# .NET để tương thích MAINTE-PRO) + Azure VPN Gateway/ExpressRoute tới mạng nội bộ",
+            "Azure AI Language (PII detection, tiếng Nhật) + quy tắc regex",
+            "Azure Data Factory với Self-hosted Integration Runtime (khi cần đồng bộ định kỳ)"
+          ]
+        },
+        {
+          "name": "Chỉ mục hybrid search có security trimming",
+          "purpose": "Lưu chunk tài liệu và sự cố cùng vector embedding đa ngôn ngữ và trường từ khóa. Hỗ trợ tìm kiếm xuyên ngôn ngữ Nhật–Việt (FR-HIS-001). Hệ thống lọc theo nhóm Entra ID, nhà máy/bộ phận ngay ở bước truy xuất (FR-DOC-004), lọc theo mã thiết bị/mã cảnh báo (FR-QA-004) và dùng semantic reranking để tăng độ chính xác.",
+          "tech_options": [
+            "Azure AI Search (hybrid vector + BM25, semantic ranker, security filter) tại Japan East",
+            "Azure OpenAI text-embedding-3-large (đa ngôn ngữ)"
+          ]
+        },
+        {
+          "name": "RAG orchestration API",
+          "purpose": "Tự nhận diện ngôn ngữ câu hỏi, viết lại câu hỏi theo ngữ cảnh hội thoại (FR-QA-005) và truy xuất có lọc quyền. Khi điểm truy xuất dưới ngưỡng, hệ thống trả 「該当する情報が見つかりません」 kèm hướng dẫn escalation. Câu trả lời được sinh bằng streaming, đúng ngôn ngữ câu hỏi, đưa bảng thuật ngữ 1.200 từ vào prompt, bắt buộc trích dẫn nguồn và hiển thị song song nguyên văn tiếng Nhật. Câu trả lời được kiểm tra PII trước khi hiển thị. Từ Phase 2 có thêm gợi ý nguyên nhân/xử lý (FR-HIS-002) và nháp báo cáo tiếng Nhật (FR-HIS-003).",
+          "tech_options": [
+            "Azure OpenAI Service (GPT-4o/GPT-4.1 series, deployment Regional Japan East hoặc theo xác nhận q2; PTU nếu cần đạt 5s/15s)",
+            "Azure Container Apps hoặc App Service (Python FastAPI) + Semantic Kernel/LangChain",
+            "Azure API Management (giới hạn tốc độ, định tuyến model)"
+          ]
+        },
+        {
+          "name": "Giao diện người dùng Web và Teams",
+          "purpose": "Web chat dùng được trên PC, iPad (iPadOS 17+) và Android 12+. Giao diện có nút lớn cho người đeo găng tay, chuyển cỡ chữ và nhập bằng giọng nói (FR-UI-004). Mỗi câu trả lời hiển thị trích dẫn có thể bấm mở bản gốc, ảnh trang chứa sơ đồ/bảng (FR-QA-006) và nút feedback (FR-UI-003). Từ Phase 2 có bot Microsoft Teams (FR-UI-002).",
+          "tech_options": [
+            "React/Next.js (responsive PWA) host trên Azure Static Web Apps hoặc App Service",
+            "Azure Bot Service + Teams app",
+            "Azure AI Speech (nhận dạng giọng nói Nhật/Việt)"
+          ]
+        },
+        {
+          "name": "Xác thực, log kiểm toán và màn hình quản trị",
+          "purpose": "Đăng nhập một lần và xác thực đa yếu tố qua Entra ID, phân quyền theo nhóm (NFR-SEC-003, FR-ADM-003). Hệ thống lưu log câu hỏi, câu trả lời, tài liệu tham chiếu, người dùng và thời gian trong 1 năm, cho phép tìm kiếm và xuất CSV (NFR-SEC-005). Màn hình quản trị gồm thống kê sử dụng theo nhà máy/kỳ (FR-ADM-001), quản lý tài liệu và bảng thuật ngữ (FR-ML-002), xử lý câu trả lời bị đánh giá thấp (FR-ADM-002). Dữ liệu được mã hóa khi truyền và khi lưu. Hệ thống có giám sát để đạt mức sẵn sàng 99,5%.",
+          "tech_options": [
+            "Microsoft Entra ID (MSAL, group claims)",
+            "Azure Cosmos DB hoặc Azure SQL Database (log, feedback, thuật ngữ) + Azure Key Vault",
+            "Azure Monitor/Application Insights/Log Analytics"
+          ]
+        },
+        {
+          "name": "Bộ đánh giá chất lượng câu trả lời",
+          "purpose": "Chạy tự động bộ 300 câu hỏi đánh giá có đáp án (NFR-QA-001), đo độ đúng theo từng loại câu hỏi và chạy bộ test phân quyền. Bộ này dùng để kiểm định trước khi cập nhật phiên bản LLM (NFR-OPS-002) và theo dõi điểm đánh giá hiện trường (mục tiêu ≥3,5/5).",
+          "tech_options": [
+            "Azure AI Foundry Evaluation / Prompt flow",
+            "Script Python (pytest + LLM-as-judge) chạy trên Azure DevOps/GitHub Actions"
+          ]
+        }
+      ],
+      "deployment": "cloud"
+    },
+    "requirements": [
+      {
+        "id": "NFR-ENV-001",
+        "text": "環境構成: 開発・検証・本番の3環境を当社Azureテナント内に構築すること。Azure利用料は当社負担とする。",
+        "priority": "必須",
+        "category": "環境"
+      }
+    ]
+  },
+  "response": "```json\n{\"items\":[{\"req_id\":\"NFR-ENV-001\",\"coverage\":\"full\",\"component\":null,\"note\":\"Mọi component đều là dịch vụ Azure PaaS triển khai trong tenant Azure của khách tại Japan East, nên có thể dựng 3 môi trường phát triển, kiểm thử và production bằng IaC (Bicep/Terraform) với cấu hình nhất quán; phí Azure tính vào subscription của khách, cần thống nhất trước cấu hình thu gọn cho môi trường dev/kiểm thử (như PTU, semantic ranker, tier AI Search) để kiểm soát chi phí.\"}],\"skipped\":false}\n```",
+  "output": null
+}

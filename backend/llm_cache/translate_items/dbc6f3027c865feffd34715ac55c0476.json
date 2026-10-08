@@ -1,0 +1,57 @@
+{
+  "key": "dbc6f3027c865feffd34715ac55c0476dca63ddb18bf7167cb6dba98a41418f0",
+  "step": "translate_items",
+  "created_at": "2026-10-06T15:34:57.337702+00:00",
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "model": "anthropic/claude-opus-5.5",
+  "temperature": null,
+  "json_mode": false,
+  "max_tokens": 32000,
+  "reasoning_effort": "",
+  "latency_ms": 6815,
+  "attempts": 1,
+  "system_prompt_sha256": "e91605135630c464f28015804d6b3bd4a53f8d906ee48c4effcfbe20116b5cc0",
+  "context": {
+    "target_language": "ja",
+    "items": [
+      "Nghiệm thu MVP",
+      "Go-live production",
+      "Cột 'アラームコード' thiếu 57% giá trị.",
+      "Có cột nghi chứa dữ liệu cá nhân, cần ẩn danh trước khi dùng.",
+      "Chatbot tra cứu tài liệu kỹ thuật cho nhà sản xuất thiết bị (giả lập)",
+      "Sản xuất",
+      "Kỹ sư bảo trì mất nhiều thời gian tìm thông tin trong hàng nghìn trang manual tiếng Nhật.",
+      "Trợ lý RAG on-premise, trả lời kèm trích dẫn số trang, tích hợp vào cổng nội bộ.",
+      "Giảm 60% thời gian tra cứu",
+      "85% câu trả lời được kỹ sư đánh giá đúng",
+      "Trợ lý hỏi đáp quy định nội bộ cho ngân hàng (giả lập)",
+      "Tài chính ngân hàng",
+      "Nhân viên chi nhánh phải chờ phòng pháp chế trả lời câu hỏi về quy định.",
+      "Hỏi đáp trên kho văn bản quy định, phân quyền theo phòng ban, lưu vết câu hỏi.",
+      "Giảm 70% câu hỏi gửi phòng pháp chế",
+      "Thời gian trả lời từ 2 ngày xuống vài giây"
+    ]
+  },
+  "response": "{\"items\": [\"MVP検収\", \"本番稼働（Go-live）\", \"「アラームコード」列の値が57%欠損している。\", \"個人情報を含む疑いのある列があり、利用前に匿名化が必要。\", \"設備メーカー向け技術文書検索チャットボット（想定事例）\", \"製造\", \"保守エンジニアが数千ページに及ぶ日本語マニュアルから情報を探すのに多くの時間を費やしている。\", \"オンプレミスのRAGアシスタント。ページ番号付きの引用で回答し、社内ポータルに統合。\", \"検索時間を60%削減\", \"回答の85%がエンジニアにより正確と評価\", \"銀行向け社内規程Q&Aアシスタント（想定事例）\", \"金融・銀行\", \"支店職員が規程に関する質問への法務部の回答を待たなければならない。\", \"規程文書リポジトリに基づくQ&A、部門別の権限管理、質問履歴の記録。\", \"法務部への問い合わせを70%削減\", \"回答時間を2日から数秒に短縮\"]}",
+  "output": {
+    "items": [
+      "MVP検収",
+      "本番稼働（Go-live）",
+      "「アラームコード」列の値が57%欠損している。",
+      "個人情報を含む疑いのある列があり、利用前に匿名化が必要。",
+      "設備メーカー向け技術文書検索チャットボット（想定事例）",
+      "製造",
+      "保守エンジニアが数千ページに及ぶ日本語マニュアルから情報を探すのに多くの時間を費やしている。",
+      "オンプレミスのRAGアシスタント。ページ番号付きの引用で回答し、社内ポータルに統合。",
+      "検索時間を60%削減",
+      "回答の85%がエンジニアにより正確と評価",
+      "銀行向け社内規程Q&Aアシスタント（想定事例）",
+      "金融・銀行",
+      "支店職員が規程に関する質問への法務部の回答を待たなければならない。",
+      "規程文書リポジトリに基づくQ&A、部門別の権限管理、質問履歴の記録。",
+      "法務部への問い合わせを70%削減",
+      "回答時間を2日から数秒に短縮"
+    ]
+  }
+}

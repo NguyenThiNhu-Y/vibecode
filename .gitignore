@@ -19,4 +19,4 @@ backend/knowledge_base/templates/custom/
 templates-fpt/
 assets/fpt-logo.png
 # Cache response LLM (chứa prompt và dữ liệu khách đã che PII)
-backend/llm_cache/
+# backend/llm_cache/

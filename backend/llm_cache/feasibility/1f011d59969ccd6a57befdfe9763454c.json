@@ -1,0 +1,298 @@
+{
+  "key": "1f011d59969ccd6a57befdfe9763454ce257fa2b552d7c00e4c9579b15e462e9",
+  "step": "feasibility",
+  "created_at": "2026-10-06T15:24:18.060883+00:00",
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "model": "anthropic/claude-opus-5.5",
+  "temperature": null,
+  "json_mode": false,
+  "max_tokens": 32000,
+  "reasoning_effort": "",
+  "latency_ms": 61005,
+  "attempts": 1,
+  "system_prompt_sha256": "826c941b38cee3bb8de4cebd1e59f2bf9719890a4129affbfa269d4526cf6a10",
+  "context": {
+    "intake": {
+      "business_goal": "Xây dựng trợ lý AI tri thức bảo trì thiết bị. Trợ lý trả lời bằng tiếng Nhật và tiếng Việt, dựa trên sách hướng dẫn thiết bị, tiêu chuẩn bảo trì và lịch sử sự cố. Mục tiêu là giảm 20% thời gian dừng máy trung bình (74 phút → 59 phút/vụ), giảm 50% số câu hỏi kỹ thuật từ nhà máy Bắc Ninh gửi sang Nhật (khoảng 120 → ≤60 vụ/tháng) và hỗ trợ truyền đạt bí quyết của nhân viên lành nghề sắp nghỉ hưu. Các mục tiêu phụ: rút ngắn thời gian nhân viên mới làm việc độc lập (khoảng 18 → 12 tháng) và giảm thời gian lập báo cáo công việc (15 → 5 phút/vụ).",
+      "current_process": "Công tác bảo trì phụ thuộc nhiều vào kinh nghiệm của nhân viên lâu năm. Trong 5 năm tới, khoảng 30% nhân sự bảo trì sẽ đến tuổi nghỉ hưu. Năm tài chính 2025, thời gian dừng máy trung bình là 74 phút/vụ, trong đó khoảng 40% dành cho việc tra cứu sách hướng dẫn và sự cố cũ. Sách hướng dẫn phân tán ở dạng giấy, PDF và file server (đang chuyển sang SharePoint Online), khó xác định bản mới nhất, còn PDF scan thì không tìm kiếm toàn văn được. Khoảng 62.000 bản ghi sự cố trong hệ thống quản lý bảo trì tự phát triển MAINTE-PRO chỉ tìm được bằng từ khóa, cách ghi và thuật ngữ không thống nhất. Nhà máy Bắc Ninh chỉ có sách hướng dẫn tiếng Nhật nên phát sinh khoảng 120 câu hỏi kỹ thuật/tháng gửi sang Nhật, và phải chờ trả lời do lệch múi giờ. Lập báo cáo công việc sau xử lý mất trung bình 15 phút/vụ, việc ghi thiếu làm giảm chất lượng dữ liệu lịch sử.",
+      "users": [
+        "Nhân viên bảo trì thiết bị, khoảng 230 người (Nhật 150, Việt Nam 80)",
+        "Nhân viên bảo trì nhà máy Toyohashi, khoảng 95 người (PC, iPad, tiếng Nhật)",
+        "Nhân viên bảo trì nhà máy Kariya, khoảng 55 người (PC, iPad, tiếng Nhật)",
+        "Nhân viên bảo trì nhà máy Bắc Ninh, khoảng 80 người (PC, máy tính bảng Android, tiếng Việt, một số dùng được tiếng Nhật)",
+        "Quản trị viên hệ thống (quản lý tài liệu, bảng đối chiếu thuật ngữ, phân quyền, theo dõi tình hình sử dụng)"
+      ],
+      "data_sources": [
+        "Sách hướng dẫn của nhà sản xuất thiết bị: khoảng 1.400 file, khoảng 36.000 trang, PDF lẫn text và scan, tiếng Nhật (một phần tiếng Anh), lưu trên file server (đang chuyển sang SharePoint Online)",
+        "Tiêu chuẩn và quy trình bảo trì nội bộ: khoảng 650 file, khoảng 9.500 trang, Word/PDF, tiếng Nhật, lưu trên SharePoint Online",
+        "Phiếu kiểm tra định kỳ: khoảng 250 file Excel, tiếng Nhật và tiếng Việt, lưu trên SharePoint Online",
+        "Lịch sử sự cố trong MAINTE-PRO (SQL Server 2019 on-prem, có một phần REST API chỉ đọc): khoảng 62.000 bản ghi từ 2015, tiếng Nhật và tiếng Việt lẫn lộn",
+        "Bảng đối chiếu thuật ngữ chuyên môn Nhật–Việt: khoảng 1.200 từ, Excel, lưu trên SharePoint Online",
+        "Tổng tài liệu ban đầu khoảng 2.300 file, khoảng 48.000 trang; khoảng 30% là PDF scan (ước tính, chưa khảo sát chính xác), một số trang có ghi chú viết tay",
+        "File mẫu lịch sử sự cố (600 dòng, 14 cột): cột mã báo động thiếu 57% giá trị, cột nguyên nhân dự đoán thiếu 24%; cột email người xử lý chứa dữ liệu cá nhân, cần ẩn danh",
+        "Trích sách hướng dẫn bảo trì máy trung tâm gia công ngang MC-850H (chương 8–9: kiểm tra hằng ngày, danh sách mã báo động, quy trình xử lý)",
+        "Bộ 300 câu hỏi đánh giá có đáp án do khách hàng chuẩn bị"
+      ],
+      "constraints": [
+        "cloud_allowed",
+        "japanese_ui",
+        "market_jp",
+        "market_vn",
+        "Toàn bộ dữ liệu (tài liệu, chỉ mục tìm kiếm, log) phải lưu trong Azure tenant của khách, vùng Japan East",
+        "Dữ liệu đầu vào và tài liệu không được dùng để huấn luyện mô hình; phải dùng dịch vụ có cam kết hợp đồng về điểm này (Azure OpenAI Service hoặc tương đương)",
+        "SSO và MFA qua Microsoft Entra ID; phân quyền theo nhóm Entra ID",
+        "Giới hạn quyền xem tài liệu theo nhà máy/bộ phận và áp dụng giới hạn đó cho cả nguồn trích dẫn trong câu trả lời",
+        "Hỗ trợ hai ngôn ngữ Nhật–Việt: trả lời theo ngôn ngữ câu hỏi, có thể trả lời tiếng Việt từ tài liệu chỉ có tiếng Nhật",
+        "Bắt buộc ghi nguồn trích dẫn (tên tài liệu, phiên bản, số trang, mã tiếp nhận); không có căn cứ thì không suy đoán",
+        "Nhận dạng ký tự (OCR) cho PDF scan tiếng Nhật, kể cả ghi chú viết tay",
+        "Không hiển thị họ tên và email người xử lý có trong lịch sử sự cố",
+        "Mã hóa dữ liệu truyền (TLS 1.2 trở lên) và dữ liệu lưu trữ",
+        "Lưu log thao tác 1 năm, quản trị viên tìm kiếm và xuất CSV được",
+        "Thời gian phản hồi: bắt đầu hiển thị trong trung bình 5 giây, hoàn tất trong 15 giây với 50 người dùng đồng thời",
+        "Hoạt động 24/7/365; bảo trì có kế hoạch tối đa 1 lần/tháng, 4 giờ; uptime tháng mục tiêu ≥99,5%",
+        "Dùng được trên trình duyệt PC, iPad (iPadOS 17 trở lên) và máy tính bảng Android (Android 12 trở lên); khuyến nghị tích hợp Teams",
+        "Mạng: các nhà máy kết nối với trụ sở qua mạng kín; Bắc Ninh truy cập Internet qua trụ sở",
+        "Ngoài phạm vi: bảo trì dự đoán, cải tạo MAINTE-PRO, thay mặt liên hệ nhà sản xuất thiết bị",
+        "Cần đầu mối giao tiếp bằng tiếng Nhật (có BrSE); nếu dùng offshore phải nêu rõ cách quản lý chất lượng và bảo mật thông tin",
+        "Tài liệu được cung cấp theo thỏa thuận bảo mật (NDA); bản quyền sản phẩm thuộc về khách hàng",
+        "Hồ sơ đề xuất: PDF tiếng Nhật, khổ A4 ngang, tối đa 30 trang, kèm báo giá và file Excel trả lời danh sách 41 yêu cầu"
+      ],
+      "budget": "PoC: tối đa 15 triệu yên (chưa thuế). Phát triển chính thức và vận hành bảo trì: thương lượng sau PoC (tham khảo tổng khoảng 60 triệu yên). Phí sử dụng Azure do khách chịu, không tính trong các khoản trên. Báo giá phải tách PoC / phát triển chính thức / vận hành bảo trì 1 năm, kèm số người-tháng và đơn giá theo vai trò, và ước tính phí Azure hằng tháng.",
+      "timeline": "Hạn nhận câu hỏi: 17:00 ngày 14/10/2026. Trả lời câu hỏi: 20/10/2026. Hạn nộp đề xuất: 17:00 ngày 30/10/2026. Thuyết trình: một buổi 1 giờ trong khoảng 9–13/11/2026. Thông báo kết quả: cuối tháng 11/2026. Phase 1 PoC: 12/2026–02/2027 (3 tháng), giới hạn ở nhóm máy trung tâm gia công của nhà máy Toyohashi (khoảng 120 máy, khoảng 300 file tài liệu, khoảng 8.000 bản ghi sự cố); tiêu chí đánh giá là tỉ lệ trả lời đúng trên 300 câu hỏi và điểm đánh giá hiện trường trung bình ≥3,5/5. Phase 2 phát triển chính thức: 04/2027–09/2027. Phase 3 vận hành chính thức và bảo trì 1 năm: từ 10/2027.",
+      "language": "ja",
+      "industry": "Sản xuất – gia công cắt gọt và lắp ráp linh kiện chính xác cho ô tô (linh kiện hộp số, hệ thống nhiên liệu)"
+    },
+    "pattern": {
+      "pattern": "rag",
+      "rationale": "Bài toán cốt lõi là hỏi đáp Nhật–Việt trên kho khoảng 48.000 trang tài liệu (sách hướng dẫn, tiêu chuẩn bảo trì) và 62.000 bản ghi sự cố, được cập nhật thường xuyên. Yêu cầu bắt buộc phải trích dẫn nguồn (tên tài liệu, phiên bản, số trang, mã tiếp nhận) và không có căn cứ thì không trả lời, đúng với điểm mạnh của RAG. RAG cũng đáp ứng được việc lọc nguồn theo quyền Entra ID và chỉ dùng bản tài liệu mới nhất. Tìm sự cố tương tự xuyên ngôn ngữ (FR-HIS-001) và soạn nháp báo cáo (FR-HIS-003) là tìm kiếm ngữ nghĩa kèm sinh văn bản theo mẫu, nên vẫn nằm trong cùng kiến trúc RAG mà không cần agent.",
+      "rejected": [
+        {
+          "pattern": "no_ai_rule_based",
+          "reason": "Dữ liệu chủ yếu là văn bản tự do và PDF scan có ghi chú viết tay, câu hỏi bằng ngôn ngữ tự nhiên Nhật–Việt và thuật ngữ ghi không thống nhất. Tìm theo từ khóa hiện tại đã chứng minh là không đủ, nên quy tắc cố định không bao quát được các trường hợp."
+        },
+        {
+          "pattern": "classic_ml",
+          "reason": "Bảo trì dự đoán nằm ngoài phạm vi. Bài toán chính là hiểu và sinh ngôn ngữ kèm trích dẫn, không phải dự đoán hay phân loại trên dữ liệu bảng số."
+        },
+        {
+          "pattern": "agent",
+          "reason": "Việc đăng ký báo cáo vào MAINTE-PRO (FR-HIS-004) chỉ ở mức 'tùy chọn', và MAINTE-PRO chỉ có REST API đọc một phần. Không có quy trình nhiều bước cần thao tác trên hệ thống khác, nên agent chỉ làm tăng rủi ro và chi phí."
+        },
+        {
+          "pattern": "fine_tune",
+          "reason": "Kiến thức thay đổi theo phiên bản tài liệu và bắt buộc trích dẫn nguồn, nên fine-tune không đáp ứng được. Chưa có hàng nghìn cặp mẫu chất lượng (chỉ có 300 câu đánh giá). Thuật ngữ Nhật–Việt có thể xử lý bằng bảng đối chiếu 1.200 từ đưa vào prompt."
+        }
+      ],
+      "confidence": "high",
+      "assumptions": [
+        "Trả lời tiếng Việt từ tài liệu chỉ có tiếng Nhật được thực hiện bằng LLM dịch tại thời điểm sinh câu trả lời, có tiêm bảng đối chiếu thuật ngữ vào prompt. Không dịch trước toàn bộ kho tài liệu.",
+        "Tìm kiếm xuyên ngôn ngữ dùng embedding đa ngôn ngữ kết hợp hybrid search (từ khóa + vector). Mã thiết bị và mã báo động (AL-2047, MC-0215) được chuẩn hóa bằng quy tắc (regex, chuẩn hóa ký tự toàn/bán độ rộng) trước khi lọc metadata.",
+        "OCR PDF scan tiếng Nhật dùng dịch vụ OCR trong Azure (ví dụ Azure AI Document Intelligence). Chưa biết tỉ lệ ghi chú viết tay và độ chính xác thực tế (câu hỏi q3 chưa được trả lời), cần dự phòng công sức.",
+        "Do cột mã báo động thiếu 57% giá trị, việc tìm sự cố tương tự sẽ dựa chủ yếu vào tìm kiếm ngữ nghĩa trên cột triệu chứng và cách xử lý, không phụ thuộc vào mã báo động.",
+        "Trong PoC, lịch sử sự cố được nạp qua file CSV export từ MAINTE-PRO (q4 chưa được trả lời). Họ tên và email người xử lý được ẩn danh/che trước khi index, kể cả tên người xuất hiện trong các cột mô tả tự do.",
+        "Phân quyền được thực hiện bằng security trimming: gắn metadata nhóm Entra ID vào từng chunk và lọc tại bước truy xuất. Giả định quy tắc phân quyền theo nhà máy/bộ phận đã hoặc sẽ được khách định nghĩa (q5 chưa được trả lời).",
+        "Giả định khách có mô hình phù hợp trên Azure OpenAI và cho phép suy luận trong phạm vi Nhật Bản (Japan East hoặc Data Zone Japan). Điều này chưa được xác nhận (q2) và ảnh hưởng đến việc chọn mô hình cũng như yêu cầu thời gian phản hồi 5 giây/15 giây.",
+        "Soạn nháp báo cáo công việc (FR-HIS-003) được làm bằng prompt kèm template biểu mẫu của khách, không cần fine-tune. Việc ghi báo cáo vào MAINTE-PRO (FR-HIS-004) được hoãn sang giai đoạn sau PoC.",
+        "Tiêu chí đúng/sai của bộ 300 câu hỏi chưa rõ (q1), nhưng giả định đủ để đo tỉ lệ trả lời đúng trong PoC. Mục tiêu tỉ lệ đúng cụ thể sẽ được đề xuất sau khi khách làm rõ cơ cấu câu hỏi."
+      ]
+    },
+    "answers": {},
+    "attachments": {
+      "requirements": {
+        "count": 41,
+        "sample": [
+          "FR-QA-001: 自然言語での質問応答: 保全担当者が自然文（日本語・ベトナム語）で質問すると、設備取扱説明書・保全標準書・過去の故障履歴を根拠として回答を生成すること。 (ưu tiên: 必須)",
+          "FR-QA-002: 根拠の提示: 回答には参照した文書名・版数・ページ番号（故障履歴の場合は受付番号）を必ず表示し、クリックで原文の該当箇所を開けること。 (ưu tiên: 必須)",
+          "FR-QA-003: 回答不能時の振る舞い: 根拠となる情報が見つからない場合は推測で回答せず「該当する情報が見つかりません」と表示し、保全課へのエスカレーション手順を案内すること。 (ưu tiên: 必須)",
+          "FR-QA-004: 設備ID・アラームコードによる絞り込み: 質問に設備ID（例：MC-0215）やアラームコード（例：AL-2047）が含まれる場合、該当設備の機種・該当コードの情報を優先して回答すること。表記ゆれ（AL2047、ＡＬ－２０４７等）も同一とみなすこと。 (ưu tiên: 必須)",
+          "FR-QA-005: 追加質問への対応: 同一セッション内で直前のやり取りを踏まえた追加質問（「その場合の部品番号は？」等）に回答できること。 (ưu tiên: 推奨)",
+          "FR-QA-006: 図・表の表示: 回答の根拠が図・表を含むページの場合、該当ページの画像を回答画面に表示すること。 (ưu tiên: 推奨)",
+          "FR-ML-001: 質問言語での回答: 質問の言語（日本語／ベトナム語）を自動判定し、同じ言語で回答すること。根拠文書が日本語のみの場合もベトナム語で回答できること。 (ưu tiên: 必須)",
+          "FR-ML-002: 専門用語対訳表の反映: 当社の専門用語・略語の対訳表（約1,200語、Excel）を回答・翻訳に反映し、管理者が対訳表を更新できること。 (ưu tiên: 必須)",
+          "FR-ML-003: 日本語原文の併記: ベトナム語で回答する際、根拠部分の日本語原文を併記または切替表示できること。 (ưu tiên: 推奨)",
+          "FR-HIS-001: 類似故障事例の検索: 症状の記述（自由文）から類似する過去の故障事例を上位5件表示し、推定原因・処置内容・停止時間を一覧で確認できること。日本語とベトナム語の記述を横断して検索できること。 (ưu tiên: 必須)",
+          "FR-HIS-002: 原因・処置候補の提示: 類似事例とマニュアルをもとに、推定原因と処置の候補を確からしさの順に提示すること。最終判断は保全担当者が行う前提とする。 (ưu tiên: 推奨)",
+          "FR-HIS-003: 作業報告書の下書き作成: 保全担当者の入力メモ（箇条書き、音声入力のテキスト）から、当社様式の作業報告書（日本語）の下書きを作成すること。ベトナム語のメモからも日本語の報告書を作成できること。 (ưu tiên: 推奨)",
+          "FR-HIS-004: 保全管理システムへの登録: 確定した作業報告書を保全管理システム（MAINTE-PRO）に登録できること。 (ưu tiên: 任意)",
+          "FR-DOC-001: 文書の取り込み: 管理者がPDF（テキスト／スキャン）、Word、Excelをアップロードすると、自動で検索対象に登録されること。 (ưu tiên: 必須)",
+          "FR-DOC-002: スキャンPDFの文字認識: スキャンPDF（日本語、一部に手書きの注記あり）を文字認識して検索対象とすること。 (ưu tiên: 必須)",
+          "FR-DOC-003: 文書の版管理: 文書の改訂時は旧版を回答の根拠から除外し、版数・改訂日を管理できること。 (ưu tiên: 必須)",
+          "FR-DOC-004: 文書の閲覧権限: 工場・部署ごとに参照可能な文書を制限できること（例：バクニン工場は自工場設備の文書と共通文書のみ）。回答の根拠にも同じ制限を適用すること。 (ưu tiên: 必須)",
+          "FR-DOC-005: SharePointとの定期同期: SharePoint Online上の指定フォルダと日次で同期し、追加・更新・削除を反映すること。 (ưu tiên: 推奨)",
+          "FR-UI-001: Webブラウザでの利用: PCおよびタブレット（iPad、Androidタブレット）のブラウザで利用できること。 (ưu tiên: 必須)",
+          "FR-UI-002: Microsoft Teamsからの利用: Microsoft Teamsのチャットから質問・回答を利用できること。 (ưu tiên: 推奨)",
+          "FR-UI-003: 回答へのフィードバック: 回答ごとに「役に立った／役に立たなかった」の評価とコメントを登録できること。 (ưu tiên: 必須)",
+          "FR-UI-004: 現場での操作性: 手袋着用時でも操作しやすいボタンサイズ、文字サイズの切替、音声入力に対応すること。 (ưu tiên: 任意)",
+          "FR-ADM-001: 利用状況の可視化: 利用者数、質問数、回答不能率、評価結果を工場別・期間別に表示し、CSVで出力できること。 (ưu tiên: 必須)",
+          "FR-ADM-002: 低評価回答の改善: 低評価の回答を一覧化し、管理者が正しい回答・参照文書を登録して以後の回答に反映できること。 (ưu tiên: 推奨)",
+          "FR-ADM-003: 利用者・権限管理: Microsoft Entra IDのグループと連携して、一般利用者・管理者の権限を付与できること。 (ưu tiên: 必須)",
+          "NFR-PF-001: 応答時間: 質問から回答表示開始まで平均5秒以内、回答完了まで15秒以内であること（同時利用50名時）。 (ưu tiên: 必須)",
+          "NFR-PF-002: 利用規模: 登録利用者約230名（日本150名、ベトナム80名）、同時利用最大50名に対応すること。 (ưu tiên: 必須)",
+          "NFR-PF-003: データ量: 初期文書約2,300ファイル（約48,000ページ）、故障履歴約62,000件を対象とし、年10%程度の増加に対応すること。 (ưu tiên: 必須)",
+          "NFR-AV-001: 稼働時間: 24時間365日利用できること（バクニン工場は3交替勤務）。計画停止は月1回・4時間以内とし、事前に通知すること。 (ưu tiên: 必須)",
+          "NFR-AV-002: 月間稼働率99.5%以上であること。 (ưu tiên: 推奨)",
+          "NFR-SEC-001: データの保管場所: 文書、検索用インデックス、ログ等のデータは当社Azureテナント（東日本リージョン）内に保管すること。 (ưu tiên: 必須)",
+          "NFR-SEC-002: 入力データの学習利用禁止: 入力データおよび文書がLLM提供者のモデル学習に利用されないことを契約上保証できるサービス（Azure OpenAI Service等）を使用すること。 (ưu tiên: 必須)",
+          "NFR-SEC-003: Microsoft Entra IDによるシングルサインオンおよび多要素認証に対応すること。 (ưu tiên: 必須)",
+          "NFR-SEC-004: 通信・保存データの暗号化: 通信はTLS1.2以上で暗号化し、保存データも暗号化すること。 (ưu tiên: 必須)",
+          "NFR-SEC-005: 操作ログ: 質問、回答、参照文書、利用者、日時を記録して1年間保管し、管理者が検索・CSV出力できること。 (ưu tiên: 必須)",
+          "NFR-SEC-006: 個人情報の非表示: 故障履歴に含まれる作業者の氏名・メールアドレスは回答に表示しないこと。 (ưu tiên: 推奨)",
+          "NFR-QA-001: 回答精度の評価: 当社が用意する評価用質問（約300問、正解付き）で正答率を測定し、PoC終了時に報告すること。目標正答率は提案時に提示すること。 (ưu tiên: 必須)",
+          "NFR-OPS-001: 本番稼働後1年間の運用保守（問い合わせ対応、障害対応、月次報告、軽微な改修）を見積に含めること。問い合わせ対応は日本語、バクニン工場向けはベトナム語でも可とする。 (ưu tiên: 必須)",
+          "NFR-OPS-002: LLMの更新: LLMのバージョン更新時は、評価用質問で回答品質を確認したうえで切り替えること。 (ưu tiên: 推奨)",
+          "NFR-TRN-001: 教育・マニュアル: 管理者向け操作研修（日本語）と、利用者向け操作マニュアル（日本語・ベトナム語）を提供すること。 (ưu tiên: 必須)"
+        ]
+      },
+      "data_samples": [
+        {
+          "file": "別紙2_故障履歴サンプル_2025-2026.csv",
+          "sheet": null,
+          "rows": 600,
+          "columns": [
+            {
+              "name": "受付番号",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "発生日時",
+              "type": "date",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "工場",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "ライン",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "設備ID",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "設備名",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "アラームコード",
+              "type": "text",
+              "null_pct": 57,
+              "pii": false
+            },
+            {
+              "name": "症状",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "推定原因",
+              "type": "text",
+              "null_pct": 24,
+              "pii": false
+            },
+            {
+              "name": "処置内容",
+              "type": "text",
+              "null_pct": 5,
+              "pii": false
+            },
+            {
+              "name": "停止時間(分)",
+              "type": "number",
+              "null_pct": 4,
+              "pii": false
+            },
+            {
+              "name": "対応者",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            },
+            {
+              "name": "対応者メール",
+              "type": "text",
+              "null_pct": 0,
+              "pii": true
+            },
+            {
+              "name": "状態",
+              "type": "text",
+              "null_pct": 0,
+              "pii": false
+            }
+          ],
+          "issues": [
+            "Cột 'アラームコード' thiếu 57% giá trị.",
+            "Có cột nghi chứa dữ liệu cá nhân, cần ẩn danh trước khi dùng."
+          ],
+          "readiness_hint": 4
+        }
+      ]
+    }
+  },
+  "response": "{\"data_readiness\":3,\"technical_feasibility\":4,\"business_value\":5,\"risks\":[{\"category\":\"accuracy\",\"description\":\"LLM có thể đưa ra quy trình xử lý, giá trị cài đặt hoặc mã linh kiện sai nhưng nghe hợp lý. Nhân viên bảo trì làm theo câu trả lời trực tiếp trên máy trung tâm gia công, nên lỗi có thể gây hỏng thiết bị, mất an toàn lao động hoặc kéo dài thời gian dừng máy, ngược với mục tiêu 74 → 59 phút/vụ. Rủi ro tăng ở câu trả lời tiếng Việt được dịch lúc sinh từ tài liệu chỉ có tiếng Nhật: thuật ngữ có thể bị dịch sai hoặc mất sắc thái cảnh báo (注意/警告). FR-HIS-002 (đề xuất nguyên nhân và cách xử lý theo độ tin cậy) cũng dễ bị hiểu là kết luận.\",\"severity\":4,\"mitigation\":\"Áp dụng bắt buộc FR-QA-002/003: chỉ trả lời trong phạm vi đoạn trích truy xuất được, mỗi khẳng định gắn trích dẫn (tên tài liệu, phiên bản, trang, mã tiếp nhận) mở được bản gốc. Khi điểm truy xuất dưới ngưỡng thì trả về 「該当する情報が見つかりません」 kèm hướng dẫn leo thang. Với câu trả lời tiếng Việt, luôn hiển thị song song bản gốc tiếng Nhật (FR-ML-003) và tiêm bảng đối chiếu 1.200 thuật ngữ vào prompt. Giữ nguyên văn các cảnh báo an toàn và thông số kỹ thuật. Ghi rõ trên UI rằng người bảo trì là người ra quyết định cuối cùng. Đo riêng tỉ lệ bịa thông tin và lỗi dịch thuật ngữ trên bộ 300 câu.\"},{\"category\":\"data\",\"description\":\"Khoảng 30% trong 48.000 trang là PDF scan tiếng Nhật. Một số trang có ghi chú viết tay, sách hướng dẫn thiết bị có nhiều bảng mã báo động và hình vẽ. Đây là con số ước tính, khách chưa khảo sát chính xác (câu hỏi q3 chưa được trả lời). OCR tiếng Nhật trên bảng phức tạp và chữ viết tay thường có độ chính xác thấp. Nếu bảng mã báo động bị trích xuất sai, FR-QA-004 sẽ trả lời sai mã.\",\"severity\":4,\"mitigation\":\"Tuần đầu PoC: lấy mẫu đại diện khoảng 30–50 trang từ 300 file của nhóm máy trung tâm gia công Toyohashi (gồm trang bảng mã báo động, trang có hình và trang có ghi chú tay). Chạy thử Azure AI Document Intelligence trên mẫu này và đo tỉ lệ đúng ký tự và đúng ô bảng. Dự phòng thêm 20–30% công sức cho xử lý tài liệu. Với trang có hình/bảng, lưu ảnh trang để hiển thị kèm câu trả lời (FR-QA-006). Đánh dấu nguồn là OCR và có độ tin cậy thấp để người dùng đối chiếu ảnh gốc. Ghi chú tay không đọc được thì cho quản trị viên bổ sung thủ công.\"},{\"category\":\"accuracy\",\"description\":\"NFR-QA-001 yêu cầu nêu tỉ lệ đúng mục tiêu ngay trong đề xuất, nhưng chưa rõ tiêu chí đúng/sai và cơ cấu bộ 300 câu hỏi (q1 chưa được trả lời). Nghiệm thu PoC dựa trên tỉ lệ đúng và điểm hiện trường ≥3,5/5. Nếu cam kết con số quá cao, hoặc khách ngầm kỳ vọng gần 100%, kết quả PoC sẽ dễ bị đánh giá thất bại dù hệ thống hữu ích.\",\"severity\":4,\"mitigation\":\"Trong buổi hỏi đáp trước hạn 14/10/2026, đề nghị khách làm rõ: phân loại câu hỏi (tra sách hướng dẫn, mã báo động, sự cố tương tự, tiếng Việt), cách chấm (đúng/đúng một phần/sai, có xét trích dẫn) và người chấm. Trong đề xuất, đặt mục tiêu theo từng nhóm câu hỏi kèm điều kiện tiền đề (chất lượng OCR, phạm vi tài liệu PoC), và tính câu trả lời 'không tìm thấy' đúng lúc là hành vi đúng. Chạy đánh giá baseline ngay tháng đầu PoC để điều chỉnh mục tiêu cùng khách.\"},{\"category\":\"data\",\"description\":\"Điểm data_readiness được hạ từ readiness_hint 4 xuống 3, lý do như sau. Hint chỉ phản ánh file mẫu 600 dòng lịch sử sự cố. Trong mẫu này cột アラームコード thiếu 57% và 推定原因 thiếu 24%, cách ghi và thuật ngữ không thống nhất, ngôn ngữ Nhật–Việt lẫn lộn. Ngoài ra, kho sách hướng dẫn còn phân tán (giấy, PDF, file server đang chuyển sang SharePoint), khó xác định bản mới nhất. Điều này ảnh hưởng trực tiếp tới FR-DOC-003 (loại bản cũ khỏi căn cứ trả lời). Cách lấy dữ liệu từ MAINTE-PRO cũng chưa được xác nhận (q4 chưa được trả lời). Bù lại, đã có bộ 300 câu đánh giá kèm đáp án và bảng đối chiếu thuật ngữ, nên không hạ thấp hơn.\",\"severity\":3,\"mitigation\":\"Chốt danh sách khoảng 300 file PoC cùng chủ sở hữu tài liệu phía khách, kèm metadata phiên bản/ngày sửa đổi; file nào không xác định được phiên bản thì đánh dấu để khách duyệt trước khi index. Lấy 8.000 bản ghi sự cố qua CSV export, chuẩn hóa mã thiết bị và mã báo động bằng quy tắc (toàn/bán độ rộng, dấu gạch). Tìm sự cố tương tự chủ yếu dựa trên tìm kiếm ngữ nghĩa trên cột 症状/処置内容, không phụ thuộc mã báo động. Mở rộng bảng thuật ngữ với các biến thể cách ghi phát hiện được khi làm sạch.\"},{\"category\":\"privacy\",\"description\":\"FR-DOC-004 yêu cầu giới hạn tài liệu theo nhà máy/bộ phận, áp dụng cả cho nguồn trích dẫn. Ví dụ: Bắc Ninh chỉ xem tài liệu thiết bị của nhà máy mình và tài liệu chung. Quy tắc phân quyền cụ thể và việc nhóm Entra ID đã được tổ chức hay chưa vẫn chưa rõ (q5 chưa được trả lời). Nếu lọc theo quyền sai, AI có thể làm lộ nội dung tài liệu vượt quyền, kể cả tài liệu của nhà sản xuất cung cấp theo NDA, qua phần tóm tắt trong câu trả lời.\",\"severity\":3,\"mitigation\":\"Thực hiện security trimming: gắn metadata nhóm Entra ID cho từng chunk khi index, và lọc ngay tại bước truy xuất trước khi đưa vào LLM, không lọc ở bước hiển thị. Đồng bộ ACL từ SharePoint khi chạy đồng bộ hằng ngày (FR-DOC-005). Xây bộ test phân quyền: dùng tài khoản thử của từng nhà máy để kiểm tra câu trả lời không chứa nguồn ngoài quyền. Đề nghị khách cung cấp ma trận phân quyền trước khi bắt đầu PoC.\"},{\"category\":\"compliance\",\"description\":\"Lịch sử sự cố chứa họ tên và email người xử lý (cột 対応者, 対応者メール), có thể còn tên người trong cột mô tả tự do. Log thao tác cũng lưu danh tính người dùng 1 năm. Phần dữ liệu này thuộc phạm vi 個人情報保護法 (APPI, Nhật Bản) với nhân viên Nhật, và Nghị định 13/2023/NĐ-CP với nhân viên Việt Nam. Theo Nghị định 13, việc lưu dữ liệu và log của nhân viên Bắc Ninh tại Azure Japan East là chuyển dữ liệu cá nhân ra nước ngoài, cần hồ sơ đánh giá tác động chuyển dữ liệu. Ngoài ra, có giả định chưa xác nhận (q2) rằng mô hình Azure OpenAI phù hợp được triển khai với suy luận trong phạm vi Nhật Bản (Japan East/Data Zone Japan). Nếu không, yêu cầu lưu trữ trong Japan East và thời gian phản hồi 5s/15s có thể xung đột với việc chọn mô hình.\",\"severity\":3,\"mitigation\":\"Ẩn danh/mask họ tên và email (cả trong văn bản tự do, bằng NER kèm danh sách nhân viên) trước khi index, đáp ứng NFR-SEC-006 ở mức dữ liệu chứ không chỉ ẩn khi hiển thị. Đề xuất khách cùng pháp chế lập hồ sơ đánh giá tác động chuyển dữ liệu ra nước ngoài theo Nghị định 13 cho phía Việt Nam, và cập nhật thông báo mục đích sử dụng theo APPI. Chuẩn bị tài liệu luồng dữ liệu bằng tiếng Nhật. Sớm xác nhận với khách mô hình/phiên bản có trong Japan East và quota throughput, rồi đo latency với 50 người dùng đồng thời ngay trong PoC.\"},{\"category\":\"adoption\",\"description\":\"Người dùng làm việc ở hiện trường (đeo găng tay, ca 3 kíp ở Bắc Ninh, dùng máy tính bảng Android). Nếu thao tác bất tiện hoặc vài câu trả lời đầu tiên kém, họ sẽ quay lại hỏi người lâu năm hoặc gửi câu hỏi sang Nhật, khi đó mục tiêu giảm 120 → ≤60 vụ/tháng không đạt. Ngoài ra, bí quyết của nhân viên lành nghề sắp nghỉ hưu phần lớn là kiến thức ngầm chưa có trong tài liệu, nên RAG chỉ truyền đạt được phần đã được ghi lại.\",\"severity\":3,\"mitigation\":\"Chọn champion ở Toyohashi (PoC) và sớm ở Bắc Ninh. Ưu tiên giao diện lớn, nhập bằng giọng nói và truy cập qua Teams. Vận hành vòng phản hồi FR-UI-003/FR-ADM-002 để quản trị viên sửa câu trả lời bị đánh giá thấp hằng tuần. Đề xuất khách tổ chức phiên ghi lại kinh nghiệm của nhân viên lành nghề (dùng FR-HIS-003 soạn báo cáo/ghi chú chuẩn hóa) để bổ sung vào kho tri thức. Đo baseline số câu hỏi gửi sang Nhật và thời gian dừng máy trước và sau PoC.\"}],\"go_recommendation\":\"go_with_poc\"}",
+  "output": {
+    "data_readiness": 3,
+    "technical_feasibility": 4,
+    "business_value": 5,
+    "risks": [
+      {
+        "category": "accuracy",
+        "description": "LLM có thể đưa ra quy trình xử lý, giá trị cài đặt hoặc mã linh kiện sai nhưng nghe hợp lý. Nhân viên bảo trì làm theo câu trả lời trực tiếp trên máy trung tâm gia công, nên lỗi có thể gây hỏng thiết bị, mất an toàn lao động hoặc kéo dài thời gian dừng máy, ngược với mục tiêu 74 → 59 phút/vụ. Rủi ro tăng ở câu trả lời tiếng Việt được dịch lúc sinh từ tài liệu chỉ có tiếng Nhật: thuật ngữ có thể bị dịch sai hoặc mất sắc thái cảnh báo (注意/警告). FR-HIS-002 (đề xuất nguyên nhân và cách xử lý theo độ tin cậy) cũng dễ bị hiểu là kết luận.",
+        "severity": 4,
+        "mitigation": "Áp dụng bắt buộc FR-QA-002/003: chỉ trả lời trong phạm vi đoạn trích truy xuất được, mỗi khẳng định gắn trích dẫn (tên tài liệu, phiên bản, trang, mã tiếp nhận) mở được bản gốc. Khi điểm truy xuất dưới ngưỡng thì trả về 「該当する情報が見つかりません」 kèm hướng dẫn leo thang. Với câu trả lời tiếng Việt, luôn hiển thị song song bản gốc tiếng Nhật (FR-ML-003) và tiêm bảng đối chiếu 1.200 thuật ngữ vào prompt. Giữ nguyên văn các cảnh báo an toàn và thông số kỹ thuật. Ghi rõ trên UI rằng người bảo trì là người ra quyết định cuối cùng. Đo riêng tỉ lệ bịa thông tin và lỗi dịch thuật ngữ trên bộ 300 câu."
+      },
+      {
+        "category": "data",
+        "description": "Khoảng 30% trong 48.000 trang là PDF scan tiếng Nhật. Một số trang có ghi chú viết tay, sách hướng dẫn thiết bị có nhiều bảng mã báo động và hình vẽ. Đây là con số ước tính, khách chưa khảo sát chính xác (câu hỏi q3 chưa được trả lời). OCR tiếng Nhật trên bảng phức tạp và chữ viết tay thường có độ chính xác thấp. Nếu bảng mã báo động bị trích xuất sai, FR-QA-004 sẽ trả lời sai mã.",
+        "severity": 4,
+        "mitigation": "Tuần đầu PoC: lấy mẫu đại diện khoảng 30–50 trang từ 300 file của nhóm máy trung tâm gia công Toyohashi (gồm trang bảng mã báo động, trang có hình và trang có ghi chú tay). Chạy thử Azure AI Document Intelligence trên mẫu này và đo tỉ lệ đúng ký tự và đúng ô bảng. Dự phòng thêm 20–30% công sức cho xử lý tài liệu. Với trang có hình/bảng, lưu ảnh trang để hiển thị kèm câu trả lời (FR-QA-006). Đánh dấu nguồn là OCR và có độ tin cậy thấp để người dùng đối chiếu ảnh gốc. Ghi chú tay không đọc được thì cho quản trị viên bổ sung thủ công."
+      },
+      {
+        "category": "accuracy",
+        "description": "NFR-QA-001 yêu cầu nêu tỉ lệ đúng mục tiêu ngay trong đề xuất, nhưng chưa rõ tiêu chí đúng/sai và cơ cấu bộ 300 câu hỏi (q1 chưa được trả lời). Nghiệm thu PoC dựa trên tỉ lệ đúng và điểm hiện trường ≥3,5/5. Nếu cam kết con số quá cao, hoặc khách ngầm kỳ vọng gần 100%, kết quả PoC sẽ dễ bị đánh giá thất bại dù hệ thống hữu ích.",
+        "severity": 4,
+        "mitigation": "Trong buổi hỏi đáp trước hạn 14/10/2026, đề nghị khách làm rõ: phân loại câu hỏi (tra sách hướng dẫn, mã báo động, sự cố tương tự, tiếng Việt), cách chấm (đúng/đúng một phần/sai, có xét trích dẫn) và người chấm. Trong đề xuất, đặt mục tiêu theo từng nhóm câu hỏi kèm điều kiện tiền đề (chất lượng OCR, phạm vi tài liệu PoC), và tính câu trả lời 'không tìm thấy' đúng lúc là hành vi đúng. Chạy đánh giá baseline ngay tháng đầu PoC để điều chỉnh mục tiêu cùng khách."
+      },
+      {
+        "category": "data",
+        "description": "Điểm data_readiness được hạ từ readiness_hint 4 xuống 3, lý do như sau. Hint chỉ phản ánh file mẫu 600 dòng lịch sử sự cố. Trong mẫu này cột アラームコード thiếu 57% và 推定原因 thiếu 24%, cách ghi và thuật ngữ không thống nhất, ngôn ngữ Nhật–Việt lẫn lộn. Ngoài ra, kho sách hướng dẫn còn phân tán (giấy, PDF, file server đang chuyển sang SharePoint), khó xác định bản mới nhất. Điều này ảnh hưởng trực tiếp tới FR-DOC-003 (loại bản cũ khỏi căn cứ trả lời). Cách lấy dữ liệu từ MAINTE-PRO cũng chưa được xác nhận (q4 chưa được trả lời). Bù lại, đã có bộ 300 câu đánh giá kèm đáp án và bảng đối chiếu thuật ngữ, nên không hạ thấp hơn.",
+        "severity": 3,
+        "mitigation": "Chốt danh sách khoảng 300 file PoC cùng chủ sở hữu tài liệu phía khách, kèm metadata phiên bản/ngày sửa đổi; file nào không xác định được phiên bản thì đánh dấu để khách duyệt trước khi index. Lấy 8.000 bản ghi sự cố qua CSV export, chuẩn hóa mã thiết bị và mã báo động bằng quy tắc (toàn/bán độ rộng, dấu gạch). Tìm sự cố tương tự chủ yếu dựa trên tìm kiếm ngữ nghĩa trên cột 症状/処置内容, không phụ thuộc mã báo động. Mở rộng bảng thuật ngữ với các biến thể cách ghi phát hiện được khi làm sạch."
+      },
+      {
+        "category": "privacy",
+        "description": "FR-DOC-004 yêu cầu giới hạn tài liệu theo nhà máy/bộ phận, áp dụng cả cho nguồn trích dẫn. Ví dụ: Bắc Ninh chỉ xem tài liệu thiết bị của nhà máy mình và tài liệu chung. Quy tắc phân quyền cụ thể và việc nhóm Entra ID đã được tổ chức hay chưa vẫn chưa rõ (q5 chưa được trả lời). Nếu lọc theo quyền sai, AI có thể làm lộ nội dung tài liệu vượt quyền, kể cả tài liệu của nhà sản xuất cung cấp theo NDA, qua phần tóm tắt trong câu trả lời.",
+        "severity": 3,
+        "mitigation": "Thực hiện security trimming: gắn metadata nhóm Entra ID cho từng chunk khi index, và lọc ngay tại bước truy xuất trước khi đưa vào LLM, không lọc ở bước hiển thị. Đồng bộ ACL từ SharePoint khi chạy đồng bộ hằng ngày (FR-DOC-005). Xây bộ test phân quyền: dùng tài khoản thử của từng nhà máy để kiểm tra câu trả lời không chứa nguồn ngoài quyền. Đề nghị khách cung cấp ma trận phân quyền trước khi bắt đầu PoC."
+      },
+      {
+        "category": "compliance",
+        "description": "Lịch sử sự cố chứa họ tên và email người xử lý (cột 対応者, 対応者メール), có thể còn tên người trong cột mô tả tự do. Log thao tác cũng lưu danh tính người dùng 1 năm. Phần dữ liệu này thuộc phạm vi 個人情報保護法 (APPI, Nhật Bản) với nhân viên Nhật, và Nghị định 13/2023/NĐ-CP với nhân viên Việt Nam. Theo Nghị định 13, việc lưu dữ liệu và log của nhân viên Bắc Ninh tại Azure Japan East là chuyển dữ liệu cá nhân ra nước ngoài, cần hồ sơ đánh giá tác động chuyển dữ liệu. Ngoài ra, có giả định chưa xác nhận (q2) rằng mô hình Azure OpenAI phù hợp được triển khai với suy luận trong phạm vi Nhật Bản (Japan East/Data Zone Japan). Nếu không, yêu cầu lưu trữ trong Japan East và thời gian phản hồi 5s/15s có thể xung đột với việc chọn mô hình.",
+        "severity": 3,
+        "mitigation": "Ẩn danh/mask họ tên và email (cả trong văn bản tự do, bằng NER kèm danh sách nhân viên) trước khi index, đáp ứng NFR-SEC-006 ở mức dữ liệu chứ không chỉ ẩn khi hiển thị. Đề xuất khách cùng pháp chế lập hồ sơ đánh giá tác động chuyển dữ liệu ra nước ngoài theo Nghị định 13 cho phía Việt Nam, và cập nhật thông báo mục đích sử dụng theo APPI. Chuẩn bị tài liệu luồng dữ liệu bằng tiếng Nhật. Sớm xác nhận với khách mô hình/phiên bản có trong Japan East và quota throughput, rồi đo latency với 50 người dùng đồng thời ngay trong PoC."
+      },
+      {
+        "category": "adoption",
+        "description": "Người dùng làm việc ở hiện trường (đeo găng tay, ca 3 kíp ở Bắc Ninh, dùng máy tính bảng Android). Nếu thao tác bất tiện hoặc vài câu trả lời đầu tiên kém, họ sẽ quay lại hỏi người lâu năm hoặc gửi câu hỏi sang Nhật, khi đó mục tiêu giảm 120 → ≤60 vụ/tháng không đạt. Ngoài ra, bí quyết của nhân viên lành nghề sắp nghỉ hưu phần lớn là kiến thức ngầm chưa có trong tài liệu, nên RAG chỉ truyền đạt được phần đã được ghi lại.",
+        "severity": 3,
+        "mitigation": "Chọn champion ở Toyohashi (PoC) và sớm ở Bắc Ninh. Ưu tiên giao diện lớn, nhập bằng giọng nói và truy cập qua Teams. Vận hành vòng phản hồi FR-UI-003/FR-ADM-002 để quản trị viên sửa câu trả lời bị đánh giá thấp hằng tuần. Đề xuất khách tổ chức phiên ghi lại kinh nghiệm của nhân viên lành nghề (dùng FR-HIS-003 soạn báo cáo/ghi chú chuẩn hóa) để bổ sung vào kho tri thức. Đo baseline số câu hỏi gửi sang Nhật và thời gian dừng máy trước và sau PoC."
+      }
+    ],
+    "go_recommendation": "go_with_poc"
+  }
+}

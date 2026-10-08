@@ -1,0 +1,317 @@
+{
+  "key": "ea7503510b0516ba7d2e9c5cb8710cb271f5db0c17e358aa504529ee7b7e5bdb",
+  "step": "wbs",
+  "created_at": "2026-10-06T16:01:10.283049+00:00",
+  "provider": "openrouter",
+  "base_url": "https://openrouter.ai/api/v1",
+  "model": "anthropic/claude-opus-5.5",
+  "temperature": null,
+  "json_mode": false,
+  "reasoning_effort": "",
+  "latency_ms": 145796,
+  "attempts": 1,
+  "system_prompt_sha256": "4c9033c602401911c740d10ffe06235c7ed6b59240607fe72b45e8df6987470d",
+  "context": {
+    "intake": {
+      "business_goal": "Xây dựng trợ lý AI tri thức bảo trì thiết bị. Trợ lý trả lời bằng tiếng Nhật và tiếng Việt, dựa trên sách hướng dẫn thiết bị, tiêu chuẩn bảo trì và lịch sử sự cố. Mục tiêu: giảm 20% thời gian dừng máy trung bình (74 phút → 59 phút/lần), giảm 50% số câu hỏi kỹ thuật từ nhà máy Bắc Ninh gửi về Nhật (khoảng 120 → ≤60 câu/tháng), rút ngắn thời gian tự lập của nhân viên mới (18 → 12 tháng) và thời gian viết báo cáo (15 → 5 phút/báo cáo), đồng thời kế thừa kinh nghiệm của nhân viên bảo trì lâu năm.",
+      "current_process": "Việc bảo trì phụ thuộc nhiều vào kinh nghiệm của nhân viên lâu năm. Khoảng 30% nhân sự bảo trì sẽ nghỉ hưu trong 5 năm tới. Khi thiết bị dừng, thời gian dừng trung bình là 74 phút/lần, trong đó khoảng 40% dành cho việc tra cứu sách hướng dẫn và sự cố cũ. Sách hướng dẫn nằm rải rác ở bản giấy, PDF và file server (đang chuyển sang SharePoint Online), khó xác định bản mới nhất. PDF scan không tìm kiếm toàn văn được. Lịch sử sự cố khoảng 62.000 bản ghi trong hệ thống MAINTE-PRO chỉ tìm được bằng từ khóa, cách ghi và thuật ngữ không thống nhất. Nhà máy Bắc Ninh chỉ có sách hướng dẫn tiếng Nhật nên phát sinh khoảng 120 câu hỏi/tháng gửi về Nhật và phải chờ trả lời do lệch múi giờ. Mỗi báo cáo công việc sau xử lý mất trung bình 15 phút, thường thiếu nội dung.",
+      "users": [
+        "Nhân viên bảo trì khoảng 230 người (Nhật 150, Việt Nam 80)",
+        "Nhân viên bảo trì nhà máy Toyohashi khoảng 95 người (PC, khoảng 40 iPad, tiếng Nhật)",
+        "Nhân viên bảo trì nhà máy Kariya khoảng 55 người (PC, khoảng 20 iPad, tiếng Nhật)",
+        "Nhân viên bảo trì nhà máy Bắc Ninh khoảng 80 người (PC, khoảng 40 máy tính bảng Android, tiếng Việt, một số dùng được tiếng Nhật)",
+        "Quản trị viên (quản lý tài liệu, bảng đối chiếu thuật ngữ, phân quyền, xem thống kê sử dụng)"
+      ],
+      "data_sources": [
+        "Sách hướng dẫn của nhà sản xuất thiết bị: khoảng 1.400 file, khoảng 36.000 trang, PDF lẫn văn bản và scan, tiếng Nhật (một phần tiếng Anh), lưu trên file server (đang chuyển sang SharePoint Online)",
+        "Tiêu chuẩn và quy trình bảo trì nội bộ: khoảng 650 file, khoảng 9.500 trang, Word/PDF, tiếng Nhật, lưu trên SharePoint Online",
+        "Phiếu kiểm tra: khoảng 250 file Excel, tiếng Nhật và tiếng Việt, lưu trên SharePoint Online",
+        "Lịch sử sự cố trong hệ thống MAINTE-PRO (tự phát triển, .NET Framework 4.8, SQL Server 2019 on-prem, có một phần REST API chỉ đọc): khoảng 62.000 bản ghi từ 2015, tiếng Nhật và tiếng Việt lẫn lộn",
+        "Bảng đối chiếu thuật ngữ chuyên môn Nhật–Việt: khoảng 1.200 từ, Excel, lưu trên SharePoint Online",
+        "Mẫu lịch sử sự cố gửi kèm (Phụ lục 2): 600 dòng, 14 cột. Cột 'アラームコード' (mã cảnh báo) thiếu 57%, cột '推定原因' (nguyên nhân dự đoán) thiếu 24%, cột '対応者メール' (email người xử lý) chứa dữ liệu cá nhân",
+        "Trích sách hướng dẫn máy MC-850H, phần bảo trì (Phụ lục 3)",
+        "Danh sách yêu cầu (Phụ lục 1): 41 yêu cầu chức năng và phi chức năng"
+      ],
+      "constraints": [
+        "strict_compliance",
+        "multilingual",
+        "ocr_required",
+        "large_data_volume",
+        "japanese_ui",
+        "cloud_allowed",
+        "market_jp",
+        "market_vn",
+        "Mọi dữ liệu (tài liệu, chỉ mục tìm kiếm, log) phải lưu trong Azure tenant của khách, vùng Đông Nhật Bản",
+        "Phải dùng dịch vụ đảm bảo theo hợp đồng rằng dữ liệu không được dùng để huấn luyện mô hình (ví dụ Azure OpenAI Service)",
+        "Đăng nhập một lần và xác thực đa yếu tố qua Microsoft Entra ID; phân quyền theo nhóm Entra ID",
+        "Giới hạn quyền xem tài liệu theo nhà máy/bộ phận, áp dụng cả cho nguồn căn cứ của câu trả lời",
+        "Lưu log thao tác (câu hỏi, câu trả lời, tài liệu tham chiếu, người dùng, thời gian) trong 1 năm; cho phép tìm kiếm và xuất CSV",
+        "Không hiển thị tên và email người xử lý trong câu trả lời",
+        "Mã hóa đường truyền bằng TLS1.2 trở lên và mã hóa dữ liệu lưu trữ",
+        "OCR cho PDF scan tiếng Nhật có ghi chú viết tay (ước tính khoảng 30% là PDF scan)",
+        "Câu trả lời phải hiển thị nguồn: tên tài liệu, số phiên bản, số trang hoặc số tiếp nhận sự cố; không suy đoán khi thiếu căn cứ",
+        "Thời gian phản hồi: bắt đầu hiển thị câu trả lời trung bình trong 5 giây, hoàn tất trong 15 giây khi có 50 người dùng đồng thời",
+        "Hoạt động 24/7; bảo trì theo kế hoạch tối đa 1 lần/tháng, mỗi lần không quá 4 tiếng; tỉ lệ sẵn sàng hằng tháng từ 99,5%",
+        "Dùng được trên trình duyệt PC, iPad (iPadOS 17 trở lên), Android (12 trở lên); có tích hợp Microsoft Teams",
+        "Tích hợp MAINTE-PRO (on-prem) qua REST API; mạng nội bộ khép kín, nhà máy Bắc Ninh ra Internet qua trụ sở chính",
+        "Báo cáo công việc đầu ra bằng tiếng Nhật",
+        "Đánh giá độ chính xác bằng 300 câu hỏi đánh giá; tiêu chí PoC là đánh giá hiện trường trung bình từ 3,5/5",
+        "PoC giới hạn ở nhóm máy trung tâm gia công của nhà máy Toyohashi (khoảng 120 máy, khoảng 300 file, khoảng 8.000 bản ghi sự cố)",
+        "Cần đầu mối giao tiếp bằng tiếng Nhật (bridge SE); nếu dùng offshore phải nêu rõ cách quản lý chất lượng và bảo mật",
+        "Tài liệu được cung cấp theo thỏa thuận bảo mật (NDA)"
+      ],
+      "budget": "PoC: không quá 15 triệu yên (chưa thuế), hợp đồng ủy thác (準委任). Phát triển chính thức và vận hành bảo trì: thỏa thuận sau PoC (tham khảo tổng khoảng 60 triệu yên). Chi phí Azure do khách chi trả, không nằm trong các khoản trên.",
+      "timeline": "Hạn gửi câu hỏi: 17:00 ngày 2026-10-14. Hạn nộp đề xuất: 17:00 ngày 2026-10-30. Thuyết trình: trong khoảng 2026-11-09 đến 2026-11-13. Thông báo kết quả: cuối tháng 11/2026. Phase 1 PoC: tháng 12/2026 đến tháng 2/2027 (3 tháng). Phase 2 phát triển chính thức: tháng 4/2027 đến tháng 9/2027. Phase 3 vận hành chính thức: từ tháng 10/2027 (vận hành bảo trì 1 năm).",
+      "language": "ja",
+      "industry": "Sản xuất – gia công cắt gọt và lắp ráp linh kiện chính xác cho ô tô",
+      "project_start": "2026-12-01"
+    },
+    "pattern": {
+      "pattern": "rag",
+      "rationale": "Bài toán cốt lõi là hỏi đáp tiếng Nhật/Việt trên kho khoảng 48.000 trang tài liệu và 62.000 bản ghi sự cố, kèm yêu cầu bắt buộc phải trích dẫn nguồn (tên tài liệu, số phiên bản, số trang hoặc số tiếp nhận sự cố) và không suy đoán khi thiếu căn cứ (FR-QA-002/003). Yêu cầu loại bỏ bản cũ (FR-DOC-003), lọc theo quyền nhà máy/bộ phận áp dụng cả cho nguồn căn cứ (FR-DOC-004) và đồng bộ SharePoint hằng ngày cho thấy kiến thức thay đổi liên tục, rất đúng với RAG kết hợp security trimming. Tìm sự cố tương tự xuyên ngôn ngữ (FR-HIS-001) được giải bằng hybrid search (vector + từ khóa), cộng thêm chuẩn hóa mã cảnh báo/mã thiết bị bằng quy tắc. Nháp báo cáo tiếng Nhật và bảng thuật ngữ 1.200 từ xử lý bằng prompt kèm glossary, không cần fine-tune hay agent.",
+      "rejected": [
+        {
+          "pattern": "no_ai_rule_based",
+          "reason": "Câu hỏi là ngôn ngữ tự nhiên Nhật/Việt, tài liệu phi cấu trúc có PDF scan và chữ viết tay, cách ghi sự cố không thống nhất, nên quy tắc hay tìm kiếm từ khóa không đáp ứng được; quy tắc chỉ dùng hỗ trợ như chuẩn hóa mã AL-2047 hoặc che email."
+        },
+        {
+          "pattern": "classic_ml",
+          "reason": "Mục tiêu chính là hiểu và sinh câu trả lời ngôn ngữ tự nhiên có trích dẫn, không phải dự đoán trên dữ liệu bảng; dữ liệu sự cố cũng thiếu 57% mã cảnh báo và 24% nguyên nhân, không đủ làm nhãn tin cậy cho mô hình phân loại nguyên nhân."
+        },
+        {
+          "pattern": "agent",
+          "reason": "Phần lõi là truy xuất và trả lời. Việc ghi báo cáo vào MAINTE-PRO (FR-HIS-004) chỉ ở mức 任意 và API hiện chỉ đọc, nên có thể làm bằng một bước workflow tĩnh có người xác nhận, không cần agent tự quyết định nhiều bước."
+        },
+        {
+          "pattern": "fine_tune",
+          "reason": "Tài liệu và lịch sử sự cố thay đổi, cần cập nhật bản mới và trích dẫn nguồn, đây là trường hợp nên dùng RAG. Văn phong báo cáo và thuật ngữ Nhật–Việt có thể đạt bằng prompt, few-shot và bảng thuật ngữ mà quản trị viên tự cập nhật được; hiện cũng chưa có bộ mẫu lớn để huấn luyện."
+        }
+      ],
+      "confidence": "high",
+      "assumptions": [
+        "Giả định khách cho phép dùng Azure OpenAI (model chat và embedding đa ngôn ngữ) cùng Azure AI Search và Azure AI Document Intelligence trong tenant vùng Đông Nhật Bản. Kiểu triển khai (Regional/Data Zone) cần xác nhận ở câu q2 và có thể ảnh hưởng đến lựa chọn model và độ trễ.",
+        "Giả định OCR của Document Intelligence đạt chất lượng chấp nhận được với PDF scan tiếng Nhật. Ghi chú viết tay có thể nhận dạng kém; cần dự phòng thêm 20–30% effort tiền xử lý (q3).",
+        "Giả định lịch sử sự cố được nạp vào chỉ mục qua REST API chỉ đọc hoặc file export CSV. Cột email và tên người xử lý được loại bỏ hoặc che trước khi đánh chỉ mục; nếu tên xuất hiện trong văn bản tự do thì cần thêm bước che dữ liệu cá nhân (PII masking) (q6).",
+        "Giả định khách tự xác định bản mới nhất và gắn metadata phiên bản/ngày sửa đổi cho 300 file PoC, hoặc chấp nhận việc này nằm trong phạm vi tiền xử lý của dự án.",
+        "Giả định phân quyền được thực hiện bằng security trimming dựa trên nhóm Entra ID, lọc ngay ở bước truy xuất cả với tài liệu lẫn sự cố.",
+        "Giả định các chức năng Teams, nháp báo cáo, đồng bộ SharePoint và màn hình quản trị đầy đủ có thể dời sang phát triển chính thức để PoC nằm trong ngân sách 15 triệu yên (q7).",
+        "Giả định tỉ lệ đúng mục tiêu sẽ được đề xuất sau khi biết cơ cấu bộ 300 câu hỏi và định nghĩa 'trả lời đúng' (q1). Hiện chưa có câu trả lời của khách cho các câu hỏi mở, nhưng không câu nào là blocking với việc chọn pattern."
+      ]
+    },
+    "feasibility": {
+      "risks": [
+        {
+          "category": "data",
+          "description": "Khoảng 30% trong 36.000 trang sách hướng dẫn là PDF scan tiếng Nhật, có ghi chú viết tay. Nhiều trang có bảng, sơ đồ và mã linh kiện (FR-DOC-002, FR-QA-006). Nếu OCR nhận sai, đặc biệt ở ghi chú viết tay, bảng thông số và số hiệu linh kiện, thì truy xuất sẽ trượt hoặc câu trả lời trích sai giá trị. Phụ lục 3 (MC-850H) mới là một mẫu trích, chưa đủ đại diện để kết luận chất lượng OCR.",
+          "severity": 4,
+          "mitigation": "Tuần đầu PoC: chọn khoảng 30 file đại diện trong 300 file của nhóm máy trung tâm gia công Toyohashi, gồm scan, viết tay và bảng phức tạp. Chạy thử Azure AI Document Intelligence (layout model) và đo tỉ lệ lỗi ký tự trên mã linh kiện, thông số. Lưu ảnh trang gốc để hiển thị kèm câu trả lời theo FR-QA-006. Ghi chú viết tay không đọc được thì gắn cờ để quản trị viên nhập tay. Dự phòng thêm 20–30% effort tiền xử lý."
+        },
+        {
+          "category": "privacy",
+          "description": "Tài liệu và sự cố phải lọc theo nhà máy/bộ phận. Ví dụ: Bắc Ninh chỉ xem tài liệu thiết bị của nhà máy mình và tài liệu chung (FR-DOC-004). Ràng buộc này áp dụng cả cho nguồn căn cứ của câu trả lời. Nếu chỉ lọc ở giao diện, LLM vẫn có thể dùng đoạn văn vượt quyền để sinh câu trả lời. Đây là vi phạm NDA và phân quyền nội bộ.",
+          "severity": 4,
+          "mitigation": "Gắn metadata nhà máy/bộ phận/nhóm Entra ID cho từng chunk khi đánh chỉ mục. Áp dụng security filter trong Azure AI Search ngay ở bước truy xuất, dựa trên nhóm Entra ID của người hỏi. Xây bộ test phân quyền, ví dụ tài khoản Bắc Ninh hỏi về thiết bị chỉ có ở Toyohashi phải nhận 'không tìm thấy'. Ghi log tài liệu tham chiếu theo NFR-SEC-005 để kiểm toán."
+        },
+        {
+          "category": "accuracy",
+          "description": "Câu trả lời được dùng trực tiếp để xử lý thiết bị dừng (quy trình, thông số, linh kiện). Nếu LLM bịa hoặc dịch sai thuật ngữ sang tiếng Việt khi tài liệu gốc chỉ có tiếng Nhật (FR-ML-001), thiết bị có thể bị thao tác sai và gây rủi ro an toàn. Ngoài ra, khách yêu cầu đề xuất tỉ lệ đúng mục tiêu ngay trong đề xuất (NFR-QA-001) nhưng chưa định nghĩa 'trả lời đúng'. Đây là rủi ro lệch kỳ vọng khi nghiệm thu.",
+          "severity": 4,
+          "mitigation": "Bắt buộc trích dẫn tên tài liệu, phiên bản, trang hoặc số tiếp nhận sự cố cho mọi câu trả lời. Đặt ngưỡng điểm truy xuất: dưới ngưỡng thì trả '該当する情報が見つかりません' kèm hướng dẫn escalation (FR-QA-003). Đưa bảng thuật ngữ 1.200 từ vào prompt và hiển thị song song nguyên văn tiếng Nhật (FR-ML-003). Với FR-HIS-002, ghi rõ kết quả chỉ là gợi ý, người bảo trì quyết định cuối cùng. Qua câu hỏi gửi trước 14/10, làm rõ cơ cấu 300 câu và tiêu chí chấm. Nêu mục tiêu theo dải (ví dụ tách theo loại câu hỏi) thay vì một con số tuyệt đối."
+        },
+        {
+          "category": "data",
+          "description": "Theo readiness_hint (4) từ mẫu 600 dòng, lịch sử sự cố khá đầy đủ. Tuy vậy, cột アラームコード thiếu 57% và 推定原因 thiếu 24%, làm yếu khả năng lọc theo mã cảnh báo (FR-QA-004) và gợi ý nguyên nhân (FR-HIS-002). Cách ghi và thuật ngữ cũng lẫn lộn Nhật–Việt. Sách hướng dẫn nằm rải rác ở bản giấy, PDF, file server và SharePoint, đang trong quá trình chuyển đổi, khó xác định bản mới nhất (FR-DOC-003). Vì hai yếu tố về tài liệu này, điểm data_readiness được hạ 1 bậc xuống 3. Giả định này cần xác nhận khi khảo sát.",
+          "severity": 3,
+          "mitigation": "Chuẩn hóa mã cảnh báo và mã thiết bị bằng quy tắc (AL2047, ＡＬ－２０４７ → AL-2047). Trích mã cảnh báo từ cột 症状 khi cột mã bị trống. Dùng hybrid search (vector đa ngôn ngữ kết hợp từ khóa) để tìm xuyên ngôn ngữ. Chốt với khách người phụ trách xác định bản mới nhất và gắn metadata phiên bản/ngày sửa đổi cho 300 file PoC trước tuần 3. Ghi rõ trong đề xuất phần việc nào thuộc phạm vi dự án."
+        },
+        {
+          "category": "compliance",
+          "description": "Lịch sử sự cố chứa tên và email người xử lý của nhân viên Nhật và Việt Nam. Dữ liệu được lưu và xử lý tại Azure vùng Đông Nhật Bản. Áp dụng 個人情報保護法 (APPI, Nhật Bản) về mục đích sử dụng và cung cấp cho bên thứ ba (đội phát triển, có thể là offshore). Với nhân viên Bắc Ninh, áp dụng Nghị định 13/2023/NĐ-CP (Việt Nam) về sự đồng ý và hồ sơ đánh giá tác động khi chuyển dữ liệu cá nhân ra nước ngoài, tức từ Việt Nam sang tenant tại Nhật. Tên người cũng có thể nằm trong văn bản tự do (症状, 処置内容).",
+          "severity": 3,
+          "mitigation": "Loại cột 対応者 và 対応者メール trước khi đánh chỉ mục, hoặc thay bằng ID ẩn danh. Thêm bước PII masking cho văn bản tự do và kiểm tra lại câu trả lời trước khi hiển thị (NFR-SEC-006). Đề nghị khách xác nhận với pháp chế về thông báo mục đích sử dụng theo APPI. Phối hợp với pháp nhân Bắc Ninh lập hồ sơ đánh giá tác động chuyển dữ liệu ra nước ngoài theo NĐ 13. Nếu dùng offshore, nêu rõ quy trình bảo mật: chỉ truy cập trong tenant khách, không tải dữ liệu NDA về máy, có log truy cập."
+        },
+        {
+          "category": "compliance",
+          "description": "Toàn bộ dữ liệu (tài liệu, chỉ mục, log) phải nằm trong tenant vùng Đông Nhật Bản. Model phải được đảm bảo theo hợp đồng không dùng dữ liệu để huấn luyện (NFR-SEC-001/002). Nếu dùng Azure OpenAI kiểu Regional tại Japan East, dải model, quota và throughput có thể bị giới hạn, khó đạt mức 5 giây/15 giây với 50 người dùng đồng thời. Nếu dùng Data Zone/Global, phải xác nhận việc xử lý ngoài Nhật có được chấp nhận hay không. Điểm này hiện chưa rõ (q2).",
+          "severity": 3,
+          "mitigation": "Xác nhận sớm với khách kiểu triển khai được phép. Kiểm tra model, quota hiện có tại Japan East và đăng ký PTU nếu cần. Chạy load test 50 người dùng đồng thời từ tuần 6–8 của PoC, đo cả đường truyền từ Bắc Ninh qua trụ sở chính. Dùng streaming để đạt mục tiêu 5 giây cho phần hiển thị đầu tiên."
+        },
+        {
+          "category": "cost",
+          "description": "PoC chỉ có 3 tháng và 15 triệu yên, trong khi danh sách có 41 yêu cầu. Còn phải tích hợp MAINTE-PRO on-prem (REST API một phần, chỉ đọc) trong mạng nội bộ khép kín, xử lý OCR và cần bridge SE tiếng Nhật. Nếu không cắt phạm vi rõ ràng, effort sẽ vượt ngân sách.",
+          "severity": 3,
+          "mitigation": "Giới hạn phạm vi PoC vào các yêu cầu bắt buộc: hỏi đáp, trích dẫn, tìm sự cố tương tự, phân quyền, OCR, log. Dùng file CSV export từ MAINTE-PRO cho 8.000 bản ghi PoC thay vì tích hợp API thời gian thực. Dời Teams, đồng bộ SharePoint hằng ngày, nháp báo cáo và màn hình quản trị đầy đủ sang Phase 2. Ghi rõ danh sách phạm vi trong hợp đồng 準委任."
+        },
+        {
+          "category": "adoption",
+          "description": "Người dùng hiện trường làm 3 ca, đeo găng tay và dùng máy tính bảng Android/iPad. Nhân viên lâu năm quen tra cứu theo kinh nghiệm. Nhân viên Bắc Ninh có thể thiếu tin tưởng vào câu trả lời dịch từ tài liệu tiếng Nhật. Nếu tỉ lệ sử dụng thấp, các mục tiêu giảm thời gian dừng máy và giảm câu hỏi gửi về Nhật sẽ không đạt.",
+          "severity": 2,
+          "mitigation": "Chọn champion ở tổ bảo trì Toyohashi trong PoC, sau đó thêm champion ở Bắc Ninh ở Phase 2. Thiết kế giao diện nút lớn, có nhập bằng giọng nói. Thu feedback trên từng câu trả lời (FR-UI-003) để cải tiến hằng tuần. Đo baseline thời gian tra cứu trước và sau PoC để chứng minh giá trị."
+        }
+      ]
+    },
+    "architecture": {
+      "components": [
+        {
+          "name": "Pipeline nạp tài liệu và OCR",
+          "purpose": "Nạp PDF (văn bản/scan), Word, Excel từ file server/SharePoint Online. Chạy OCR tiếng Nhật cho khoảng 30% PDF scan, tách layout, bảng và ảnh trang, sau đó chia chunk. Mỗi chunk gắn metadata gồm tên tài liệu, số phiên bản, ngày sửa đổi, số trang, nhà máy/bộ phận và nhóm Entra ID. Bản cũ được loại khỏi chỉ mục (FR-DOC-001/002/003). Từ Phase 2 có đồng bộ SharePoint hằng ngày (FR-DOC-005).",
+          "tech_options": [
+            "Azure AI Document Intelligence (layout model) + Azure Functions (Python)",
+            "Microsoft Graph API (SharePoint delta sync) + Azure Blob Storage (lưu file gốc và ảnh trang)",
+            "Azure AI Search indexer + custom skill"
+          ]
+        },
+        {
+          "name": "Connector MAINTE-PRO và che dữ liệu cá nhân",
+          "purpose": "Lấy lịch sử sự cố từ MAINTE-PRO (on-prem, SQL Server 2019). PoC dùng CSV export 8.000 bản ghi; MVP chuyển sang REST API chỉ đọc qua kết nối nội bộ. Bước này loại hoặc ẩn danh cột 対応者/対応者メール, che tên người trong văn bản tự do (症状, 処置内容), chuẩn hóa mã cảnh báo/mã thiết bị (AL2047, ＡＬ－２０４７ → AL-2047) và trích mã cảnh báo từ 症状 khi cột mã bị trống.",
+          "tech_options": [
+            "Azure Functions/Container Apps Job (Python hoặc C# .NET để tương thích MAINTE-PRO) + Azure VPN Gateway/ExpressRoute tới mạng nội bộ",
+            "Azure AI Language (PII detection, tiếng Nhật) + quy tắc regex",
+            "Azure Data Factory với Self-hosted Integration Runtime (khi cần đồng bộ định kỳ)"
+          ]
+        },
+        {
+          "name": "Chỉ mục hybrid search có security trimming",
+          "purpose": "Lưu chunk tài liệu và sự cố cùng vector embedding đa ngôn ngữ và trường từ khóa. Hỗ trợ tìm kiếm xuyên ngôn ngữ Nhật–Việt (FR-HIS-001). Hệ thống lọc theo nhóm Entra ID, nhà máy/bộ phận ngay ở bước truy xuất (FR-DOC-004), lọc theo mã thiết bị/mã cảnh báo (FR-QA-004) và dùng semantic reranking để tăng độ chính xác.",
+          "tech_options": [
+            "Azure AI Search (hybrid vector + BM25, semantic ranker, security filter) tại Japan East",
+            "Azure OpenAI text-embedding-3-large (đa ngôn ngữ)"
+          ]
+        },
+        {
+          "name": "RAG orchestration API",
+          "purpose": "Tự nhận diện ngôn ngữ câu hỏi, viết lại câu hỏi theo ngữ cảnh hội thoại (FR-QA-005) và truy xuất có lọc quyền. Khi điểm truy xuất dưới ngưỡng, hệ thống trả 「該当する情報が見つかりません」 kèm hướng dẫn escalation. Câu trả lời được sinh bằng streaming, đúng ngôn ngữ câu hỏi, đưa bảng thuật ngữ 1.200 từ vào prompt, bắt buộc trích dẫn nguồn và hiển thị song song nguyên văn tiếng Nhật. Câu trả lời được kiểm tra PII trước khi hiển thị. Từ Phase 2 có thêm gợi ý nguyên nhân/xử lý (FR-HIS-002) và nháp báo cáo tiếng Nhật (FR-HIS-003).",
+          "tech_options": [
+            "Azure OpenAI Service (GPT-4o/GPT-4.1 series, deployment Regional Japan East hoặc theo xác nhận q2; PTU nếu cần đạt 5s/15s)",
+            "Azure Container Apps hoặc App Service (Python FastAPI) + Semantic Kernel/LangChain",
+            "Azure API Management (giới hạn tốc độ, định tuyến model)"
+          ]
+        },
+        {
+          "name": "Giao diện người dùng Web và Teams",
+          "purpose": "Web chat dùng được trên PC, iPad (iPadOS 17+) và Android 12+. Giao diện có nút lớn cho người đeo găng tay, chuyển cỡ chữ và nhập bằng giọng nói (FR-UI-004). Mỗi câu trả lời hiển thị trích dẫn có thể bấm mở bản gốc, ảnh trang chứa sơ đồ/bảng (FR-QA-006) và nút feedback (FR-UI-003). Từ Phase 2 có bot Microsoft Teams (FR-UI-002).",
+          "tech_options": [
+            "React/Next.js (responsive PWA) host trên Azure Static Web Apps hoặc App Service",
+            "Azure Bot Service + Teams app",
+            "Azure AI Speech (nhận dạng giọng nói Nhật/Việt)"
+          ]
+        },
+        {
+          "name": "Xác thực, log kiểm toán và màn hình quản trị",
+          "purpose": "Đăng nhập một lần và xác thực đa yếu tố qua Entra ID, phân quyền theo nhóm (NFR-SEC-003, FR-ADM-003). Hệ thống lưu log câu hỏi, câu trả lời, tài liệu tham chiếu, người dùng và thời gian trong 1 năm, cho phép tìm kiếm và xuất CSV (NFR-SEC-005). Màn hình quản trị gồm thống kê sử dụng theo nhà máy/kỳ (FR-ADM-001), quản lý tài liệu và bảng thuật ngữ (FR-ML-002), xử lý câu trả lời bị đánh giá thấp (FR-ADM-002). Dữ liệu được mã hóa khi truyền và khi lưu. Hệ thống có giám sát để đạt mức sẵn sàng 99,5%.",
+          "tech_options": [
+            "Microsoft Entra ID (MSAL, group claims)",
+            "Azure Cosmos DB hoặc Azure SQL Database (log, feedback, thuật ngữ) + Azure Key Vault",
+            "Azure Monitor/Application Insights/Log Analytics"
+          ]
+        },
+        {
+          "name": "Bộ đánh giá chất lượng câu trả lời",
+          "purpose": "Chạy tự động bộ 300 câu hỏi đánh giá có đáp án (NFR-QA-001), đo độ đúng theo từng loại câu hỏi và chạy bộ test phân quyền. Bộ này dùng để kiểm định trước khi cập nhật phiên bản LLM (NFR-OPS-002) và theo dõi điểm đánh giá hiện trường (mục tiêu ≥3,5/5).",
+          "tech_options": [
+            "Azure AI Foundry Evaluation / Prompt flow",
+            "Script Python (pytest + LLM-as-judge) chạy trên Azure DevOps/GitHub Actions"
+          ]
+        }
+      ],
+      "deployment": "cloud",
+      "estimates": [
+        {
+          "phase": "poc",
+          "min_person_days": 105,
+          "max_person_days": 158,
+          "team": [
+            "PM kiêm bridge SE tiếng Nhật",
+            "AI/RAG engineer x2",
+            "Data engineer (OCR, tiền xử lý tài liệu, CSV MAINTE-PRO)",
+            "Fullstack engineer (Web UI, Entra ID)",
+            "Cloud/DevOps engineer (Azure, bảo mật, mạng) bán thời gian",
+            "QA/đánh giá (300 câu hỏi, test phân quyền)"
+          ],
+          "deliverables": [
+            "Báo cáo đánh giá OCR trên khoảng 30 file đại diện (scan, viết tay, bảng phức tạp) trong tuần đầu",
+            "Pipeline nạp khoảng 300 file nhóm máy trung tâm gia công Toyohashi, có metadata phiên bản và quyền truy cập",
+            "Nạp 8.000 bản ghi sự cố từ CSV export, đã che PII và chuẩn hóa mã cảnh báo/mã thiết bị",
+            "Chỉ mục hybrid Azure AI Search có security trimming theo nhóm Entra ID",
+            "Web chat (PC/tablet) hỏi đáp Nhật/Việt có trích dẫn, ảnh trang gốc, tìm 5 sự cố tương tự, feedback và log thao tác",
+            "Báo cáo độ chính xác trên bộ 300 câu hỏi theo từng loại câu hỏi, kết quả test phân quyền, load test 50 người dùng đồng thời (kể cả đường truyền từ Bắc Ninh)",
+            "Báo cáo đánh giá hiện trường (mục tiêu ≥3,5/5) và đề xuất phạm vi Phase 2"
+          ],
+          "adjustment_note": "Giữ nguyên khoảng computed_estimates (105–158). Khoảng này đã tính hệ số OCR, tiếng Nhật và tuân thủ. Phạm vi PoC được cắt theo mitigation chi phí: dùng CSV thay cho API, dời Teams, đồng bộ SharePoint, nháp báo cáo và màn hình quản trị đầy đủ sang MVP. Nếu OCR ghi chú viết tay kém, ưu tiên mức trên của khoảng. Cần đối chiếu thêm với trần ngân sách 15 triệu yên."
+        },
+        {
+          "phase": "mvp",
+          "min_person_days": 315,
+          "max_person_days": 473,
+          "team": [
+            "PM kiêm bridge SE tiếng Nhật",
+            "AI/RAG engineer x2",
+            "Data engineer x1–2",
+            "Backend engineer (connector MAINTE-PRO, .NET/Python)",
+            "Frontend engineer (Web, Teams bot)",
+            "Cloud/DevOps/Security engineer",
+            "QA engineer",
+            "Technical writer/biên dịch Nhật–Việt (bán thời gian)"
+          ],
+          "deliverables": [
+            "Mở rộng lên toàn bộ khoảng 2.300 file (48.000 trang) và 62.000 bản ghi sự cố của Toyohashi, Kariya và Bắc Ninh",
+            "Đồng bộ SharePoint Online hằng ngày (thêm/cập nhật/xóa) và quản lý phiên bản tài liệu",
+            "Connector REST API MAINTE-PRO qua kết nối mạng nội bộ; ghi báo cáo vào MAINTE-PRO có bước người dùng xác nhận (nếu API hỗ trợ ghi)",
+            "Gợi ý nguyên nhân/xử lý theo độ tin cậy, nháp báo cáo công việc tiếng Nhật từ ghi chú tiếng Việt/Nhật",
+            "Bot Microsoft Teams, nhập bằng giọng nói, giao diện thao tác khi đeo găng tay",
+            "Màn hình quản trị: thống kê sử dụng, xuất CSV log, quản lý bảng thuật ngữ, xử lý câu trả lời bị đánh giá thấp, phân quyền theo nhóm Entra ID",
+            "Kiến trúc đạt mức sẵn sàng 99,5%, load test, kiểm thử bảo mật; tài liệu đào tạo quản trị viên (tiếng Nhật) và hướng dẫn người dùng (Nhật/Việt)"
+          ],
+          "adjustment_note": "Giữ nguyên khoảng computed_estimates (315–473). Theo bài học rp_02, nếu REST API của MAINTE-PRO thiếu endpoint cần thiết, phần tích hợp có thể tốn effort đáng kể. Khi đó nghiêng về mức trên của khoảng."
+        },
+        {
+          "phase": "production",
+          "min_person_days": 158,
+          "max_person_days": 263,
+          "team": [
+            "Service manager/bridge SE tiếng Nhật",
+            "AI/RAG engineer (bán thời gian)",
+            "Cloud/DevOps engineer (giám sát, sự cố)",
+            "Hỗ trợ người dùng tiếng Việt cho Bắc Ninh (bán thời gian)"
+          ],
+          "deliverables": [
+            "Vận hành bảo trì 1 năm từ 10/2027: hỗ trợ hỏi đáp (tiếng Nhật, tiếng Việt cho Bắc Ninh), xử lý sự cố, báo cáo hằng tháng, chỉnh sửa nhỏ",
+            "Bảo trì theo kế hoạch tối đa 1 lần/tháng, không quá 4 tiếng, có thông báo trước",
+            "Kiểm định chất lượng bằng bộ 300 câu hỏi trước mỗi lần cập nhật phiên bản LLM",
+            "Cải tiến hằng tháng dựa trên feedback và câu trả lời bị đánh giá thấp, cập nhật bảng thuật ngữ và quy tắc chuẩn hóa"
+          ],
+          "adjustment_note": "Giữ nguyên khoảng computed_estimates (158–263) cho 1 năm vận hành bảo trì theo NFR-OPS-001. Chi phí Azure do khách chi trả, không nằm trong effort."
+        }
+      ],
+      "reference_projects": [
+        "rp_example",
+        "rp_02_order_email_agent"
+      ],
+      "out_of_scope": [
+        "Ứng dụng mobile native iOS/Android (chỉ cung cấp Web responsive/PWA và Teams)",
+        "Số hóa sách hướng dẫn bản giấy và migrate file server sang SharePoint Online",
+        "Ghi dữ liệu vào MAINTE-PRO trong PoC và chỉnh sửa mã nguồn MAINTE-PRO",
+        "Fine-tune LLM và mô hình ML dự đoán hỏng hóc",
+        "Tư vấn pháp lý APPI/Nghị định 13/2023 và chi phí hạ tầng Azure"
+      ],
+      "mermaid": "flowchart LR\n  FS[File server / SharePoint Online] --> ING[Pipeline nạp và OCR Document Intelligence]\n  MP[MAINTE-PRO on-prem] --> CON[Connector sự cố và che PII]\n  ING --> IDX[Azure AI Search hybrid index có security trimming]\n  CON --> IDX\n  U[Nhân viên bảo trì PC iPad Android] --> UI[Web chat và Teams bot]\n  UI --> AUTH[Entra ID SSO MFA]\n  UI --> API[RAG orchestration API]\n  API --> IDX\n  API --> LLM[Azure OpenAI Japan East]\n  API --> LOG[Log kiểm toán và màn hình quản trị]\n  ADM[Quản trị viên] --> LOG\n  EVAL[Bộ đánh giá 300 câu hỏi] --> API\n  API --> UI"
+    },
+    "computed_estimates": {
+      "poc": [
+        105,
+        158
+      ],
+      "mvp": [
+        315,
+        473
+      ],
+      "production": [
+        158,
+        263
+      ]
+    },
+    "answers": {}
+  },
+  "response": "```json\n{\"items\":[\n{\"id\":\"1\",\"phase\":\"poc\",\"name\":\"Quản lý dự án PoC\",\"level\":1},\n{\"id\":\"1.1\",\"phase\":\"poc\",\"name\":\"Kick-off và lập kế hoạch PoC\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":4,\"deliverable\":\"Biên bản kick-off, kế hoạch PoC 3 tháng\"},\n{\"id\":\"1.2\",\"phase\":\"poc\",\"name\":\"Quản lý tiến độ, báo cáo tuần, bridge SE tiếng Nhật\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"1.1\"],\"deliverable\":\"Báo cáo tuần tiếng Nhật, biên bản họp\"},\n{\"id\":\"1.3\",\"phase\":\"poc\",\"name\":\"Quy trình bảo mật NDA và quản lý chất lượng offshore\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":3,\"depends_on\":[\"1.1\"],\"tags\":[\"security\"],\"deliverable\":\"Quy định truy cập tenant khách, log truy cập\",\"note\":\"Không tải dữ liệu NDA về máy cá nhân\"},\n{\"id\":\"2\",\"phase\":\"poc\",\"name\":\"Phân tích yêu cầu và môi trường\",\"level\":1},\n{\"id\":\"2.1\",\"phase\":\"poc\",\"name\":\"Phân tích yêu cầu PoC\",\"level\":2},\n{\"id\":\"2.1.1\",\"phase\":\"poc\",\"name\":\"Chốt phạm vi PoC và yêu cầu bắt buộc\",\"level\":3,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"1.1\"],\"deliverable\":\"Danh sách phạm vi PoC (đính kèm hợp đồng 準委任)\"},\n{\"id\":\"2.1.2\",\"phase\":\"poc\",\"name\":\"Làm rõ định nghĩa 'trả lời đúng' và cơ cấu 300 câu hỏi\",\"level\":3,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":3,\"depends_on\":[\"1.1\"],\"deliverable\":\"Tiêu chí chấm điểm theo loại câu hỏi\"},\n{\"id\":\"2.2\",\"phase\":\"poc\",\"name\":\"Kiến trúc và môi trường Azure\",\"level\":2},\n{\"id\":\"2.2.1\",\"phase\":\"poc\",\"name\":\"Thiết kế kiến trúc, xác nhận kiểu triển khai Azure OpenAI (q2)\",\"level\":3,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":3,\"depends_on\":[\"2.1.1\"],\"deliverable\":\"Tài liệu kiến trúc PoC\"},\n{\"id\":\"2.2.2\",\"phase\":\"poc\",\"name\":\"Dựng môi trường Japan East: mạng, Key Vault, mã hóa\",\"level\":3,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"2.2.1\"],\"tags\":[\"security\"],\"deliverable\":\"Môi trường PoC trong tenant khách\"},\n{\"id\":\"3\",\"phase\":\"poc\",\"name\":\"Chuẩn bị dữ liệu PoC\",\"level\":1},\n{\"id\":\"3.1\",\"phase\":\"poc\",\"name\":\"Đánh giá OCR tuần đầu\",\"level\":2},\n{\"id\":\"3.1.1\",\"phase\":\"poc\",\"name\":\"Chọn 30 file đại diện (scan, viết tay, bảng)\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":2,\"depends_on\":[\"1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Danh sách 30 file mẫu\"},\n{\"id\":\"3.1.2\",\"phase\":\"poc\",\"name\":\"Chạy Document Intelligence và đo lỗi ký tự\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"3.1.1\",\"2.2.2\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Báo cáo đánh giá OCR\"},\n{\"id\":\"3.2\",\"phase\":\"poc\",\"name\":\"Thu thập và làm sạch 300 file tài liệu\",\"level\":2},\n{\"id\":\"3.2.1\",\"phase\":\"poc\",\"name\":\"Xác định bản mới nhất, gắn metadata phiên bản và quyền\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"3.1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Bảng metadata 300 file\"},\n{\"id\":\"3.2.2\",\"phase\":\"poc\",\"name\":\"OCR PDF scan, gắn cờ ghi chú viết tay không đọc được\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"3.1.2\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Văn bản OCR và danh sách trang cần nhập tay\"},\n{\"id\":\"3.3\",\"phase\":\"poc\",\"name\":\"Dữ liệu sự cố 8.000 bản ghi\",\"level\":2},\n{\"id\":\"3.3.1\",\"phase\":\"poc\",\"name\":\"Nạp CSV export, loại cột 対応者/対応者メール\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":3,\"depends_on\":[\"2.2.2\"],\"tags\":[\"data_prep\",\"security\"],\"deliverable\":\"Dữ liệu sự cố đã bỏ cột PII\"},\n{\"id\":\"3.3.2\",\"phase\":\"poc\",\"name\":\"PII masking văn bản tự do (症状, 処置内容)\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"3.3.1\"],\"tags\":[\"data_prep\",\"security\"],\"deliverable\":\"Script che PII, báo cáo kiểm tra\"},\n{\"id\":\"3.3.3\",\"phase\":\"poc\",\"name\":\"Chuẩn hóa mã cảnh báo/mã thiết bị, trích mã từ 症状\",\"level\":3,\"type\":\"DATA\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"3.3.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Quy tắc chuẩn hóa và dữ liệu đã chuẩn hóa\"},\n{\"id\":\"4\",\"phase\":\"poc\",\"name\":\"Lõi RAG PoC\",\"level\":1},\n{\"id\":\"4.1\",\"phase\":\"poc\",\"name\":\"Pipeline ingest và chunking\",\"level\":2},\n{\"id\":\"4.1.1\",\"phase\":\"poc\",\"name\":\"Chunking theo layout/bảng, lưu ảnh trang gốc\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"3.2.2\"],\"deliverable\":\"Pipeline chunking\"},\n{\"id\":\"4.1.2\",\"phase\":\"poc\",\"name\":\"Embedding đa ngôn ngữ và chỉ mục hybrid\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"4.1.1\",\"3.3.3\"],\"deliverable\":\"Chỉ mục Azure AI Search\"},\n{\"id\":\"4.2\",\"phase\":\"poc\",\"name\":\"Security trimming theo nhóm Entra ID\",\"level\":2,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"4.1.2\",\"3.2.1\"],\"tags\":[\"security\"],\"deliverable\":\"Security filter ở bước truy xuất\"},\n{\"id\":\"4.3\",\"phase\":\"poc\",\"name\":\"Retrieval và prompt\",\"level\":2},\n{\"id\":\"4.3.1\",\"phase\":\"poc\",\"name\":\"Hybrid search, semantic rerank, lọc mã thiết bị/cảnh báo\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"4.1.2\"],\"deliverable\":\"Module truy xuất\"},\n{\"id\":\"4.3.2\",\"phase\":\"poc\",\"name\":\"Prompt trích dẫn nguồn, bảng thuật ngữ, ngưỡng 'không tìm thấy'\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"4.3.1\"],\"tags\":[\"prompt_tuning\"],\"deliverable\":\"Bộ prompt Nhật/Việt\"},\n{\"id\":\"4.3.3\",\"phase\":\"poc\",\"name\":\"Nhận diện ngôn ngữ và viết lại câu hỏi hội thoại\",\"level\":3,\"type\":\"AI\",\"priority\":\"mid\",\"estimate_md\":3,\"depends_on\":[\"4.3.2\"],\"tags\":[\"prompt_tuning\"],\"deliverable\":\"Module query rewrite\"},\n{\"id\":\"4.4\",\"phase\":\"poc\",\"name\":\"API hỏi đáp\",\"level\":2},\n{\"id\":\"4.4.1\",\"phase\":\"poc\",\"name\":\"API hỏi đáp streaming (FastAPI)\",\"level\":3,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"4.3.1\",\"4.2\"],\"deliverable\":\"API hỏi đáp\"},\n{\"id\":\"4.4.2\",\"phase\":\"poc\",\"name\":\"Lưu log thao tác và feedback\",\"level\":3,\"type\":\"BE\",\"priority\":\"mid\",\"estimate_md\":3,\"depends_on\":[\"4.4.1\"],\"tags\":[\"security\"],\"deliverable\":\"Log câu hỏi, câu trả lời, tài liệu tham chiếu\"},\n{\"id\":\"4.4.3\",\"phase\":\"poc\",\"name\":\"Kiểm tra PII trong câu trả lời trước khi hiển thị\",\"level\":3,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":2,\"depends_on\":[\"4.4.1\"],\"tags\":[\"security\"],\"deliverable\":\"Bộ lọc PII đầu ra\"},\n{\"id\":\"5\",\"phase\":\"poc\",\"name\":\"Giao diện Web chat PoC\",\"level\":1},\n{\"id\":\"5.1\",\"phase\":\"poc\",\"name\":\"Web chat PC/tablet\",\"level\":2},\n{\"id\":\"5.1.1\",\"phase\":\"poc\",\"name\":\"Thiết kế UI tablet nút lớn\",\"level\":3,\"type\":\"DESIGN\",\"priority\":\"mid\",\"estimate_md\":3,\"depends_on\":[\"2.1.1\"],\"deliverable\":\"Mockup UI\"},\n{\"id\":\"5.1.2\",\"phase\":\"poc\",\"name\":\"Web chat có đăng nhập Entra ID SSO/MFA\",\"level\":3,\"type\":\"FE\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"5.1.1\",\"4.4.1\"],\"tags\":[\"security\"],\"deliverable\":\"Web chat responsive\"},\n{\"id\":\"5.1.3\",\"phase\":\"poc\",\"name\":\"Hiển thị trích dẫn, ảnh trang, 5 sự cố tương tự, nút feedback\",\"level\":3,\"type\":\"FE\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"5.1.2\"],\"deliverable\":\"Màn hình câu trả lời\"},\n{\"id\":\"6\",\"phase\":\"poc\",\"name\":\"Đánh giá và test PoC\",\"level\":1},\n{\"id\":\"6.1\",\"phase\":\"poc\",\"name\":\"Bộ đánh giá độ chính xác\",\"level\":2},\n{\"id\":\"6.1.1\",\"phase\":\"poc\",\"name\":\"Xây bộ đánh giá tự động 300 câu hỏi\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"2.1.2\"],\"tags\":[\"evaluation\"],\"deliverable\":\"Script đánh giá (LLM-as-judge)\"},\n{\"id\":\"6.1.2\",\"phase\":\"poc\",\"name\":\"Chạy đánh giá và tinh chỉnh lặp\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"6.1.1\",\"4.4.1\"],\"tags\":[\"evaluation\",\"prompt_tuning\"],\"deliverable\":\"Báo cáo độ chính xác theo loại câu hỏi\"},\n{\"id\":\"6.2\",\"phase\":\"poc\",\"name\":\"Test và nghiệm thu\",\"level\":2},\n{\"id\":\"6.2.1\",\"phase\":\"poc\",\"name\":\"Test chức năng\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"5.1.3\"],\"deliverable\":\"Kết quả test chức năng\"},\n{\"id\":\"6.2.2\",\"phase\":\"poc\",\"name\":\"Test phân quyền theo nhà máy/bộ phận\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":3,\"depends_on\":[\"4.2\",\"5.1.2\"],\"tags\":[\"security\"],\"deliverable\":\"Kết quả test phân quyền\"},\n{\"id\":\"6.2.3\",\"phase\":\"poc\",\"name\":\"Load test 50 người dùng, gồm đường truyền Bắc Ninh\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"4.4.1\"],\"deliverable\":\"Báo cáo load test 5s/15s\"},\n{\"id\":\"6.2.4\",\"phase\":\"poc\",\"name\":\"Đánh giá hiện trường với champion Toyohashi\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"6.2.1\"],\"deliverable\":\"Báo cáo đánh giá hiện trường (mục tiêu ≥3,5/5)\"},\n{\"id\":\"7\",\"phase\":\"poc\",\"name\":\"Tài liệu và bàn giao PoC\",\"level\":1},\n{\"id\":\"7.1\",\"phase\":\"poc\",\"name\":\"Báo cáo kết quả PoC và đề xuất phạm vi Phase 2\",\"level\":2,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"6.1.2\",\"6.2.4\"],\"tags\":[\"documentation\"],\"deliverable\":\"Báo cáo PoC tiếng Nhật\"},\n{\"id\":\"7.2\",\"phase\":\"poc\",\"name\":\"Tài liệu hướng dẫn sử dụng PoC\",\"level\":2,\"type\":\"BA\",\"priority\":\"mid\",\"estimate_md\":2,\"depends_on\":[\"5.1.3\"],\"tags\":[\"documentation\"],\"deliverable\":\"Hướng dẫn sử dụng Nhật\"},\n{\"id\":\"8\",\"phase\":\"mvp\",\"name\":\"Quản lý dự án MVP\",\"level\":1},\n{\"id\":\"8.1\",\"phase\":\"mvp\",\"name\":\"Kick-off và lập kế hoạch Phase 2\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"7.1\"],\"deliverable\":\"Kế hoạch Phase 2\"},\n{\"id\":\"8.2\",\"phase\":\"mvp\",\"name\":\"Quản lý tiến độ và bridge SE\",\"level\":2},\n{\"id\":\"8.2.1\",\"phase\":\"mvp\",\"name\":\"Quản lý tiến độ tháng 4–6/2027\",\"level\":3,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"8.1\"],\"deliverable\":\"Báo cáo tuần/tháng\"},\n{\"id\":\"8.2.2\",\"phase\":\"mvp\",\"name\":\"Quản lý tiến độ tháng 7–9/2027\",\"level\":3,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"8.2.1\"],\"deliverable\":\"Báo cáo tuần/tháng\"},\n{\"id\":\"8.2.3\",\"phase\":\"mvp\",\"name\":\"Bridge SE: họp, dịch thuật, review chất lượng offshore\",\"level\":3,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"8.1\"],\"deliverable\":\"Biên bản họp, checklist review\"},\n{\"id\":\"8.3\",\"phase\":\"mvp\",\"name\":\"Quản lý rủi ro và bảo mật offshore\",\"level\":2,\"type\":\"PM\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"8.1\"],\"tags\":[\"security\"],\"deliverable\":\"Sổ rủi ro, log truy cập\"},\n{\"id\":\"9\",\"phase\":\"mvp\",\"name\":\"Phân tích yêu cầu và thiết kế\",\"level\":1},\n{\"id\":\"9.1\",\"phase\":\"mvp\",\"name\":\"Phân tích yêu cầu Phase 2\",\"level\":2},\n{\"id\":\"9.1.1\",\"phase\":\"mvp\",\"name\":\"Rà soát 41 yêu cầu theo kết quả PoC\",\"level\":3,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"8.1\"],\"deliverable\":\"Đặc tả yêu cầu Phase 2\"},\n{\"id\":\"9.1.2\",\"phase\":\"mvp\",\"name\":\"Đặc tả gợi ý nguyên nhân và nháp báo cáo\",\"level\":3,\"type\":\"BA\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"9.1.1\"],\"deliverable\":\"Đặc tả FR-HIS-002/003\"},\n{\"id\":\"9.1.3\",\"phase\":\"mvp\",\"name\":\"Khảo sát REST API MAINTE-PRO và endpoint còn thiếu\",\"level\":3,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":4,\"depends_on\":[\"8.1\"],\"tags\":[\"integration\"],\"deliverable\":\"Báo cáo khảo sát API\"},\n{\"id\":\"9.2\",\"phase\":\"mvp\",\"name\":\"Thiết kế UI tổng thể (Web, Teams, quản trị)\",\"level\":2,\"type\":\"DESIGN\",\"priority\":\"mid\",\"estimate_md\":6,\"depends_on\":[\"9.1.1\"],\"deliverable\":\"Thiết kế UI\"},\n{\"id\":\"10\",\"phase\":\"mvp\",\"name\":\"Hạ tầng và vận hành\",\"level\":1},\n{\"id\":\"10.1\",\"phase\":\"mvp\",\"name\":\"Hạ tầng sẵn sàng 99,5%\",\"level\":2},\n{\"id\":\"10.1.1\",\"phase\":\"mvp\",\"name\":\"Thiết kế HA, backup và khôi phục\",\"level\":3,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"9.1.1\"],\"deliverable\":\"Thiết kế HA\"},\n{\"id\":\"10.1.2\",\"phase\":\"mvp\",\"name\":\"Môi trường dev/stg/prod bằng IaC\",\"level\":3,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"10.1.1\"],\"tags\":[\"security\"],\"deliverable\":\"IaC và môi trường\"},\n{\"id\":\"10.1.3\",\"phase\":\"mvp\",\"name\":\"Kết nối VPN/ExpressRoute tới mạng nội bộ\",\"level\":3,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"10.1.2\"],\"tags\":[\"integration\",\"security\"],\"deliverable\":\"Kết nối mạng tới MAINTE-PRO\"},\n{\"id\":\"10.1.4\",\"phase\":\"mvp\",\"name\":\"Giám sát Azure Monitor/App Insights và cảnh báo\",\"level\":3,\"type\":\"INFRA\",\"priority\":\"mid\",\"estimate_md\":5,\"depends_on\":[\"10.1.2\"],\"deliverable\":\"Dashboard giám sát\"},\n{\"id\":\"10.1.5\",\"phase\":\"mvp\",\"name\":\"Pipeline CI/CD\",\"level\":3,\"type\":\"INFRA\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"10.1.2\"],\"deliverable\":\"CI/CD\"},\n{\"id\":\"11\",\"phase\":\"mvp\",\"name\":\"Chuẩn bị dữ liệu toàn bộ\",\"level\":1},\n{\"id\":\"11.1\",\"phase\":\"mvp\",\"name\":\"Tài liệu khoảng 2.300 file\",\"level\":2},\n{\"id\":\"11.1.1\",\"phase\":\"mvp\",\"name\":\"Thu thập, xác định bản mới nhất, metadata – Toyohashi\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"9.1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Metadata tài liệu Toyohashi\"},\n{\"id\":\"11.1.2\",\"phase\":\"mvp\",\"name\":\"Thu thập, xác định bản mới nhất, metadata – Kariya\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"9.1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Metadata tài liệu Kariya\"},\n{\"id\":\"11.1.3\",\"phase\":\"mvp\",\"name\":\"Thu thập, xác định bản mới nhất, metadata – Bắc Ninh và tài liệu chung\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"9.1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Metadata tài liệu Bắc Ninh\"},\n{\"id\":\"11.1.4\",\"phase\":\"mvp\",\"name\":\"OCR quy mô lớn, xử lý lỗi và ghi chú viết tay\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"11.1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Văn bản OCR toàn bộ PDF scan\"},\n{\"id\":\"11.1.5\",\"phase\":\"mvp\",\"name\":\"Kiểm tra chất lượng OCR bảng thông số, mã linh kiện\",\"level\":3,\"type\":\"DATA\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"11.1.4\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Báo cáo QC OCR\"},\n{\"id\":\"11.2\",\"phase\":\"mvp\",\"name\":\"Lịch sử sự cố 62.000 bản ghi\",\"level\":2},\n{\"id\":\"11.2.1\",\"phase\":\"mvp\",\"name\":\"PII masking toàn bộ bản ghi\",\"level\":3,\"type\":\"DATA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"9.1.3\"],\"tags\":[\"data_prep\",\"security\"],\"deliverable\":\"Dữ liệu sự cố đã che PII\"},\n{\"id\":\"11.2.2\",\"phase\":\"mvp\",\"name\":\"Mở rộng quy tắc chuẩn hóa mã cảnh báo/thuật ngữ\",\"level\":3,\"type\":\"DATA\",\"priority\":\"mid\",\"estimate_md\":6,\"depends_on\":[\"11.2.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Quy tắc chuẩn hóa cập nhật\"},\n{\"id\":\"11.2.3\",\"phase\":\"mvp\",\"name\":\"Chuẩn hóa bảng thuật ngữ Nhật–Việt 1.200 từ\",\"level\":3,\"type\":\"DATA\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"9.1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Bảng thuật ngữ chuẩn hóa\"},\n{\"id\":\"12\",\"phase\":\"mvp\",\"name\":\"Phát triển backend và AI\",\"level\":1},\n{\"id\":\"12.1\",\"phase\":\"mvp\",\"name\":\"Pipeline ingest sản xuất\",\"level\":2},\n{\"id\":\"12.1.1\",\"phase\":\"mvp\",\"name\":\"Đồng bộ SharePoint Online hằng ngày (delta)\",\"level\":3,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"10.1.2\"],\"tags\":[\"integration\"],\"deliverable\":\"Job đồng bộ thêm/sửa/xóa\"},\n{\"id\":\"12.1.2\",\"phase\":\"mvp\",\"name\":\"Quản lý phiên bản, loại bản cũ khỏi chỉ mục\",\"level\":3,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"12.1.1\"],\"deliverable\":\"Module quản lý phiên bản\"},\n{\"id\":\"12.1.3\",\"phase\":\"mvp\",\"name\":\"Mở rộng ingest và tối ưu chunking quy mô lớn\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"11.1.4\"],\"deliverable\":\"Chỉ mục toàn bộ tài liệu\"},\n{\"id\":\"12.2\",\"phase\":\"mvp\",\"name\":\"Connector MAINTE-PRO\",\"level\":2},\n{\"id\":\"12.2.1\",\"phase\":\"mvp\",\"name\":\"Connector REST API chỉ đọc\",\"level\":3,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"9.1.3\",\"10.1.3\"],\"tags\":[\"integration\"],\"deliverable\":\"Connector lấy sự cố\"},\n{\"id\":\"12.2.2\",\"phase\":\"mvp\",\"name\":\"Đồng bộ định kỳ và xử lý lỗi kết nối\",\"level\":3,\"type\":\"BE\",\"priority\":\"mid\",\"estimate_md\":5,\"depends_on\":[\"12.2.1\"],\"tags\":[\"integration\"],\"deliverable\":\"Job đồng bộ sự cố\"},\n{\"id\":\"12.2.3\",\"phase\":\"mvp\",\"name\":\"Ghi báo cáo vào MAINTE-PRO có bước xác nhận\",\"level\":3,\"type\":\"BE\",\"priority\":\"low\",\"estimate_md\":6,\"depends_on\":[\"12.2.1\",\"12.3.3\"],\"tags\":[\"integration\"],\"deliverable\":\"Chức năng ghi báo cáo\",\"note\":\"Chỉ làm nếu API hỗ trợ ghi\"},\n{\"id\":\"12.3\",\"phase\":\"mvp\",\"name\":\"RAG nâng cao\",\"level\":2},\n{\"id\":\"12.3.1\",\"phase\":\"mvp\",\"name\":\"Tối ưu retrieval trên toàn bộ dữ liệu 3 nhà máy\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"12.1.3\",\"11.2.2\"],\"tags\":[\"prompt_tuning\"],\"deliverable\":\"Cấu hình retrieval tối ưu\"},\n{\"id\":\"12.3.2\",\"phase\":\"mvp\",\"name\":\"Gợi ý nguyên nhân/xử lý theo độ tin cậy\",\"level\":3,\"type\":\"AI\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"9.1.2\",\"12.3.1\"],\"tags\":[\"prompt_tuning\"],\"deliverable\":\"Chức năng FR-HIS-002\"},\n{\"id\":\"12.3.3\",\"phase\":\"mvp\",\"name\":\"Nháp báo cáo công việc tiếng Nhật\",\"level\":3,\"type\":\"AI\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"9.1.2\"],\"tags\":[\"prompt_tuning\"],\"deliverable\":\"Chức năng FR-HIS-003\"},\n{\"id\":\"12.3.4\",\"phase\":\"mvp\",\"name\":\"Tối ưu độ trễ, streaming, quota/PTU\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"12.3.1\"],\"deliverable\":\"Báo cáo độ trễ\"},\n{\"id\":\"12.4\",\"phase\":\"mvp\",\"name\":\"Bảo mật và backend quản trị\",\"level\":2},\n{\"id\":\"12.4.1\",\"phase\":\"mvp\",\"name\":\"Phân quyền nhóm Entra ID cho 3 nhà máy\",\"level\":3,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"11.1.3\"],\"tags\":[\"security\"],\"deliverable\":\"Ma trận quyền và security filter\"},\n{\"id\":\"12.4.2\",\"phase\":\"mvp\",\"name\":\"Log kiểm toán 1 năm, tìm kiếm và xuất CSV\",\"level\":3,\"type\":\"BE\",\"priority\":\"high\",\"estimate_md\":5,\"depends_on\":[\"10.1.2\"],\"tags\":[\"security\"],\"deliverable\":\"API log kiểm toán\"},\n{\"id\":\"12.4.3\",\"phase\":\"mvp\",\"name\":\"API quản trị: thống kê, thuật ngữ, câu trả lời bị đánh giá thấp\",\"level\":3,\"type\":\"BE\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"12.4.2\"],\"deliverable\":\"API quản trị\"},\n{\"id\":\"13\",\"phase\":\"mvp\",\"name\":\"Phát triển frontend\",\"level\":1},\n{\"id\":\"13.1\",\"phase\":\"mvp\",\"name\":\"Web chat nâng cao\",\"level\":2},\n{\"id\":\"13.1.1\",\"phase\":\"mvp\",\"name\":\"Tối ưu iPad/Android, nút lớn, chuyển cỡ chữ\",\"level\":3,\"type\":\"FE\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"9.2\"],\"deliverable\":\"Web chat responsive/PWA\"},\n{\"id\":\"13.1.2\",\"phase\":\"mvp\",\"name\":\"Nhập bằng giọng nói (Azure AI Speech)\",\"level\":3,\"type\":\"FE\",\"priority\":\"mid\",\"estimate_md\":5,\"depends_on\":[\"13.1.1\"],\"deliverable\":\"Chức năng nhập giọng nói Nhật/Việt\"},\n{\"id\":\"13.1.3\",\"phase\":\"mvp\",\"name\":\"UI gợi ý nguyên nhân và nháp báo cáo\",\"level\":3,\"type\":\"FE\",\"priority\":\"mid\",\"estimate_md\":6,\"depends_on\":[\"12.3.2\",\"12.3.3\"],\"deliverable\":\"Màn hình gợi ý và báo cáo\"},\n{\"id\":\"13.2\",\"phase\":\"mvp\",\"name\":\"Bot Microsoft Teams\",\"level\":2,\"type\":\"FE\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"12.3.1\"],\"tags\":[\"integration\"],\"deliverable\":\"Teams app\"},\n{\"id\":\"13.3\",\"phase\":\"mvp\",\"name\":\"Màn hình quản trị\",\"level\":2},\n{\"id\":\"13.3.1\",\"phase\":\"mvp\",\"name\":\"Thống kê sử dụng, tìm log, xuất CSV\",\"level\":3,\"type\":\"FE\",\"priority\":\"mid\",\"estimate_md\":7,\"depends_on\":[\"12.4.3\"],\"deliverable\":\"Màn hình thống kê và log\"},\n{\"id\":\"13.3.2\",\"phase\":\"mvp\",\"name\":\"Quản lý tài liệu, thuật ngữ, xử lý feedback thấp\",\"level\":3,\"type\":\"FE\",\"priority\":\"mid\",\"estimate_md\":7,\"depends_on\":[\"12.4.3\"],\"deliverable\":\"Màn hình quản lý\"},\n{\"id\":\"14\",\"phase\":\"mvp\",\"name\":\"Đánh giá và test MVP\",\"level\":1},\n{\"id\":\"14.1\",\"phase\":\"mvp\",\"name\":\"Bộ đánh giá chất lượng AI\",\"level\":2},\n{\"id\":\"14.1.1\",\"phase\":\"mvp\",\"name\":\"Mở rộng bộ đánh giá cho 3 nhà máy và câu hỏi tiếng Việt\",\"level\":3,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"6.1.1\"],\"tags\":[\"evaluation\"],\"deliverable\":\"Bộ đánh giá mở rộng\"},\n{\"id\":\"14.1.2\",\"phase\":\"mvp\",\"name\":\"Tự động hóa đánh giá trong CI\",\"level\":3,\"type\":\"AI\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"14.1.1\",\"10.1.5\"],\"tags\":[\"evaluation\"],\"deliverable\":\"Job đánh giá tự động\"},\n{\"id\":\"14.1.3\",\"phase\":\"mvp\",\"name\":\"Đánh giá gợi ý nguyên nhân và nháp báo cáo\",\"level\":3,\"type\":\"AI\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"12.3.2\",\"12.3.3\"],\"tags\":[\"evaluation\"],\"deliverable\":\"Báo cáo chất lượng FR-HIS-002/003\"},\n{\"id\":\"14.2\",\"phase\":\"mvp\",\"name\":\"Test và nghiệm thu\",\"level\":2},\n{\"id\":\"14.2.1\",\"phase\":\"mvp\",\"name\":\"Thiết kế test case và test chức năng\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"9.1.1\"],\"deliverable\":\"Test case, kết quả test\"},\n{\"id\":\"14.2.2\",\"phase\":\"mvp\",\"name\":\"Test tích hợp MAINTE-PRO, SharePoint, Teams\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"12.2.2\",\"12.1.1\",\"13.2\"],\"tags\":[\"integration\"],\"deliverable\":\"Kết quả test tích hợp\"},\n{\"id\":\"14.2.3\",\"phase\":\"mvp\",\"name\":\"Test phân quyền và kiểm thử bảo mật\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"12.4.1\"],\"tags\":[\"security\"],\"deliverable\":\"Báo cáo kiểm thử bảo mật\"},\n{\"id\":\"14.2.4\",\"phase\":\"mvp\",\"name\":\"Load test 50 người dùng và test HA\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"12.3.4\",\"10.1.1\"],\"deliverable\":\"Báo cáo hiệu năng và sẵn sàng\"},\n{\"id\":\"14.2.5\",\"phase\":\"mvp\",\"name\":\"Hỗ trợ UAT tại 3 nhà máy\",\"level\":3,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"14.2.1\"],\"deliverable\":\"Biên bản UAT\"},\n{\"id\":\"15\",\"phase\":\"mvp\",\"name\":\"Tài liệu và bàn giao MVP\",\"level\":1},\n{\"id\":\"15.1\",\"phase\":\"mvp\",\"name\":\"Tài liệu thiết kế và vận hành\",\"level\":2,\"type\":\"BA\",\"priority\":\"mid\",\"estimate_md\":6,\"depends_on\":[\"14.2.1\"],\"tags\":[\"documentation\"],\"deliverable\":\"Tài liệu thiết kế, runbook\"},\n{\"id\":\"15.2\",\"phase\":\"mvp\",\"name\":\"Tài liệu đào tạo quản trị viên tiếng Nhật\",\"level\":2,\"type\":\"BA\",\"priority\":\"mid\",\"estimate_md\":5,\"depends_on\":[\"13.3.2\"],\"tags\":[\"documentation\"],\"deliverable\":\"Tài liệu đào tạo quản trị viên\"},\n{\"id\":\"15.3\",\"phase\":\"mvp\",\"name\":\"Hướng dẫn người dùng Nhật/Việt\",\"level\":2,\"type\":\"BA\",\"priority\":\"mid\",\"estimate_md\":6,\"depends_on\":[\"13.1.3\"],\"tags\":[\"documentation\"],\"deliverable\":\"Hướng dẫn người dùng song ngữ\"},\n{\"id\":\"15.4\",\"phase\":\"mvp\",\"name\":\"Đào tạo người dùng và champion Bắc Ninh\",\"level\":2,\"type\":\"BA\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"15.3\"],\"tags\":[\"documentation\"],\"deliverable\":\"Buổi đào tạo, danh sách champion\"},\n{\"id\":\"16\",\"phase\":\"production\",\"name\":\"Quản lý dịch vụ vận hành\",\"level\":1},\n{\"id\":\"16.1\",\"phase\":\"production\",\"name\":\"Quản lý dịch vụ và báo cáo tháng 10–12/2027\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"14.2.5\"],\"deliverable\":\"Báo cáo vận hành hằng tháng\"},\n{\"id\":\"16.2\",\"phase\":\"production\",\"name\":\"Quản lý dịch vụ và báo cáo tháng 1–3/2028\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"16.1\"],\"deliverable\":\"Báo cáo vận hành hằng tháng\"},\n{\"id\":\"16.3\",\"phase\":\"production\",\"name\":\"Quản lý dịch vụ và báo cáo tháng 4–6/2028\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"16.2\"],\"deliverable\":\"Báo cáo vận hành hằng tháng\"},\n{\"id\":\"16.4\",\"phase\":\"production\",\"name\":\"Quản lý dịch vụ và báo cáo tháng 7–9/2028\",\"level\":2,\"type\":\"PM\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"16.3\"],\"deliverable\":\"Báo cáo vận hành hằng tháng\"},\n{\"id\":\"16.5\",\"phase\":\"production\",\"name\":\"Họp đánh giá chất lượng dịch vụ hằng quý\",\"level\":2,\"type\":\"PM\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"16.1\"],\"deliverable\":\"Biên bản họp quý\"},\n{\"id\":\"17\",\"phase\":\"production\",\"name\":\"Hỗ trợ người dùng\",\"level\":1},\n{\"id\":\"17.1\",\"phase\":\"production\",\"name\":\"Hỗ trợ hỏi đáp tiếng Nhật 6 tháng đầu\",\"level\":2,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"15.2\"],\"deliverable\":\"Log ticket hỗ trợ\"},\n{\"id\":\"17.2\",\"phase\":\"production\",\"name\":\"Hỗ trợ hỏi đáp tiếng Nhật 6 tháng sau\",\"level\":2,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"17.1\"],\"deliverable\":\"Log ticket hỗ trợ\"},\n{\"id\":\"17.3\",\"phase\":\"production\",\"name\":\"Hỗ trợ tiếng Việt cho Bắc Ninh 6 tháng đầu\",\"level\":2,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"15.4\"],\"deliverable\":\"Log ticket hỗ trợ\"},\n{\"id\":\"17.4\",\"phase\":\"production\",\"name\":\"Hỗ trợ tiếng Việt cho Bắc Ninh 6 tháng sau\",\"level\":2,\"type\":\"BA\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"17.3\"],\"deliverable\":\"Log ticket hỗ trợ\"},\n{\"id\":\"18\",\"phase\":\"production\",\"name\":\"Vận hành hạ tầng\",\"level\":1},\n{\"id\":\"18.1\",\"phase\":\"production\",\"name\":\"Giám sát và xử lý sự cố 6 tháng đầu\",\"level\":2,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"10.1.4\"],\"deliverable\":\"Báo cáo sự cố, tỉ lệ sẵn sàng\"},\n{\"id\":\"18.2\",\"phase\":\"production\",\"name\":\"Giám sát và xử lý sự cố 6 tháng sau\",\"level\":2,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"18.1\"],\"deliverable\":\"Báo cáo sự cố, tỉ lệ sẵn sàng\"},\n{\"id\":\"18.3\",\"phase\":\"production\",\"name\":\"Bảo trì theo kế hoạch hằng tháng (≤4 giờ/lần)\",\"level\":2,\"type\":\"INFRA\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"10.1.2\"],\"deliverable\":\"Thông báo và biên bản bảo trì\"},\n{\"id\":\"18.4\",\"phase\":\"production\",\"name\":\"Rà soát bảo mật, log kiểm toán, cập nhật bản vá\",\"level\":2,\"type\":\"INFRA\",\"priority\":\"high\",\"estimate_md\":6,\"depends_on\":[\"12.4.2\"],\"tags\":[\"security\"],\"deliverable\":\"Báo cáo rà soát bảo mật\"},\n{\"id\":\"18.5\",\"phase\":\"production\",\"name\":\"Tối ưu quota và chi phí Azure\",\"level\":2,\"type\":\"INFRA\",\"priority\":\"low\",\"estimate_md\":5,\"depends_on\":[\"18.1\"],\"deliverable\":\"Đề xuất tối ưu chi phí\"},\n{\"id\":\"19\",\"phase\":\"production\",\"name\":\"Cải tiến chất lượng AI và chỉnh sửa nhỏ\",\"level\":1},\n{\"id\":\"19.1\",\"phase\":\"production\",\"name\":\"Kiểm định bộ 300 câu hỏi trước mỗi lần cập nhật LLM\",\"level\":2,\"type\":\"AI\",\"priority\":\"high\",\"estimate_md\":8,\"depends_on\":[\"14.1.2\"],\"tags\":[\"evaluation\"],\"deliverable\":\"Báo cáo kiểm định phiên bản\"},\n{\"id\":\"19.2\",\"phase\":\"production\",\"name\":\"Cải tiến prompt/retrieval theo feedback 6 tháng đầu\",\"level\":2,\"type\":\"AI\",\"priority\":\"mid\",\"estimate_md\":10,\"depends_on\":[\"19.1\"],\"tags\":[\"prompt_tuning\"],\"deliverable\":\"Bản cập nhật prompt, báo cáo cải tiến\"},\n{\"id\":\"19.3\",\"phase\":\"production\",\"name\":\"Cải tiến prompt/retrieval theo feedback 6 tháng sau\",\"level\":2,\"type\":\"AI\",\"priority\":\"mid\",\"estimate_md\":10,\"depends_on\":[\"19.2\"],\"tags\":[\"prompt_tuning\"],\"deliverable\":\"Bản cập nhật prompt, báo cáo cải tiến\"},\n{\"id\":\"19.4\",\"phase\":\"production\",\"name\":\"Cập nhật bảng thuật ngữ và quy tắc chuẩn hóa\",\"level\":2,\"type\":\"DATA\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"11.2.3\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Bảng thuật ngữ, quy tắc cập nhật\"},\n{\"id\":\"19.5\",\"phase\":\"production\",\"name\":\"Xử lý dữ liệu tài liệu mới, OCR lỗi cần nhập lại\",\"level\":2,\"type\":\"DATA\",\"priority\":\"mid\",\"estimate_md\":8,\"depends_on\":[\"12.1.1\"],\"tags\":[\"data_prep\"],\"deliverable\":\"Chỉ mục được cập nhật\"},\n{\"id\":\"19.6\",\"phase\":\"production\",\"name\":\"Chỉnh sửa nhỏ backend\",\"level\":2,\"type\":\"BE\",\"priority\":\"mid\",\"estimate_md\":10,\"depends_on\":[\"14.2.5\"],\"deliverable\":\"Bản phát hành sửa lỗi\"},\n{\"id\":\"19.7\",\"phase\":\"production\",\"name\":\"Chỉnh sửa nhỏ frontend/Teams\",\"level\":2,\"type\":\"FE\",\"priority\":\"low\",\"estimate_md\":6,\"depends_on\":[\"14.2.5\"],\"deliverable\":\"Bản phát hành sửa lỗi\"},\n{\"id\":\"20\",\"phase\":\"production\",\"name\":\"Test và tài liệu vận hành\",\"level\":1},\n{\"id\":\"20.1\",\"phase\":\"production\",\"name\":\"Regression test trước mỗi lần phát hành\",\"level\":2,\"type\":\"QA\",\"priority\":\"high\",\"estimate_md\":10,\"depends_on\":[\"19.6\"],\"deliverable\":\"Kết quả regression test\"},\n{\"id\":\"20.2\",\"phase\":\"production\",\"name\":\"Test xác nhận sau bảo trì/cập nhật\",\"level\":2,\"type\":\"QA\",\"priority\":\"mid\",\"estimate_md\":6,\"depends_on\":[\"18.3\"],\"deliverable\":\"Checklist xác nhận\"},\n{\"id\":\"20.3\",\"phase\":\"production\",\"name\":\"Cập nhật tài liệu vận hành và hướng dẫn\",\"level\":2,\"type\":\"BA\",\"priority\":\"low\",\"estimate_md\":4,\"depends_on\":[\"15.1\"],\"tags\":[\"documentation\"],\"deliverable\":\"Tài liệu cập nhật\"},\n{\"id\":\"20.4\",\"phase\":\"production\",\"name\":\"Báo cáo tổng kết năm vận hành và đề xuất\",\"level\":2,\"type\":\"BA\",\"priority\":\"mid\",\"estimate_md\":4,\"depends_on\":[\"16.4\"],\"tags\":[\"documentation\"],\"deliverable\":\"Báo cáo tổng kết năm\"}\n],\n\"totals\":[],\n\"assumptions\":[\n\"PoC dùng CSV export 8.000 bản ghi sự cố, chưa tích hợp REST API MAINTE-PRO thời gian thực\",\n\"Khách cho phép dùng Azure OpenAI, AI Search, Document Intelligence tại Japan East; kiểu triển khai xác nhận ở q2\",\n\"Effort OCR đã dự phòng 20–30% cho ghi chú viết tay; nếu chất lượng kém sẽ nghiêng về mức trên khoảng ước tính\",\n\"Khách cử người phụ trách xác định bản mới nhất và cung cấp bộ 300 câu hỏi có đáp án\",\n\"Teams, đồng bộ SharePoint, nháp báo cáo và màn hình quản trị đầy đủ thuộc Phase 2\",\n\"Ghi báo cáo vào MAINTE-PRO chỉ thực hiện nếu API hỗ trợ ghi\",\n\"Đội offshore chỉ truy cập dữ liệu trong tenant khách, có log truy cập\"\n],\n\"out_of_scope\":[\n\"Ứng dụng mobile native iOS/Android (chỉ cung cấp Web responsive/PWA và Teams)\",\n\"Số hóa sách hướng dẫn bản giấy và migrate file server sang SharePoint Online\",\n\"Ghi dữ liệu vào MAINTE-PRO trong PoC và chỉnh sửa mã nguồn MAINTE-PRO\",\n\"Fine-tune LLM và mô hình ML dự đoán hỏng hóc\",\n\"Tư vấn pháp lý APPI/Nghị định 13/2023 và chi phí hạ tầng Azure\"\n]}\n```",
+  "output": null
+}
